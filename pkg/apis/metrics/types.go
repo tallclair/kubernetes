@@ -106,7 +106,7 @@ type ContainerSpec struct {
 }
 
 type CpuSpec struct {
-	// FIXME - unit (milli-cpus?)
+	// FIXME - unit (milli-cpus?) - yes
 	// Requested cpu shares. Default is 1024.
 	Limit uint64 `json:"limit,omitempty"`
 	// Requested cpu hard limit. Default is unlimited (0).
@@ -162,7 +162,7 @@ type Percentiles struct {
 	NinetyFive uint64 `json:"ninetyFive,omitempty"`
 }
 
-type TcpStats struct { // FIXME - units, are these counts? of what?
+type TcpStats struct { // FIXME - cummulative counts
 	Established uint64 `json:"established,omitempty"`
 	SynSent     uint64 `json:"synSent,omitempty"`
 	SynRecv     uint64 `json:"synRecv,omitempty"`
@@ -190,7 +190,7 @@ type InterfaceStats struct {
 	Name string `json:"name,omitempty"`
 	// Cumulative count of bytes received.
 	RxBytes uint64 `json:"rxBytes,omitempty"` // FIXME - does Rx,Tx fall under extremely common abbreviations?
-	// Cumulative count of packets received.  // FIXME - what does cumulative mean here?
+	// Cumulative count of packets received.  // FIXME - since container start
 	RxPackets uint64 `json:"rxPackets,omitempty"`
 	// Cumulative count of receive errors encountered.
 	RxErrors uint64 `json:"rxErrors,omitempty"`
@@ -215,7 +215,7 @@ type CpuInstStats struct {
 type CpuInstUsage struct {
 	// Total CPU usage.
 	// Units: nanocores per second
-	Total uint64 `json:"total,omitempty"` // FIXME - units? NanoCoresPerSecond?
+	Total uint64 `json:"total,omitempty"`
 
 	// Per CPU/core usage of the container.
 	// Unit: nanocores per second
@@ -236,7 +236,7 @@ type CpuUsage struct {
 	TotalNanoSeconds int64 `json:"total,omitempty"`
 
 	// Per CPU/core usage of the container.
-	PerCpu []uint64 `json:"perCpu,omitempty"` // FIXME - nanoseconds?
+	PerCpu []uint64 `json:"perCpu,omitempty"` // FIXME - nanoseconds? & cumulative
 
 	// Time spent in user space.
 	UserNanoseconds uint64 `json:"user,omitempty"`
@@ -257,6 +257,7 @@ type CpuStats struct {
 
 // FIXME - docs
 type PerDiskStats struct {
+	// Device identifiers
 	Major uint64            `json:"major,omitempty"`
 	Minor uint64            `json:"minor,omitempty"`
 	Stats map[string]uint64 `json:"stats,omitempty"`
@@ -265,7 +266,7 @@ type PerDiskStats struct {
 // FIXME - units
 type DiskIoStats struct {
 	IoServiceBytes []PerDiskStats `json:"ioServiceBytes,omitempty"`
-	IoServiced     []PerDiskStats `json:"ioServiced,omitempty"`
+	IoServiced     []PerDiskStats `json:"ioServiced,omitempty"` // cumulative number of IOs
 	IoQueued       []PerDiskStats `json:"ioQueued,omitempty"`
 	Sectors        []PerDiskStats `json:"sectors,omitempty"`
 	IoServiceTime  []PerDiskStats `json:"ioServiceTime,omitempty"`
@@ -278,11 +279,11 @@ type MemoryStats struct {
 	// Current memory usage, this includes all memory regardless of when it was
 	// accessed.
 	// Units: Bytes.
-	Usage uint64 `json:"usage,omitempty"`
+	Usage uint64 `json:"usage,omitempty"` // FIXME - TotalUsage
 
 	// The amount of working set memory, this includes recently accessed memory,
 	// dirty memory, and kernel memory. Working set is <= "usage".
-	WorkingSetBytes uint64 `json:"workingSetBytes,omitempty"`
+	WorkingSetBytes uint64 `json:"workingSetBytes,omitempty"` // FIXME - usage
 
 	FailCount uint64 `json:"failCount,omitempty"`
 
@@ -291,7 +292,7 @@ type MemoryStats struct {
 }
 
 type MemoryStatsMemoryData struct {
-	Pgfault    uint64 `json:"pgfault,omitempty"`    // FIXME - units?
+	Pgfault    uint64 `json:"pgfault,omitempty"`    // FIXME - cumulative counts
 	Pgmajfault uint64 `json:"pgmajfault,omitempty"` // FIXME - rename? What's this?
 }
 
@@ -326,7 +327,7 @@ type FsStats struct {
 	// Number of milliseconds spent reading
 	// This is the total number of milliseconds spent by all reads (as
 	// measured from __make_request() to end_that_request_last()).
-	ReadMilliSeconds uint64 `json:"readMilliSeconds,omitempty"` // FIXME - or Millis? (and below)
+	ReadTime uint64 `json:"readMilliSeconds,omitempty"` // FIXME - or Millis? (and below)
 
 	// Number of writes completed
 	// This is the total number of writes completed successfully.
