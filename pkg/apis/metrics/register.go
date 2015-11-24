@@ -41,12 +41,37 @@ func Resource(resource string) unversioned.GroupResource {
 
 // Adds the list of known types to api.Scheme.
 func addKnownTypes() {
-	// TODO this will get cleaned up with the scheme types are fixed
 	api.Scheme.AddKnownTypes(SchemeGroupVersion,
-		&RawNode{},
-		&RawPod{},
+		&MetricsMeta{},
+		&RawNodeMetrics{},
+		&RawNodeMetricsList{},
+		&RawPodMetrics{},
+		&RawPodMetricsList{},
+		&RawContainerMetrics{},
+		&NonLocalObjectReference{},
+		&Sample{},
+		&AggregateSample{},
+		&PodSample{},
+		&ContainerSample{},
+		&NetworkMetrics{},
+		&CPUMetrics{},
+		&MemoryMetrics{},
+		&RawMetricsOptions{},
 	)
 }
 
-func (*RawNode) IsAnAPIObject() {}
-func (*RawPod) IsAnAPIObject()  {}
+func (*MetricsMeta) IsAnAPIObject()             {}
+func (*RawNodeMetrics) IsAnAPIObject()          {}
+func (*RawNodeMetricsList) IsAnAPIObject()      {}
+func (*RawPodMetrics) IsAnAPIObject()           {}
+func (*RawPodMetricsList) IsAnAPIObject()       {}
+func (*RawContainerMetrics) IsAnAPIObject()     {}
+func (*NonLocalObjectReference) IsAnAPIObject() {}
+func (*Sample) IsAnAPIObject()                  {}
+func (*AggregateSample) IsAnAPIObject()         {}
+func (*PodSample) IsAnAPIObject()               {}
+func (*ContainerSample) IsAnAPIObject()         {}
+func (*NetworkMetrics) IsAnAPIObject()          {}
+func (*CPUMetrics) IsAnAPIObject()              {}
+func (*MemoryMetrics) IsAnAPIObject()           {}
+func (*RawMetricsOptions) IsAnAPIObject()       {}
