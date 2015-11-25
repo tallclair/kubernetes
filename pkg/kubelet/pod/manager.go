@@ -58,8 +58,9 @@ type Manager interface {
 	DeletePod(pod *api.Pod)
 
 	DeleteOrphanedMirrorPods()
+	GetMirrorPodUID(staticPodUID types.UID) (types.UID, bool)
+	GetStaticPodUID(mirrorPodUID types.UID) (types.UID, bool)
 	TranslatePodUID(uid types.UID) types.UID
-	GetUIDTranslations() (podToMirror, mirrorToPod map[types.UID]types.UID)
 	IsMirrorPodOf(mirrorPod, pod *api.Pod) bool
 	MirrorClient
 }
@@ -80,8 +81,10 @@ type basicManager struct {
 	podByFullName       map[string]*api.Pod
 	mirrorPodByFullName map[string]*api.Pod
 
-	// Mirror pod UID to pod UID map.
-	translationByUID map[types.UID]types.UID
+	// Mirror pod UID to static pod UID map.
+	mirrorToStaticUID map[types.UID]types.UID
+	// Static pod UID to mirror pod UID map.
+	staticToMirrorUID map[types.UID]types.UID
 
 	// A mirror pod client to create/delete mirror pods.
 	MirrorClient
@@ -103,7 +106,8 @@ func (pm *basicManager) SetPods(newPods []*api.Pod) {
 	pm.podByFullName = make(map[string]*api.Pod)
 	pm.mirrorPodByUID = make(map[types.UID]*api.Pod)
 	pm.mirrorPodByFullName = make(map[string]*api.Pod)
-	pm.translationByUID = make(map[types.UID]types.UID)
+	pm.mirrorToStaticUID = make(map[types.UID]types.UID)
+	pm.staticToMirrorUID = make(map[types.UID]types.UID)
 
 	pm.updatePodsInternal(newPods...)
 }
@@ -124,14 +128,16 @@ func (pm *basicManager) updatePodsInternal(pods ...*api.Pod) {
 		if IsMirrorPod(pod) {
 			pm.mirrorPodByUID[pod.UID] = pod
 			pm.mirrorPodByFullName[podFullName] = pod
-			if p, ok := pm.podByFullName[podFullName]; ok {
-				pm.translationByUID[pod.UID] = p.UID
+			if staticPod, ok := pm.podByFullName[podFullName]; ok {
+				pm.mirrorToStaticUID[pod.UID] = staticPod.UID
+				pm.staticToMirrorUID[staticPod.UID] = pod.UID
 			}
 		} else {
 			pm.podByUID[pod.UID] = pod
 			pm.podByFullName[podFullName] = pod
-			if mirror, ok := pm.mirrorPodByFullName[podFullName]; ok {
-				pm.translationByUID[mirror.UID] = pod.UID
+			if mirrorPod, ok := pm.mirrorPodByFullName[podFullName]; ok {
+				pm.staticToMirrorUID[pod.UID] = mirrorPod.UID
+				pm.mirrorToStaticUID[mirrorPod.UID] = pod.UID
 			}
 		}
 	}
@@ -144,10 +150,17 @@ func (pm *basicManager) DeletePod(pod *api.Pod) {
 	if IsMirrorPod(pod) {
 		delete(pm.mirrorPodByUID, pod.UID)
 		delete(pm.mirrorPodByFullName, podFullName)
-		delete(pm.translationByUID, pod.UID)
+		if staticPodUID, ok := pm.mirrorToStaticUID[pod.UID]; ok {
+			delete(pm.mirrorToStaticUID, pod.UID)
+			delete(pm.staticToMirrorUID, staticPodUID)
+		}
 	} else {
 		delete(pm.podByUID, pod.UID)
 		delete(pm.podByFullName, podFullName)
+		if mirrorPodUID, ok := pm.staticToMirrorUID[pod.UID]; ok {
+			delete(pm.staticToMirrorUID, pod.UID)
+			delete(pm.mirrorToStaticUID, mirrorPodUID)
+		}
 	}
 }
 
@@ -198,6 +211,24 @@ func (pm *basicManager) GetPodByFullName(podFullName string) (*api.Pod, bool) {
 }
 
 // If the UID belongs to a mirror pod, maps it to the UID of its static pod.
+// Also returns whether there was a mapping.
+func (pm *basicManager) GetStaticPodUID(mirrorPodUID types.UID) (types.UID, bool) {
+	pm.lock.RLock()
+	defer pm.lock.RUnlock()
+	staticPodUID, ok := pm.mirrorToStaticUID[mirrorPodUID]
+	return staticPodUID, ok
+}
+
+// If the UID belongs to a static pod, maps it to the UID of its mirror pod.
+// Also returns whether there was a mapping.
+func (pm *basicManager) GetMirrorPodUID(staticPodUID types.UID) (types.UID, bool) {
+	pm.lock.RLock()
+	defer pm.lock.RUnlock()
+	mirrorPodUID, ok := pm.staticToMirrorUID[staticPodUID]
+	return mirrorPodUID, ok
+}
+
+// If the UID belongs to a mirror pod, maps it to the UID of its static pod.
 // Otherwise, return the original UID. All public-facing functions should
 // perform this translation for UIDs because user may provide a mirror pod UID,
 // which is not recognized by internal Kubelet functions.
@@ -206,25 +237,10 @@ func (pm *basicManager) TranslatePodUID(uid types.UID) types.UID {
 		return uid
 	}
 
-	pm.lock.RLock()
-	defer pm.lock.RUnlock()
-	if translated, ok := pm.translationByUID[uid]; ok {
-		return translated
+	if staticPodUID, ok := pm.GetStaticPodUID(uid); ok {
+		return staticPodUID
 	}
 	return uid
-}
-
-func (pm *basicManager) GetUIDTranslations() (podToMirror, mirrorToPod map[types.UID]types.UID) {
-	pm.lock.RLock()
-	defer pm.lock.RUnlock()
-
-	podToMirror = make(map[types.UID]types.UID, len(pm.translationByUID))
-	mirrorToPod = make(map[types.UID]types.UID, len(pm.translationByUID))
-	for k, v := range pm.translationByUID {
-		mirrorToPod[k] = v
-		podToMirror[v] = k
-	}
-	return podToMirror, mirrorToPod
 }
 
 func (pm *basicManager) getOrphanedMirrorPodNames() []string {
