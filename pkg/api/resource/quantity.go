@@ -409,11 +409,70 @@ func (q *Quantity) MilliValue() int64 {
 // ScaledValue returns the value of ceil(q * 10^scale); this could overflow an int64.
 // To detect overflow, call Value() first and verify the expected magnitude.
 func (q *Quantity) ScaledValue(scale Scale) int64 {
+	// if q.Amount == nil {
+	// 	return 0
+	// }
+	// if q.Amount.Scale() == scale.infScale() {
+	// 	return q.Amount.UnscaledBig().Int64()
+	// }
+	// tmp := &inf.Dec{}
+	// return tmp.Round(q.Amount, scale.infScale(), inf.RoundUp).UnscaledBig().Int64()
+	return q.ScaledValueFast(scale)
+}
+
+// FIXME
+func (q *Quantity) ScaledValueFast(scale Scale) int64 {
 	if q.Amount == nil {
 		return 0
 	}
-	tmp := &inf.Dec{}
-	return tmp.Round(q.Amount, scale.infScale(), inf.RoundUp).UnscaledBig().Int64()
+	switch {
+	case q.Amount.Scale() == scale.infScale():
+		return q.Amount.UnscaledBig().Int64()
+	case q.Amount.Scale() < scale.infScale():
+		return q.Amount.UnscaledBig().Int64() * pow10(scale.infScale()-q.Amount.Scale())
+	case q.Amount.Scale() > scale.infScale():
+		// unscaled := q.Amount.UnscaledBig()
+		// pow := bigPow10(q.Amount.Scale() - scale.infScale())
+		// scaled, modulus := &big.Int{}, &big.Int{}
+		// scaled.DivMod(unscaled, pow, modulus)
+		// res := scaled.Int64()
+		// if modulus.Cmp(&big.Int{}) > 0 {
+		// 	return res + 1
+		// }
+		// return res
+		unscaled := q.Amount.UnscaledBig()
+		pow := bigPow10(q.Amount.Scale() - scale.infScale())
+		before := q.Copy()
+		res := (*unscaled).Div(unscaled, pow).Int64()
+		if before.Cmp(*q) != 0 {
+			panic(fmt.Sprintf("Result changed! Before: %v  After: %v", before, q))
+		}
+		return res
+	default:
+		panic("Unreachable")
+	}
+}
+
+var pow10tab [20]int64
+var big10tab [20]*big.Int
+
+func init() {
+	pow10tab[0] = 1
+	big10tab[0] = big.NewInt(1)
+	big10 := big.NewInt(10)
+	for i := 1; i < len(pow10tab); i++ {
+		pow10tab[i] = pow10tab[i-1] * 10
+		big10tab[i] = &big.Int{}
+		big10tab[i].Mul(big10tab[i-1], big10)
+	}
+}
+
+func pow10(scale inf.Scale) int64 {
+	return pow10tab[scale] // FIXME - overflow
+}
+
+func bigPow10(scale inf.Scale) *big.Int {
+	return big10tab[scale] // FIXME - overflow
 }
 
 // Set sets q's value to be value.

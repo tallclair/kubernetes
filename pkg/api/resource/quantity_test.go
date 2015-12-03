@@ -19,8 +19,11 @@ package resource
 import (
 	//"reflect"
 	"encoding/json"
+	"fmt"
+	"math/big"
 	"testing"
 
+	"github.com/golang/glog"
 	fuzz "github.com/google/gofuzz"
 	"github.com/spf13/pflag"
 	"speter.net/go/exp/math/dec/inf"
@@ -642,5 +645,54 @@ func TestQFlagIsPFlag(t *testing.T) {
 	var pfv pflag.Value = qFlag{}
 	if e, a := "quantity", pfv.Type(); e != a {
 		t.Errorf("Unexpected result %v != %v", e, a)
+	}
+}
+
+func BenchmarkValue(b *testing.B) {
+	bigMilliQuantity := NewQuantity(MaxMilliValue, DecimalSI)
+	bigMilliQuantity.Add(MustParse("12345m"))
+	for n := 0; n < b.N; n++ {
+		bigMilliQuantity.Value()
+	}
+}
+
+func BenchmarkMilliValue(b *testing.B) {
+	bigMilliQuantity := NewQuantity(MaxMilliValue, DecimalSI)
+	bigMilliQuantity.Add(MustParse("12345m"))
+	result := int64(0)
+	for n := 0; n < b.N; n++ {
+		result += bigMilliQuantity.MilliValue()
+	}
+	glog.V(4).Infof("%d", result)
+}
+
+func BenchmarkScaledValue(b *testing.B) {
+	big := NewQuantity(MaxMilliValue, DecimalSI)
+	big.Add(MustParse("123456789n"))
+	for n := 0; n < b.N; n++ {
+		big.ScaledValue(Nano)
+		big.ScaledValue(Micro)
+		big.ScaledValue(Milli)
+		big.ScaledValue(0)
+	}
+}
+
+func BenchmarkScaledValueFast(b *testing.B) {
+	big := NewQuantity(MaxMilliValue, DecimalSI)
+	big.Add(MustParse("123456789n"))
+	for n := 0; n < b.N; n++ {
+		big.ScaledValueFast(Nano)
+		big.ScaledValueFast(Micro)
+		big.ScaledValueFast(Milli)
+		big.ScaledValueFast(0)
+	}
+}
+
+func TestBits(t *testing.T) {
+	b := big.NewInt(1<<63 - 1)
+	b.Add(b, b)
+	b.Add(b, b)
+	for i := 0; i < len(b.Bits()); i++ {
+		fmt.Printf("b[%d] = %d\n", i, b.Bits()[i])
 	}
 }
