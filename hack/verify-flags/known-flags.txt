@@ -159,6 +159,7 @@ kubelet-root-dir
 kubelet-sync-frequency
 kubelet-timeout
 kube-master
+kube-reserved
 kubernetes-service-node-port
 k8s-build-output
 label-columns
@@ -311,6 +312,7 @@ streaming-connection-idle-timeout
 suicide-timeout
 sync-frequency
 system-container
+system-reserved
 target-port
 tcp-services
 terminated-pod-gc-threshold

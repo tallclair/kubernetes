@@ -69,6 +69,9 @@ func init() {
 
 const testKubeletHostname = "127.0.0.1"
 
+const testReservationCPU = "200m"
+const testReservationMemory = "100M"
+
 type fakeHTTP struct {
 	url string
 	err error
@@ -148,6 +151,12 @@ func newTestKubelet(t *testing.T) *TestKubelet {
 	kubelet.backOff.Clock = fakeClock
 	kubelet.podKillingCh = make(chan *kubecontainer.Pod, 20)
 	kubelet.resyncInterval = 10 * time.Second
+	kubelet.reservation = kubetypes.Reservation{
+		Kubernetes: api.ResourceList{
+			api.ResourceCPU:    resource.MustParse(testReservationCPU),
+			api.ResourceMemory: resource.MustParse(testReservationMemory),
+		},
+	}
 	kubelet.workQueue = queue.NewBasicWorkQueue()
 	// Relist period does not affect the tests.
 	kubelet.pleg = pleg.NewGenericPLEG(fakeRuntime, 100, time.Hour)
@@ -2437,7 +2446,7 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 		SystemUUID:     "abc",
 		BootID:         "1b3",
 		NumCores:       2,
-		MemoryCapacity: 1024,
+		MemoryCapacity: 10E9, // 10G
 	}
 	mockCadvisor := testKubelet.fakeCadvisor
 	mockCadvisor.On("Start").Return(nil)
@@ -2499,7 +2508,12 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 			},
 			Capacity: api.ResourceList{
 				api.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				api.ResourceMemory: *resource.NewQuantity(1024, resource.BinarySI),
+				api.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+				api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
+			},
+			Allocatable: api.ResourceList{
+				api.ResourceCPU:    *resource.NewMilliQuantity(1800, resource.DecimalSI),
+				api.ResourceMemory: *resource.NewQuantity(9900E6, resource.BinarySI),
 				api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Addresses: []api.NodeAddress{
@@ -2540,7 +2554,7 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 		t.Errorf("unexpected node condition order. NodeReady should be last.")
 	}
 
-	if !reflect.DeepEqual(expectedNode, updatedNode) {
+	if !api.Semantic.DeepEqual(expectedNode, updatedNode) {
 		t.Errorf("unexpected objects: %s", util.ObjectDiff(expectedNode, updatedNode))
 	}
 }
@@ -2718,7 +2732,12 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 				},
 				Capacity: api.ResourceList{
 					api.ResourceCPU:    *resource.NewMilliQuantity(3000, resource.DecimalSI),
-					api.ResourceMemory: *resource.NewQuantity(2048, resource.BinarySI),
+					api.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+					api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
+				},
+				Allocatable: api.ResourceList{
+					api.ResourceCPU:    *resource.NewMilliQuantity(2800, resource.DecimalSI),
+					api.ResourceMemory: *resource.NewQuantity(19900E6, resource.BinarySI),
 					api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 				},
 			},
@@ -2731,7 +2750,7 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 		SystemUUID:     "abc",
 		BootID:         "1b3",
 		NumCores:       2,
-		MemoryCapacity: 1024,
+		MemoryCapacity: 20E9,
 	}
 	mockCadvisor.On("MachineInfo").Return(machineInfo, nil)
 	versionInfo := &cadvisorapi.VersionInfo{
@@ -2790,7 +2809,12 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 			},
 			Capacity: api.ResourceList{
 				api.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				api.ResourceMemory: *resource.NewQuantity(1024, resource.BinarySI),
+				api.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+				api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
+			},
+			Allocatable: api.ResourceList{
+				api.ResourceCPU:    *resource.NewMilliQuantity(1800, resource.DecimalSI),
+				api.ResourceMemory: *resource.NewQuantity(19900E6, resource.BinarySI),
 				api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Addresses: []api.NodeAddress{
@@ -2833,7 +2857,7 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 		t.Errorf("unexpected node condition order. NodeReady should be last.")
 	}
 
-	if !reflect.DeepEqual(expectedNode, updatedNode) {
+	if !api.Semantic.DeepEqual(expectedNode, updatedNode) {
 		t.Errorf("expected \n%v\n, got \n%v", expectedNode, updatedNode)
 	}
 }
@@ -2857,7 +2881,7 @@ func TestUpdateNodeStatusWithoutContainerRuntime(t *testing.T) {
 		SystemUUID:     "abc",
 		BootID:         "1b3",
 		NumCores:       2,
-		MemoryCapacity: 1024,
+		MemoryCapacity: 10E9,
 	}
 	mockCadvisor.On("MachineInfo").Return(machineInfo, nil)
 	versionInfo := &cadvisorapi.VersionInfo{
@@ -2917,7 +2941,12 @@ func TestUpdateNodeStatusWithoutContainerRuntime(t *testing.T) {
 			},
 			Capacity: api.ResourceList{
 				api.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				api.ResourceMemory: *resource.NewQuantity(1024, resource.BinarySI),
+				api.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+				api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
+			},
+			Allocatable: api.ResourceList{
+				api.ResourceCPU:    *resource.NewMilliQuantity(1800, resource.DecimalSI),
+				api.ResourceMemory: *resource.NewQuantity(9900E6, resource.BinarySI),
 				api.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Addresses: []api.NodeAddress{
@@ -2959,7 +2988,7 @@ func TestUpdateNodeStatusWithoutContainerRuntime(t *testing.T) {
 		t.Errorf("unexpected node condition order. NodeReady should be last.")
 	}
 
-	if !reflect.DeepEqual(expectedNode, updatedNode) {
+	if !api.Semantic.DeepEqual(expectedNode, updatedNode) {
 		t.Errorf("unexpected objects: %s", util.ObjectDiff(expectedNode, updatedNode))
 	}
 }
@@ -4176,5 +4205,63 @@ func TestGetPodsToSync(t *testing.T) {
 
 	} else {
 		t.Errorf("expected %d pods to sync, got %d", 3, len(podsToSync))
+	}
+}
+
+func TestSetDefaultReservation(t *testing.T) {
+	capacity := api.ResourceList{
+		api.ResourceCPU:    resource.MustParse("2"),
+		api.ResourceMemory: resource.MustParse("10Gi"),
+		api.ResourcePods:   resource.MustParse("50"),
+	}
+	defaultCPU := resource.MustParse("200m")
+	defaultMem := resource.MustParse("100M")
+	customCPU := resource.MustParse("100m")
+	customMem := resource.MustParse("250M")
+
+	type resources struct {
+		cpu *resource.Quantity
+		mem *resource.Quantity
+	}
+	toResourceList := func(r resources) api.ResourceList {
+		rl := make(api.ResourceList)
+		if r.cpu != nil {
+			rl[api.ResourceCPU] = *r.cpu
+		}
+		if r.mem != nil {
+			rl[api.ResourceMemory] = *r.mem
+		}
+		return rl
+	}
+	tests := []struct {
+		reservation resources
+		expected    resources
+	}{{
+		reservation: resources{&customCPU, &customMem},
+		expected:    resources{&customCPU, &customMem},
+	}, {
+		reservation: resources{&customCPU, nil},
+		expected:    resources{&customCPU, &defaultMem},
+	}, {
+		reservation: resources{nil, &customMem},
+		expected:    resources{&defaultCPU, &customMem},
+	}, {
+		reservation: resources{nil, nil},
+		expected:    resources{&defaultCPU, &defaultMem},
+	}}
+	for i, test := range tests {
+		reservation := kubetypes.Reservation{
+			Kubernetes: toResourceList(test.reservation),
+		}
+		setDefaultReservation(&reservation, capacity)
+
+		actualCPU := reservation.Kubernetes[api.ResourceCPU]
+		if test.expected.cpu.Cmp(actualCPU) != 0 {
+			t.Errorf("[%d] Expected CPU %q, got %q", i, test.expected.cpu.String(), actualCPU.String())
+		}
+		actualMem := reservation.Kubernetes[api.ResourceMemory]
+		if test.expected.mem.Cmp(actualMem) != 0 {
+			t.Errorf("[%d] Expected memory %q, got %q", i, test.expected.mem.String(), actualMem.String())
+		}
 	}
 }

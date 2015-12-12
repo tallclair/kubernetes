@@ -215,6 +215,7 @@ func NewMainKubelet(
 	serializeImagePulls bool,
 	containerManager cm.ContainerManager,
 	flannelExperimentalOverlay bool,
+	reservation kubetypes.Reservation,
 ) (*Kubelet, error) {
 
 	if rootDirectory == "" {
@@ -331,6 +332,7 @@ func NewMainKubelet(
 		containerManager:               containerManager,
 		flannelExperimentalOverlay:     flannelExperimentalOverlay,
 		flannelHelper:                  NewFlannelHelper(),
+		reservation:                    reservation,
 	}
 	if klet.flannelExperimentalOverlay {
 		glog.Infof("Flannel is in charge of podCIDR and overlay networking.")
@@ -353,6 +355,7 @@ func NewMainKubelet(
 	if err != nil {
 		return nil, err
 	}
+	setDefaultReservation(&klet.reservation, klet.getMachineCapacity())
 
 	procFs := procfs.NewProcFS()
 	imageBackOff := util.NewBackOff(backOffPeriod, MaxContainerBackOff)
@@ -669,6 +672,10 @@ type Kubelet struct {
 	// on the fly if we're confident the dbus connetions it opens doesn't
 	// put the system under duress.
 	flannelHelper *FlannelHelper
+
+	// reservation specifies resources which are reserved for non-pod usage, including kubernetes and
+	// non-kubernetes system processes.
+	reservation kubetypes.Reservation
 }
 
 func (kl *Kubelet) allSourcesReady() bool {
@@ -2188,13 +2195,13 @@ func hasHostPortConflicts(pods []*api.Pod) bool {
 // TODO: Consider integrate disk space into this function, and returns a
 // suitable reason and message per resource type.
 func (kl *Kubelet) hasInsufficientfFreeResources(pods []*api.Pod) (bool, bool) {
-	info, err := kl.GetCachedMachineInfo()
+	_, err := kl.GetCachedMachineInfo()
 	if err != nil {
 		glog.Errorf("error getting machine info: %v", err)
 		// TODO: Should we admit the pod when machine info is unavailable?
 		return false, false
 	}
-	capacity := cadvisor.CapacityFromMachineInfo(info)
+	capacity := kl.getMachineCapacity()
 	_, notFittingCPU, notFittingMemory := predicates.CheckPodsExceedingFreeResources(pods, capacity)
 	return len(notFittingCPU) > 0, len(notFittingMemory) > 0
 }
@@ -2741,21 +2748,9 @@ func (kl *Kubelet) setNodeStatusMachineInfo(node *api.Node) {
 	// TODO: Post NotReady if we cannot get MachineInfo from cAdvisor. This needs to start
 	// cAdvisor locally, e.g. for test-cmd.sh, and in integration test.
 	info, err := kl.GetCachedMachineInfo()
-	if err != nil {
-		// TODO(roberthbailey): This is required for test-cmd.sh to pass.
-		// See if the test should be updated instead.
-		node.Status.Capacity = api.ResourceList{
-			api.ResourceCPU:    *resource.NewMilliQuantity(0, resource.DecimalSI),
-			api.ResourceMemory: resource.MustParse("0Gi"),
-			api.ResourcePods:   *resource.NewQuantity(int64(kl.maxPods), resource.DecimalSI),
-		}
-		glog.Errorf("Error getting machine info: %v", err)
-	} else {
+	if err == nil {
 		node.Status.NodeInfo.MachineID = info.MachineID
 		node.Status.NodeInfo.SystemUUID = info.SystemUUID
-		node.Status.Capacity = cadvisor.CapacityFromMachineInfo(info)
-		node.Status.Capacity[api.ResourcePods] = *resource.NewQuantity(
-			int64(kl.maxPods), resource.DecimalSI)
 		if node.Status.NodeInfo.BootID != "" &&
 			node.Status.NodeInfo.BootID != info.BootID {
 			// TODO: This requires a transaction, either both node status is updated
@@ -2764,6 +2759,24 @@ func (kl *Kubelet) setNodeStatusMachineInfo(node *api.Node) {
 				"Node %s has been rebooted, boot id: %s", kl.nodeName, info.BootID)
 		}
 		node.Status.NodeInfo.BootID = info.BootID
+	}
+	node.Status.Capacity = kl.getMachineCapacity()
+
+	// Set Allocatable.
+	node.Status.Allocatable = make(api.ResourceList)
+	for k, v := range node.Status.Capacity {
+		value := *(v.Copy())
+		if kl.reservation.System != nil {
+			value.Sub(kl.reservation.System[k])
+		}
+		if kl.reservation.Kubernetes != nil {
+			value.Sub(kl.reservation.Kubernetes[k])
+		}
+		if value.Amount != nil && value.Amount.Sign() < 0 {
+			// Negative Allocatable resources don't make sense.
+			value.Set(0)
+		}
+		node.Status.Allocatable[k] = value
 	}
 }
 
@@ -3267,6 +3280,26 @@ func (kl *Kubelet) GetCachedMachineInfo() (*cadvisorapi.MachineInfo, error) {
 	return kl.machineInfo, nil
 }
 
+// getMachineCapacity returns the machine (node) resources capacity.
+func (kl *Kubelet) getMachineCapacity() api.ResourceList {
+	var capacity api.ResourceList
+	info, err := kl.GetCachedMachineInfo()
+	if err != nil {
+		// TODO(roberthbailey): This is required for test-cmd.sh to pass.
+		// See if the test should be updated instead.
+		capacity = api.ResourceList{
+			api.ResourceCPU:    *resource.NewMilliQuantity(0, resource.DecimalSI),
+			api.ResourceMemory: resource.MustParse("0Gi"),
+		}
+		glog.Errorf("Error getting machine info: %v", err)
+	} else {
+		capacity = cadvisor.CapacityFromMachineInfo(info)
+	}
+	capacity[api.ResourcePods] = *resource.NewQuantity(
+		int64(kl.maxPods), resource.DecimalSI)
+	return capacity
+}
+
 func (kl *Kubelet) ListenAndServe(address net.IP, port uint, tlsOptions *TLSOptions, auth AuthInterface, enableDebuggingHandlers bool) {
 	ListenAndServeKubeletServer(kl, address, port, tlsOptions, auth, enableDebuggingHandlers)
 }
@@ -3314,4 +3347,36 @@ func extractBandwidthResources(pod *api.Pod) (ingress, egress *resource.Quantity
 		}
 	}
 	return ingress, egress, nil
+}
+
+// setDefaultReservation sets the default Kubernetes reservation based on heuristics and machine
+// capacity.
+func setDefaultReservation(reservation *kubetypes.Reservation, capacity api.ResourceList) {
+	// TODO: Tune these parameters.
+	const (
+		// Constant CPU overhead for kubernetes components, in milli-cores.
+		cpuOverhead = 200
+		// Per-pod CPU overhead for kubernetes components, in milli-cores.
+		cpuPerPod = 0
+		// Constant memory overhead for kubernetes components, in bytes.
+		memoryOverhead = 100E6
+		// Per-pod memory overhead for kubernetes components, in bytes.
+		memoryPerPod = 0
+	)
+	maxPodsResource := capacity[api.ResourcePods]
+	maxPods := maxPodsResource.Value()
+
+	if reservation.Kubernetes == nil {
+		reservation.Kubernetes = make(api.ResourceList)
+	}
+	// Set default CPU reservation, if it's not set.
+	if _, ok := reservation.Kubernetes[api.ResourceCPU]; !ok {
+		cpu := cpuOverhead + maxPods*cpuPerPod
+		reservation.Kubernetes[api.ResourceCPU] = *resource.NewMilliQuantity(cpu, resource.DecimalSI)
+	}
+	// Set default memory reservation, if it's not set.
+	if _, ok := reservation.Kubernetes[api.ResourceMemory]; !ok {
+		memory := memoryOverhead + maxPods*memoryPerPod
+		reservation.Kubernetes[api.ResourceMemory] = *resource.NewQuantity(memory, resource.DecimalSI)
+	}
 }

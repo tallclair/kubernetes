@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/api/resource"
 	"k8s.io/kubernetes/pkg/capabilities"
 	"k8s.io/kubernetes/pkg/client/chaosclient"
 	"k8s.io/kubernetes/pkg/client/record"
@@ -141,6 +142,8 @@ type KubeletServer struct {
 	TLSCertFile                    string
 	TLSPrivateKeyFile              string
 	ReconcileCIDR                  bool
+	SystemReserved                 util.ConfigurationMap
+	KubeReserved                   util.ConfigurationMap
 
 	// Flags intended for testing
 	// Is the kubelet containerized?
@@ -230,6 +233,8 @@ func NewKubeletServer() *KubeletServer {
 		KubeAPIQPS:                     5.0,
 		KubeAPIBurst:                   10,
 		ExperimentalFlannelOverlay:     experimentalFlannelOverlay,
+		SystemReserved:                 make(util.ConfigurationMap),
+		KubeReserved:                   make(util.ConfigurationMap),
 	}
 }
 
@@ -345,6 +350,8 @@ func (s *KubeletServer) AddFlags(fs *pflag.FlagSet) {
 	fs.IntVar(&s.KubeAPIBurst, "kube-api-burst", s.KubeAPIBurst, "Burst to use while talking with kubernetes apiserver")
 	fs.BoolVar(&s.SerializeImagePulls, "serialize-image-pulls", s.SerializeImagePulls, "Pull images one at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Aufs storage backend. Issue #10959 has more details. [default=true]")
 	fs.BoolVar(&s.ExperimentalFlannelOverlay, "experimental-flannel-overlay", s.ExperimentalFlannelOverlay, "Experimental support for starting the kubelet with the default overlay network (flannel). Assumes flanneld is already running in client mode. [default=false]")
+	fs.Var(&s.SystemReserved, "system-reserved", "A set of ResourceName=ResourceQuantity pairs that describe resources reserved for non-kubernetes components. Currently only cpu and memory are supported. (Default: no reservation).")
+	fs.Var(&s.KubeReserved, "kube-reserved", "A set of ResourceName=ResourceQuantity pairs that describe resources reserved for kubernetes system components. Currently only cpu and memory are supported. (Default: heuristically predicted values based on machine capacity).")
 }
 
 // UnsecuredKubeletConfig returns a KubeletConfig suitable for being run, or an error if the server setup
@@ -411,6 +418,11 @@ func (s *KubeletServer) UnsecuredKubeletConfig() (*KubeletConfig, error) {
 		manifestURLHeader.Set(pieces[0], pieces[1])
 	}
 
+	reservation, err := parseReservation(s.KubeReserved, s.SystemReserved)
+	if err != nil {
+		return nil, err
+	}
+
 	return &KubeletConfig{
 		Address:                   s.Address,
 		AllowPrivileged:           s.AllowPrivileged,
@@ -469,6 +481,7 @@ func (s *KubeletServer) UnsecuredKubeletConfig() (*KubeletConfig, error) {
 		RegistryBurst:                  s.RegistryBurst,
 		RegistryPullQPS:                s.RegistryPullQPS,
 		ResolverConfig:                 s.ResolverConfig,
+		Reservation:                    *reservation,
 		ResourceContainer:              s.ResourceContainer,
 		RktPath:                        s.RktPath,
 		RktStage1Image:                 s.RktStage1Image,
@@ -944,6 +957,7 @@ type KubeletConfig struct {
 	RegisterSchedulable            bool
 	RegistryBurst                  int
 	RegistryPullQPS                float64
+	Reservation                    kubetypes.Reservation
 	ResolverConfig                 string
 	ResourceContainer              string
 	RktPath                        string
@@ -1043,6 +1057,7 @@ func CreateAndInitKubelet(kc *KubeletConfig) (k KubeletBootstrap, pc *config.Pod
 		kc.SerializeImagePulls,
 		kc.ContainerManager,
 		kc.ExperimentalFlannelOverlay,
+		kc.Reservation,
 	)
 
 	if err != nil {
@@ -1054,4 +1069,37 @@ func CreateAndInitKubelet(kc *KubeletConfig) (k KubeletBootstrap, pc *config.Pod
 	k.StartGarbageCollection()
 
 	return k, pc, nil
+}
+
+func parseReservation(kubeReserved, systemReserved util.ConfigurationMap) (*kubetypes.Reservation, error) {
+	reservation := new(kubetypes.Reservation)
+	if rl, err := parseResourceList(kubeReserved); err != nil {
+		return nil, err
+	} else {
+		reservation.Kubernetes = rl
+	}
+	if rl, err := parseResourceList(systemReserved); err != nil {
+		return nil, err
+	} else {
+		reservation.System = rl
+	}
+	return reservation, nil
+}
+
+func parseResourceList(m util.ConfigurationMap) (api.ResourceList, error) {
+	rl := make(api.ResourceList)
+	for k, v := range m {
+		switch api.ResourceName(k) {
+		// Only CPU and memory resources are supported.
+		case api.ResourceCPU, api.ResourceMemory:
+			q, err := resource.ParseQuantity(v)
+			if err != nil {
+				return nil, err
+			}
+			rl[api.ResourceName(k)] = *q
+		default:
+			return nil, fmt.Errorf("cannot reserve %q resource", k)
+		}
+	}
+	return rl, nil
 }
