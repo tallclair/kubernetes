@@ -13294,7 +13294,7 @@
     "properties": {
      "capacity": {
       "type": "any",
-      "description": "Capacity represents the total resources of a node. More info: http://releases.k8s.io/HEAD/docs/user-guide/persistent-volumes.md#capacity for more details."
+      "description": "Capacity represents the total resources of a node."
      },
      "allocatable": {
       "type": "any",
