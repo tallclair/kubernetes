@@ -29,14 +29,12 @@ import (
 	"k8s.io/kubernetes/cmd/kubelet/app/options"
 	"k8s.io/kubernetes/pkg/util"
 	"k8s.io/kubernetes/pkg/version/verflag"
-
-	"github.com/spf13/pflag"
 )
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	s := options.NewKubeletServer()
-	s.AddFlags(pflag.CommandLine)
+	//	s.AddFlags(pflag.CommandLine)
 
 	util.InitFlags()
 	util.InitLogs()
