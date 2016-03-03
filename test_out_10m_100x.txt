@@ -1,0 +1,1502 @@
+2016/03/03 00:41:00 e2e.go:195: Running: get status
+Your active configuration is: [default]
+
+Project: stclair-k8s-ext
+Zone: us-central1-b
+Client Version: version.Info{Major:"1", Minor:"2+", GitVersion:"v1.2.0-alpha.8.878+3d822eac3eb488-dirty", GitCommit:"3d822eac3eb4884a85729a66541924662dc549af", GitTreeState:"dirty"}
+Server Version: version.Info{Major:"1", Minor:"2+", GitVersion:"v1.2.0-alpha.8.532+2dd4f69e437e98", GitCommit:"2dd4f69e437e981e9b0f6ca9685583b4e702b967", GitTreeState:"clean"}
+2016/03/03 00:41:02 e2e.go:197: Step 'get status' finished in 1.398731243s
+Your active configuration is: [default]
+
+Project: stclair-k8s-ext
+Zone: us-central1-b
+2016/03/03 00:41:03 e2e.go:195: Running: Ginkgo tests
+Setting up for KUBERNETES_PROVIDER="gce".
+Your active configuration is: [default]
+
+Project: stclair-k8s-ext
+Zone: us-central1-b
+Mar  3 00:41:07.071: INFO: Fetching cloud provider for "gce"
+
+I0303 00:41:07.071925   29400 gce.go:282] Using DefaultTokenSource &oauth2.reuseTokenSource{new:(*oauth2.tokenRefresher)(0xc820237a70), mu:sync.Mutex{state:0, sema:0x0}, t:(*oauth2.Token)(0xc8203f9680)}
+I0303 00:41:07.628703   29400 e2e.go:288] Starting e2e run "ab9de565-e11b-11e5-8727-7446a0c373f1" on Ginkgo node 1
+Running Suite: Kubernetes e2e suite
+===================================
+Random Seed: [1m1456994466[0m - Will randomize all specs
+Will run [1m2[0m of [1m246[0m specs
+
+Mar  3 00:41:07.654: INFO: >>> testContext.KubeConfig: /usr/local/google/home/stclair/.kube/config
+
+Mar  3 00:41:07.662: INFO: Waiting up to 10m0s for all pods (need at least 0) in namespace 'kube-system' to be running and ready
+Mar  3 00:41:07.940: INFO: 14 / 14 pods in namespace 'kube-system' are running and ready (0 seconds elapsed)
+Mar  3 00:41:07.940: INFO: expected 8 pod replicas in namespace 'kube-system', 8 are Running and Ready.
+[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m
+[90m------------------------------[0m
+[0mDensity[0m 
+  [1m[Feature:Performance] should allow starting 30 pods per node[0m
+  [37m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:531[0m
+[BeforeEach] Density
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/framework.go:100
+[1mSTEP[0m: Creating a kubernetes client
+Mar  3 00:41:07.940: INFO: >>> testContext.KubeConfig: /usr/local/google/home/stclair/.kube/config
+
+[1mSTEP[0m: Building a namespace api object
+Mar  3 00:41:07.988: INFO: Waiting up to 2m0s for service account default to be provisioned in ns e2e-tests-density-hhmie
+Mar  3 00:41:08.027: INFO: Service account default in ns e2e-tests-density-hhmie with secrets found. (39.184443ms)
+[1mSTEP[0m: Waiting for a default service account to be provisioned in namespace
+Mar  3 00:41:08.027: INFO: Waiting up to 2m0s for service account default to be provisioned in ns e2e-tests-density-hhmie
+Mar  3 00:41:08.068: INFO: Service account default in ns e2e-tests-density-hhmie with secrets found. (40.176351ms)
+[BeforeEach] Density
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:187
+Mar  3 00:41:08.246: INFO: Waiting for terminating namespaces to be deleted...
+Mar  3 00:41:08.320: INFO: Resetting latency metrics in apiserver...
+Mar  3 00:41:08.741: INFO: Listing nodes for easy debugging:
+
+Mar  3 00:41:08.741: INFO: Name: e2e-test-stclair-minion-4yju, clusterIP: 10.240.0.5, externalIP: 130.211.121.224
+Mar  3 00:41:08.741: INFO: Name: e2e-test-stclair-minion-gilj, clusterIP: 10.240.0.3, externalIP: 104.197.77.217
+Mar  3 00:41:08.741: INFO: Name: e2e-test-stclair-minion-wr35, clusterIP: 10.240.0.4, externalIP: 130.211.137.44
+[It] [Feature:Performance] should allow starting 30 pods per node
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:531
+[1mSTEP[0m: creating replication controller density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 in namespace e2e-tests-density-hhmie
+Mar  3 00:41:08.862: INFO: Created replication controller with name: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1, namespace: e2e-tests-density-hhmie, replica count: 90
+Mar  3 00:41:18.862: INFO: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 Pods: 90 out of 90 created, 2 running, 88 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:41:28.863: INFO: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 Pods: 90 out of 90 created, 20 running, 70 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:41:38.863: INFO: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 Pods: 90 out of 90 created, 77 running, 13 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:41:48.864: INFO: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 Pods: 90 out of 90 created, 90 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:41:48.864: INFO: E2E startup time for 90 pods: 40.122194914s
+Mar  3 00:41:48.864: INFO: Throughput during cluster saturation phase: 2.2431474e-09
+[1mSTEP[0m: Waiting for all events to be recorded
+Mar  3 00:41:58.864: INFO: Found 370 events
+Mar  3 00:41:58.864: INFO: Found 262 updates
+Mar  3 00:41:58.865: INFO: - reason: Scheduled, source: default-scheduler -> 90
+Mar  3 00:41:58.865: INFO: - reason: Pulled, source: kubelet -> 90
+Mar  3 00:41:58.865: INFO: - reason: Created, source: kubelet -> 90
+Mar  3 00:41:58.865: INFO: - reason: Started, source: kubelet -> 90
+Mar  3 00:41:58.865: INFO: - reason: SuccessfulCreate, source: replication-controller -> 10
+[1mSTEP[0m: Printing Pod to Node allocation data
+Mar  3 00:41:59.104: INFO: e2e-test-stclair-minion-4yju: 25 pause pods, system pods: [elasticsearch-logging-v1-8g0nr fluentd-elasticsearch-e2e-test-stclair-minion-4yju kube-dns-v10-7nmgp kube-proxy-e2e-test-stclair-minion-4yju l7-lb-controller-v0.5.2-demum]
+Mar  3 00:41:59.104: INFO: e2e-test-stclair-minion-gilj: 35 pause pods, system pods: [fluentd-elasticsearch-e2e-test-stclair-minion-gilj heapster-perf-kubelet-1ln3r heapster-perf-summary-57xg4 kube-proxy-e2e-test-stclair-minion-gilj]
+Mar  3 00:41:59.104: INFO: e2e-test-stclair-minion-wr35: 30 pause pods, system pods: [elasticsearch-logging-v1-2itwe fluentd-elasticsearch-e2e-test-stclair-minion-wr35 kibana-logging-v1-quz04 kube-proxy-e2e-test-stclair-minion-wr35 kubernetes-dashboard-v0.1.0-5mext]
+[1mSTEP[0m: Scheduling additional Pods to measure startup latencies
+Mar  3 00:51:59.188: INFO: Waiting up to 5m0s for pod density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1 status to be running
+Mar  3 00:51:59.290: INFO: Waiting for pod density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1 in namespace 'e2e-tests-density-hhmie' status to be 'running'(found phase: "Pending", readiness: false) (101.980879ms elapsed)
+Mar  3 00:51:59.346: INFO: Waiting up to 5m0s for pod density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2 status to be running
+Mar  3 00:51:59.386: INFO: Waiting for pod density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2 in namespace 'e2e-tests-density-hhmie' status to be 'running'(found phase: "Pending", readiness: false) (39.469939ms elapsed)
+Mar  3 00:51:59.547: INFO: Waiting up to 5m0s for pod density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3 status to be running
+Mar  3 00:51:59.587: INFO: Waiting for pod density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3 in namespace 'e2e-tests-density-hhmie' status to be 'running'(found phase: "Pending", readiness: false) (40.456224ms elapsed)
+Mar  3 00:52:01.331: INFO: Found pod 'density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1' on node 'e2e-test-stclair-minion-gilj'
+Mar  3 00:52:01.426: INFO: Found pod 'density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2' on node 'e2e-test-stclair-minion-wr35'
+Mar  3 00:52:01.629: INFO: Found pod 'density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3' on node 'e2e-test-stclair-minion-gilj'
+[1mSTEP[0m: Waiting for all Pods begin observed by the watch...
+Mar  3 00:52:01.780: INFO: 10% worst schedule latencies: [{density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1 e2e-test-stclair-minion-gilj 0}]
+Mar  3 00:52:01.780: INFO: perc50: 0, perc90: 0, perc99: 0
+Mar  3 00:52:01.780: INFO: 10% worst run-after-schedule latencies: [{density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1 e2e-test-stclair-minion-gilj 1s}]
+Mar  3 00:52:01.780: INFO: perc50: 1s, perc90: 1s, perc99: 1s
+Mar  3 00:52:01.780: INFO: 10% worst watch latencies: [{density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3 e2e-test-stclair-minion-gilj 1.601764189s}]
+Mar  3 00:52:01.780: INFO: perc50: 1.128919234s, perc90: 1.601764189s, perc99: 1.601764189s
+Mar  3 00:52:01.780: INFO: 10% worst scheduled-to-end total latencies: [{density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3 e2e-test-stclair-minion-gilj 2.601764189s}]
+Mar  3 00:52:01.780: INFO: perc50: 2.128919234s, perc90: 2.601764189s, perc99: 2.601764189s
+Mar  3 00:52:01.780: INFO: 10% worst e2e total latencies: [{density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3 e2e-test-stclair-minion-gilj 2.601764189s}]
+Mar  3 00:52:01.780: INFO: perc50: 2.128919234s, perc90: 2.601764189s, perc99: 2.601764189s
+Mar  3 00:52:01.780: INFO: Pod startup latency: {
+  "latency": {
+    "Perc50": 2128919234,
+    "Perc90": 2601764189,
+    "Perc99": 2601764189
+  }
+}
+
+Mar  3 00:52:01.780: INFO: Approx throughput: 69.18382563685904 pods/min
+[1mSTEP[0m: Deleting ReplicationController and all additional Pods
+[1mSTEP[0m: Cleaning up the replication controller
+[1mSTEP[0m: deleting replication controller density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 in namespace e2e-tests-density-hhmie
+Mar  3 00:52:07.189: INFO: Deleting RC density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 took: 5.329046378s
+Mar  3 00:52:33.432: INFO: Terminating RC density90-acbea0a3-e11b-11e5-8727-7446a0c373f1 pods took: 26.242829648s
+[1mSTEP[0m: Removing additional pods if any
+[AfterEach] Density
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:144
+Mar  3 00:52:33.559: INFO: Cluster saturation time: {
+  "timeToStaturate": 40122194914,
+  "numberOfNodes": 3,
+  "numberOfPods": 90,
+  "throughput": 2.25
+}
+
+Mar  3 00:52:33.712: INFO: WARNING Top latency metric: {Resource:pods Verb:POST Latency:{Perc50:4.352ms Perc90:2.323293s Perc99:4.120636s}}
+Mar  3 00:52:33.712: INFO: Top latency metric: {Resource:pods Verb:LIST Latency:{Perc50:7.871ms Perc90:16.258ms Perc99:90.364ms}}
+Mar  3 00:52:33.712: INFO: Top latency metric: {Resource:pods Verb:DELETE Latency:{Perc50:4.526ms Perc90:62.398ms Perc99:83.234ms}}
+Mar  3 00:52:33.712: INFO: Top latency metric: {Resource:pods Verb:PUT Latency:{Perc50:3.793ms Perc90:10.835ms Perc99:27.012ms}}
+Mar  3 00:52:33.712: INFO: Top latency metric: {Resource:bindings Verb:POST Latency:{Perc50:3.259ms Perc90:11.665ms Perc99:22.588ms}}
+Mar  3 00:52:33.712: INFO: API calls latencies: {
+  "apicalls": [
+    {
+      "resource": "pods",
+      "verb": "POST",
+      "latency": {
+        "Perc50": 4352000,
+        "Perc90": 2323293000,
+        "Perc99": 4120636000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 7871000,
+        "Perc90": 16258000,
+        "Perc99": 90364000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "DELETE",
+      "latency": {
+        "Perc50": 4526000,
+        "Perc90": 62398000,
+        "Perc99": 83234000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "PUT",
+      "latency": {
+        "Perc50": 3793000,
+        "Perc90": 10835000,
+        "Perc99": 27012000
+      }
+    },
+    {
+      "resource": "bindings",
+      "verb": "POST",
+      "latency": {
+        "Perc50": 3259000,
+        "Perc90": 11665000,
+        "Perc99": 22588000
+      }
+    },
+    {
+      "resource": "secrets",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1219000,
+        "Perc90": 3802000,
+        "Perc99": 19836000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "POST",
+      "latency": {
+        "Perc50": 12289000,
+        "Perc90": 12289000,
+        "Perc99": 12289000
+      }
+    },
+    {
+      "resource": "nodes",
+      "verb": "PUT",
+      "latency": {
+        "Perc50": 5497000,
+        "Perc90": 8550000,
+        "Perc99": 11395000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1194000,
+        "Perc90": 2526000,
+        "Perc99": 11335000
+      }
+    },
+    {
+      "resource": "limitranges",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 681000,
+        "Perc90": 3911000,
+        "Perc99": 7719000
+      }
+    },
+    {
+      "resource": "nodes",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1624000,
+        "Perc90": 2050000,
+        "Perc99": 4667000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "PUT",
+      "latency": {
+        "Perc50": 3391000,
+        "Perc90": 4109000,
+        "Perc99": 4109000
+      }
+    },
+    {
+      "resource": "endpoints",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1660000,
+        "Perc90": 2771000,
+        "Perc99": 3920000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 1216000,
+        "Perc90": 1522000,
+        "Perc99": 3803000
+      }
+    },
+    {
+      "resource": "services",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 514000,
+        "Perc90": 662000,
+        "Perc99": 3637000
+      }
+    },
+    {
+      "resource": "nodes",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 1918000,
+        "Perc90": 2409000,
+        "Perc99": 3611000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "DELETE",
+      "latency": {
+        "Perc50": 2156000,
+        "Perc90": 2156000,
+        "Perc99": 2156000
+      }
+    },
+    {
+      "resource": "services",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1567000,
+        "Perc90": 1824000,
+        "Perc99": 1921000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1059000,
+        "Perc90": 1454000,
+        "Perc99": 1454000
+      }
+    },
+    {
+      "resource": "persistentvolumes",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 226000,
+        "Perc90": 995000,
+        "Perc99": 995000
+      }
+    },
+    {
+      "resource": "horizontalpodautoscalers",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 714000,
+        "Perc90": 883000,
+        "Perc99": 904000
+      }
+    },
+    {
+      "resource": "persistentvolumeclaims",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 265000,
+        "Perc90": 800000,
+        "Perc99": 800000
+      }
+    },
+    {
+      "resource": "endpoints",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 475000,
+        "Perc90": 475000,
+        "Perc99": 475000
+      }
+    },
+    {
+      "resource": "replicasets",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 240000,
+        "Perc90": 294000,
+        "Perc99": 361000
+      }
+    },
+    {
+      "resource": "namespaces",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 291000,
+        "Perc90": 343000,
+        "Perc99": 343000
+      }
+    },
+    {
+      "resource": "jobs",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 212000,
+        "Perc90": 289000,
+        "Perc99": 316000
+      }
+    },
+    {
+      "resource": "deployments",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 225000,
+        "Perc90": 292000,
+        "Perc99": 304000
+      }
+    },
+    {
+      "resource": "daemonsets",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 178000,
+        "Perc90": 244000,
+        "Perc99": 277000
+      }
+    },
+    {
+      "resource": "resourcequotas",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 206000,
+        "Perc90": 231000,
+        "Perc99": 231000
+      }
+    },
+    {
+      "resource": "ingresses",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 198000,
+        "Perc90": 198000,
+        "Perc99": 198000
+      }
+    }
+  ]
+}
+
+[AfterEach] Density
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/framework.go:101
+[1mSTEP[0m: Collecting events from namespace "e2e-tests-density-hhmie".
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: Created pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:08 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0vzj5: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0vzj5 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-209y2: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-209y2 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5jx1e: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5jx1e to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5uh1v: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5uh1v to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.992: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6l0m8: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6l0m8 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7zy1i: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7zy1i to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-8cpga: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-8cpga to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 5622ef9d98ef
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9mi5z: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9mi5z to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-by8jt: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-by8jt to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-cebj2: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-cebj2 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-fbwxp: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-fbwxp to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-g7i64: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-g7i64 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqdbg: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqdbg to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kgtsn: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kgtsn to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l2wq9: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l2wq9 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lwwk6: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lwwk6 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-nnf9v: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-nnf9v to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-osru2: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-osru2 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q0jeg: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q0jeg to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-scd0j: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-scd0j to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sfkv6: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sfkv6 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sj2k8: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sj2k8 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 2236ed4640e4
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t56mw: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t56mw to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-wj6dg: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-wj6dg to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-xsft5: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-xsft5 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2uk1v: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2uk1v to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-68skp: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-68skp to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7kjog: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7kjog to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7uh37: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7uh37 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-89ar4: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-89ar4 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-95ug5: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-95ug5 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 5622ef9d98ef
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpcpd: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpcpd to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dxg67: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dxg67 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dz1yg: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dz1yg to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-g7i64: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-g7i64: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 690d634b6762
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-g7i64: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 690d634b6762
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hfbrz: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hfbrz to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id be135ce5c4eb
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iz0k7: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iz0k7 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhz0m: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhz0m to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kgtsn: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 5cc477f5169f
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kgtsn: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 5cc477f5169f
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kgtsn: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kur4n: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kur4n to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l4pts: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l4pts to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mrt47: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mrt47 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-rz64j: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-rz64j to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t1xpp: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t1xpp to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 2236ed4640e4
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-u1ym3: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-u1ym3 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-w25sd: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-w25sd to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y354q: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y354q to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y8pcp: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y8pcp to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:10 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-zzp9b: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-zzp9b to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0r95r: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0r95r to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-1j803: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-1j803 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2ssl3: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2ssl3 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-49yj4: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-49yj4 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6yf3u: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6yf3u to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 77b0d4a9f199
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-afseo: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-afseo to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-as64y: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-as64y to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-cebj2: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-gypgy: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-gypgy to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h1tvo: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h1tvo to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h4v7w: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h4v7w to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hrfjm: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hrfjm to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id be135ce5c4eb
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jblpl: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jblpl to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jpv6f: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jpv6f to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 5ab18fb7236c
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 5ab18fb7236c
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lwwk6: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id caeca5477d13
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lwwk6: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mqx6h: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mqx6h to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oz5ng: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oz5ng to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-p6xah: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-p6xah to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id fd1446da8e15
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id fd1446da8e15
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-scd0j: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sfkv6: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 09d44b588baa
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sfkv6: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-vyqo1: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-vyqo1 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y52k5: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y52k5 to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:11 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ydxqj: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ydxqj to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulCreate: (events with common reason combined)
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5l2zy: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5l2zy to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5uh1v: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-93b4b: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-93b4b to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 77b0d4a9f199
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-cebj2: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 8b90e2ab4808
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpxrk: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpxrk to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-fbwxp: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 3965bfc43dec
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 3965bfc43dec
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id f85c6b810bc2
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kkhd9: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kkhd9 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l2wq9: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lwwk6: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id caeca5477d13
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-nnf9v: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oncxc: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oncxc to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-osru2: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-scd0j: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 67855b9ad235
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-scd0j: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 67855b9ad235
+Mar  3 00:52:33.993: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sfkv6: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 09d44b588baa
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-xsft5: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-xsft5: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 769737a57376
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:12 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-xsft5: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 769737a57376
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-209y2: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-33frq: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-33frq to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5jx1e: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 9e9fff9f63d9
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5jx1e: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 9e9fff9f63d9
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5jx1e: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7zy1i: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-8cpga: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-cebj2: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 8b90e2ab4808
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-fbwxp: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id fcc6e354b0b3
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iz0k7: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kur4n: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-nnf9v: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id b9e6233b1451
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-osru2: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 83e0d42f27ad
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-osru2: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 83e0d42f27ad
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 87b422df2cd3
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-qv14r: {default-scheduler } Scheduled: Successfully assigned density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-qv14r to e2e-test-stclair-minion-4yju
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-rz64j: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id f4dd176946eb
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-rz64j: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sj2k8: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sj2k8: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 12730f1bc5b8
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-u1ym3: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:13 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-wj6dg: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0vzj5: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-1j803: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id c19a972f7d26
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-1j803: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5uh1v: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id c588656d26d8
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6l0m8: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id b8cb5858176c
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7uh37: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7zy1i: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 04d3e6bab377
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-95ug5: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id e29359a40fb2
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-95ug5: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9mi5z: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-fbwxp: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id fcc6e354b0b3
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iz0k7: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id fb1f03a79041
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iz0k7: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id fb1f03a79041
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kur4n: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id f5412640112e
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mrt47: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id ca59cde625e3
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mrt47: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-nnf9v: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id b9e6233b1451
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-rz64j: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id f4dd176946eb
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-u1ym3: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 6509ab482ccd
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-u1ym3: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 6509ab482ccd
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:14 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-zzp9b: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-1j803: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id c19a972f7d26
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id b8cb5858176c
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7zy1i: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 04d3e6bab377
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-8cpga: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 126aba9edcf7
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-95ug5: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id e29359a40fb2
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9mi5z: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 1ed75c7a66a2
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-by8jt: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hfbrz: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqdbg: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kur4n: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id f5412640112e
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l2wq9: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 1397ee349312
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l4pts: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mrt47: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id ca59cde625e3
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 87b422df2cd3
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:15 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y354q: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0vzj5: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 002c5e09bf5f
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-209y2: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 3fb55cb7e723
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-68skp: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6l0m8: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 6c6dd6de52c0
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7uh37: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id a425d474e517
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-8cpga: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 126aba9edcf7
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-afseo: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-as64y: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-by8jt: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id c2fac33178ee
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id fae47e01c438
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 8ef5821df5e5
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqdbg: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id b42c39bb0469
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqdbg: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id b42c39bb0469
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id f85c6b810bc2
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l2wq9: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 1397ee349312
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t1xpp: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:16 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 69935d0a28b9
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0vzj5: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 002c5e09bf5f
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-209y2: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 3fb55cb7e723
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6l0m8: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 6c6dd6de52c0
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7uh37: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id a425d474e517
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-afseo: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 7e3246157cf5
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-by8jt: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id c2fac33178ee
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dxg67: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dz1yg: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-gypgy: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hfbrz: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 3395884f3bab
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 8ef5821df5e5
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jpv6f: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 5d97b88e484b
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 69935d0a28b9
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-vyqo1: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-wj6dg: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id da205347b905
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y354q: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 58b5f65f2f7b
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:17 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y52k5: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2ssl3: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5uh1v: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id c588656d26d8
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-89ar4: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-93b4b: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-afseo: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 7e3246157cf5
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-as64y: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 0985e47d3a33
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpcpd: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dz1yg: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 020902824b77
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id fae47e01c438
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hrfjm: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhz0m: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l4pts: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id f9b177fe8549
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 5d97b88e484b
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sj2k8: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 12730f1bc5b8
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t1xpp: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 41b88f447666
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t56mw: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-vyqo1: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 500f7635d4af
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-wj6dg: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id da205347b905
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y354q: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 58b5f65f2f7b
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y52k5: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 8f86e4c78c81
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:18 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-zzp9b: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 9d475b7ab79d
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2ssl3: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id aa2289e829b0
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-68skp: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id f4ae66c6d328
+Mar  3 00:52:33.994: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7kjog: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-89ar4: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 7e4ac62814fd
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-93b4b: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 0e001b6a7da2
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9mi5z: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 1ed75c7a66a2
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-as64y: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 0985e47d3a33
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpcpd: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 6d0208162c0b
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpxrk: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dxg67: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 61183f6b5010
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dxg67: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 61183f6b5010
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dz1yg: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 020902824b77
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-gypgy: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id c7bb69327d75
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hfbrz: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 3395884f3bab
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jpv6f: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id df1777a85d60
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l4pts: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id f9b177fe8549
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id ba6f6b9585d4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oncxc: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 0e76f869c474
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oncxc: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q0jeg: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t1xpp: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 41b88f447666
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t56mw: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id ab44ab1d8658
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-w25sd: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:19 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y52k5: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 8f86e4c78c81
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2ssl3: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id aa2289e829b0
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2uk1v: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 5de89371b40f
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2uk1v: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-33frq: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id e1b3dd071875
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-33frq: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-33frq: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id e1b3dd071875
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-68skp: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id f4ae66c6d328
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7kjog: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 4f267cc1f8a4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-89ar4: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 7e4ac62814fd
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-93b4b: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 0e001b6a7da2
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpcpd: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 6d0208162c0b
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpxrk: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id 529390eb5de8
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpxrk: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 529390eb5de8
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-gypgy: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id c7bb69327d75
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h1tvo: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h1tvo: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 2ef44be0eb5b
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hrfjm: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id aa4e9f9d3dcc
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hrfjm: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id aa4e9f9d3dcc
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhz0m: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id c3aa74514167
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhz0m: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id c3aa74514167
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jpv6f: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id df1777a85d60
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 98e473253820
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 98e473253820
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id ba6f6b9585d4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oncxc: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id 0e76f869c474
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q0jeg: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id ab9bccd55cb1
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-qv14r: {kubelet e2e-test-stclair-minion-4yju} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-qv14r: {kubelet e2e-test-stclair-minion-4yju} Created: Created container with docker id a810ae61be57
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t56mw: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id ab44ab1d8658
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-vyqo1: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 500f7635d4af
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-w25sd: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id d27f012b82d5
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-w25sd: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id d27f012b82d5
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y8pcp: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 2f70887b3979
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y8pcp: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y8pcp: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 2f70887b3979
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:20 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-zzp9b: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 9d475b7ab79d
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2uk1v: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 5de89371b40f
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6yf3u: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7kjog: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 4f267cc1f8a4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h1tvo: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 2ef44be0eb5b
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q0jeg: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id ab9bccd55cb1
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-qv14r: {kubelet e2e-test-stclair-minion-4yju} Started: Started container with docker id a810ae61be57
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:21 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ydxqj: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0r95r: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0r95r: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 00ce7817d4ae
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6yf3u: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 56846ddc48e4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6yf3u: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 56846ddc48e4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mqx6h: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mqx6h: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id c809e26fd3ba
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ydxqj: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id a54dfca123d4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:22 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ydxqj: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id a54dfca123d4
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0r95r: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 00ce7817d4ae
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5l2zy: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 35c263ac2d4e
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5l2zy: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h4v7w: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 70c95812e7f5
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h4v7w: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 70c95812e7f5
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h4v7w: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kkhd9: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 140297f74698
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kkhd9: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 140297f74698
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kkhd9: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mqx6h: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id c809e26fd3ba
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oz5ng: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-p6xah: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-p6xah: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id 812e26a00436
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:23 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-p6xah: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 812e26a00436
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-49yj4: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 8a14fe5ab999
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-49yj4: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-49yj4: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 8a14fe5ab999
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5l2zy: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id 35c263ac2d4e
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id d114c5665368
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id d114c5665368
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jblpl: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id f6980518b655
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jblpl: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jblpl: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id f6980518b655
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oz5ng: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 6641a29f1bcb
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:41:24 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oz5ng: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 6641a29f1bcb
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:51:59 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 4f7580dd91b8
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:51:59 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1: {default-scheduler } Scheduled: Successfully assigned density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:51:59 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:51:59 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2: {kubelet e2e-test-stclair-minion-wr35} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:51:59 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2: {default-scheduler } Scheduled: Successfully assigned density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2 to e2e-test-stclair-minion-wr35
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:51:59 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3: {default-scheduler } Scheduled: Successfully assigned density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3 to e2e-test-stclair-minion-gilj
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:00 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 4f7580dd91b8
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:00 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2: {kubelet e2e-test-stclair-minion-wr35} Started: Started container with docker id eaaf2753807a
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:00 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2: {kubelet e2e-test-stclair-minion-wr35} Created: Created container with docker id eaaf2753807a
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:00 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3: {kubelet e2e-test-stclair-minion-gilj} Started: Started container with docker id 522013efccbf
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:00 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3: {kubelet e2e-test-stclair-minion-gilj} Created: Created container with docker id 522013efccbf
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:00 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3: {kubelet e2e-test-stclair-minion-gilj} Pulled: Container image "gcr.io/google_containers/pause:2.0" already present on machine
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: Deleted pod: density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-209y2: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 3fb55cb7e723: Need to kill pod.
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2ssl3: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id aa2289e829b0: Need to kill pod.
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-33frq: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id e1b3dd071875: Need to kill pod.
+Mar  3 00:52:33.995: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-49yj4: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 8a14fe5ab999: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5uh1v: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id c588656d26d8: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-70h0d: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id b8cb5858176c: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-93b4b: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 0e001b6a7da2: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-95ug5: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id e29359a40fb2: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-as64y: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 0985e47d3a33: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-by8jt: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id c2fac33178ee: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-cebj2: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 8b90e2ab4808: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-eszsj: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id fae47e01c438: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-f61d5: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id d114c5665368: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h1tvo: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 2ef44be0eb5b: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-h4v7w: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 70c95812e7f5: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jblpl: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id f6980518b655: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhmpq: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 8ef5821df5e5: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kur4n: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id f5412640112e: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kzjre: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 5ab18fb7236c: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lgjop: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 98e473253820: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mu8hr: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id ba6f6b9585d4: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-nnf9v: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id b9e6233b1451: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oncxc: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 0e76f869c474: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-oz5ng: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 6641a29f1bcb: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pmk3w: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 5d97b88e484b: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-qv14r: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id a810ae61be57: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-rz64j: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id f4dd176946eb: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-scd0j: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 67855b9ad235: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sj2k8: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 12730f1bc5b8: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t4bwj: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 2236ed4640e4: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-te945: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 69935d0a28b9: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-u1ym3: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 6509ab482ccd: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-wj6dg: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id da205347b905: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:03 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-xsft5: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 769737a57376: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0r95r: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 00ce7817d4ae: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-0vzj5: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 002c5e09bf5f: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6yf3u: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 56846ddc48e4: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9hnm6: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 5622ef9d98ef: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9mi5z: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 1ed75c7a66a2: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-afseo: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 7e3246157cf5: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpcpd: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 6d0208162c0b: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jhz0m: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id c3aa74514167: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jpv6f: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id df1777a85d60: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l2wq9: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 1397ee349312: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-osru2: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 83e0d42f27ad: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q2oxb: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 87b422df2cd3: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-sfkv6: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 09d44b588baa: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y354q: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 58b5f65f2f7b: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:04 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y8pcp: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 2f70887b3979: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5jx1e: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 9e9fff9f63d9: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-89ar4: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 7e4ac62814fd: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-8cpga: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 126aba9edcf7: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-9nf6y: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 77b0d4a9f199: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dpxrk: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 529390eb5de8: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dxg67: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 61183f6b5010: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-fbwxp: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id fcc6e354b0b3: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-g7i64: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 690d634b6762: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-gypgy: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id c7bb69327d75: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iomzi: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id be135ce5c4eb: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-iz0k7: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id fb1f03a79041: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kgtsn: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 5cc477f5169f: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mqx6h: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id c809e26fd3ba: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-mrt47: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id ca59cde625e3: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-q0jeg: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id ab9bccd55cb1: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t1xpp: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 41b88f447666: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-vyqo1: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 500f7635d4af: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-w25sd: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id d27f012b82d5: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-y52k5: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id 8f86e4c78c81: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:05 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ydxqj: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id a54dfca123d4: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1: {replication-controller } SuccessfulDelete: (events with common reason combined)
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-1j803: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id c19a972f7d26: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-5l2zy: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 35c263ac2d4e: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-68skp: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id f4ae66c6d328: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-6l0m8: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 6c6dd6de52c0: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7uh37: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id a425d474e517: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7zy1i: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 04d3e6bab377: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hfbrz: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 3395884f3bab: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-hrfjm: {kubelet e2e-test-stclair-minion-4yju} Killing: Killing container with docker id aa4e9f9d3dcc: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-kkhd9: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 140297f74698: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-l4pts: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id f9b177fe8549: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-lwwk6: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id caeca5477d13: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-p6xah: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 812e26a00436: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-pqum4: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id fd1446da8e15: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:06 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-zzp9b: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id 9d475b7ab79d: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:07 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-2uk1v: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 5de89371b40f: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:07 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-7kjog: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 4f267cc1f8a4: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:07 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-dz1yg: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 020902824b77: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:07 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqk54: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id f85c6b810bc2: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:07 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-t56mw: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id ab44ab1d8658: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-ibncl: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 3965bfc43dec: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:09 -0800 PST - event for density90-acbea0a3-e11b-11e5-8727-7446a0c373f1-jqdbg: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id b42c39bb0469: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:33 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 4f7580dd91b8: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:33 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2: {kubelet e2e-test-stclair-minion-wr35} Killing: Killing container with docker id eaaf2753807a: Need to kill pod.
+Mar  3 00:52:33.996: INFO: At 2016-03-03 00:52:33 -0800 PST - event for density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3: {kubelet e2e-test-stclair-minion-gilj} Killing: Killing container with docker id 522013efccbf: Need to kill pod.
+Mar  3 00:52:34.047: INFO: POD                                                         NODE                          PHASE    GRACE  CONDITIONS
+Mar  3 00:52:34.047: INFO: density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-1  e2e-test-stclair-minion-gilj  Running  30s    [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-03-03 00:52:00 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-2  e2e-test-stclair-minion-wr35  Running  30s    [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-03-03 00:52:01 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: density-latency-pod-30a4711e-e11d-11e5-8727-7446a0c373f1-3  e2e-test-stclair-minion-gilj  Running  30s    [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-03-03 00:52:01 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: elasticsearch-logging-v1-2itwe                              e2e-test-stclair-minion-wr35  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:04:57 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: elasticsearch-logging-v1-8g0nr                              e2e-test-stclair-minion-4yju  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 19:00:31 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: fluentd-elasticsearch-e2e-test-stclair-minion-4yju          e2e-test-stclair-minion-4yju  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:03:44 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: fluentd-elasticsearch-e2e-test-stclair-minion-gilj          e2e-test-stclair-minion-gilj  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 19:08:27 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: fluentd-elasticsearch-e2e-test-stclair-minion-wr35          e2e-test-stclair-minion-wr35  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:03:45 -0800 PST  }]
+Mar  3 00:52:34.047: INFO: heapster-perf-kubelet-1ln3r                                 e2e-test-stclair-minion-gilj  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-03-03 00:40:50 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: heapster-perf-summary-57xg4                                 e2e-test-stclair-minion-gilj  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-03-03 00:40:50 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: kibana-logging-v1-quz04                                     e2e-test-stclair-minion-wr35  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 19:02:28 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: kube-dns-v10-7nmgp                                          e2e-test-stclair-minion-4yju  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:04:30 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: kube-proxy-e2e-test-stclair-minion-4yju                     e2e-test-stclair-minion-4yju  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:03:19 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: kube-proxy-e2e-test-stclair-minion-gilj                     e2e-test-stclair-minion-gilj  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 19:08:24 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: kube-proxy-e2e-test-stclair-minion-wr35                     e2e-test-stclair-minion-wr35  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:03:43 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: kubernetes-dashboard-v0.1.0-5mext                           e2e-test-stclair-minion-wr35  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 16:04:19 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: l7-lb-controller-v0.5.2-demum                               e2e-test-stclair-minion-4yju  Running         [{Ready True 0001-01-01 00:00:00 +0000 UTC 2016-02-26 19:00:31 -0800 PST  }]
+Mar  3 00:52:34.048: INFO: 
+Mar  3 00:52:34.093: INFO: 
+Logging node info for node e2e-test-stclair-minion-4yju
+Mar  3 00:52:34.135: INFO: Node Info: &{{ } {e2e-test-stclair-minion-4yju   /api/v1/nodes/e2e-test-stclair-minion-4yju 65857c96-dce5-11e5-b1ab-42010af00002 165517 0 2016-02-26 16:02:31 -0800 PST <nil> <nil> map[kubernetes.io/hostname:e2e-test-stclair-minion-4yju beta.kubernetes.io/instance-type:n1-standard-2 failure-domain.beta.kubernetes.io/region:us-central1 failure-domain.beta.kubernetes.io/zone:us-central1-b] map[]} {10.245.1.0/24 6937399526545858912 gce://stclair-k8s-ext/us-central1-b/e2e-test-stclair-minion-4yju false} {map[cpu:{2.000 DecimalSI} memory:{7864139776.000 BinarySI} pods:{110.000 DecimalSI}] map[cpu:{2.000 DecimalSI} memory:{7864139776.000 BinarySI} pods:{110.000 DecimalSI}]  [{OutOfDisk False 2016-03-03 00:52:31 -0800 PST 2016-02-26 16:02:31 -0800 PST KubeletHasSufficientDisk kubelet has sufficient disk space available} {Ready True 2016-03-03 00:52:31 -0800 PST 2016-02-26 16:03:18 -0800 PST KubeletReady kubelet is posting ready status}] [{InternalIP 10.240.0.5} {ExternalIP 130.211.121.224}] {{10250}} { 45F39C7F-3E6F-56E5-05F1-A134A7DA0867 b5d98bbd-f287-4ecf-8a2d-7248b793ace1 3.16.0-4-amd64 Debian GNU/Linux 7 (wheezy) docker://1.9.1 v1.2.0-alpha.8.532+2dd4f69e437e98 v1.2.0-alpha.8.532+2dd4f69e437e98} [{[heapster:perf_test] 88683588} {[<none>:<none>] 88683588} {[<none>:<none>] 88683588} {[<none>:<none>] 88683580} {[heapster:e2e_test] 88735785} {[<none>:<none>] 88740395} {[<none>:<none>] 88739905} {[<none>:<none>] 88739905} {[<none>:<none>] 88735785} {[<none>:<none>] 88740744} {[<none>:<none>] 88736101} {[<none>:<none>] 88735758} {[<none>:<none>] 88735694} {[<none>:<none>] 88735694} {[<none>:<none>] 88735670} {[gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0] 165544629} {[gcr.io/google_containers/heapster:v0.20.0-alpha8] 86984348} {[redis:latest] 151331559} {[gcr.io/google_containers/nettest:1.8] 25178998} {[nginx:latest] 134617408} {[busybox:latest] 1113554} {[gcr.io/google_samples/gb-frontend:v4] 510252254} {[gcr.io/google_containers/fluentd-elasticsearch:1.14] 562034622} {[gcr.io/google_containers/netexec:1.4] 7297019} {[gcr.io/google_containers/etcd-amd64:2.2.1] 28192476} {[gcr.io/google_containers/glbc:0.5.2] 226351998} {[gcr.io/google_containers/busybox:1.24] 1113554} {[gcr.io/google_containers/kube2sky:1.12] 24482187} {[gcr.io/google_containers/elasticsearch:1.8] 410989305} {[gcr.io/google_containers/resource_consumer:beta2] 132819513} {[gcr.io/google_containers/defaultbackend:1.0] 7513643} {[gcr.io/google_containers/skydns:2015-10-13-8c72f8c] 40551394} {[gcr.io/google_containers/pause:2.0] 350164} {[gcr.io/google_containers/exechealthz:1.0] 7099444} {[gcr.io/google_containers/pause:0.8.0] 241656} {[gcr.io/google_containers/serve_hostname:1.1] 4522409} {[gcr.io/google_containers/pause:latest] 239840}]}}
+Mar  3 00:52:34.136: INFO: 
+Logging kubelet events for node e2e-test-stclair-minion-4yju
+Mar  3 00:52:34.180: INFO: 
+Logging pods the kubelet thinks is on node e2e-test-stclair-minion-4yju
+Mar  3 00:52:34.308: INFO: kube-proxy-e2e-test-stclair-minion-4yju started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.308: INFO: elasticsearch-logging-v1-8g0nr started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.308: INFO: l7-lb-controller-v0.5.2-demum started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.308: INFO: kube-dns-v10-7nmgp started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.308: INFO: fluentd-elasticsearch-e2e-test-stclair-minion-4yju started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.494: INFO: ERROR kubelet_docker_errors{operation_type="info"} => 1 @[0]
+Mar  3 00:52:34.494: INFO: ERROR kubelet_docker_errors{operation_type="inspect_image"} => 24 @[0]
+Mar  3 00:52:34.494: INFO: ERROR kubelet_docker_errors{operation_type="list_containers"} => 32 @[0]
+Mar  3 00:52:34.494: INFO: ERROR kubelet_docker_errors{operation_type="list_images"} => 5 @[0]
+Mar  3 00:52:34.494: INFO: ERROR kubelet_docker_errors{operation_type="stop_container"} => 115 @[0]
+Mar  3 00:52:34.495: INFO: ERROR kubelet_docker_errors{operation_type="version"} => 22 @[0]
+Mar  3 00:52:34.495: INFO: 
+Latency metrics for node e2e-test-stclair-minion-4yju
+Mar  3 00:52:34.495: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.9 Latency:10m58.547428s}
+Mar  3 00:52:34.495: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.99 Latency:10m58.547428s}
+Mar  3 00:52:34.495: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.5 Latency:10m58.547428s}
+Mar  3 00:52:34.495: INFO: 
+Logging node info for node e2e-test-stclair-minion-gilj
+Mar  3 00:52:34.536: INFO: Node Info: &{{ } {e2e-test-stclair-minion-gilj   /api/v1/nodes/e2e-test-stclair-minion-gilj 31a010e9-dcff-11e5-b1ab-42010af00002 165489 0 2016-02-26 19:07:11 -0800 PST <nil> <nil> map[failure-domain.beta.kubernetes.io/zone:us-central1-b kubernetes.io/hostname:e2e-test-stclair-minion-gilj beta.kubernetes.io/instance-type:n1-standard-2 failure-domain.beta.kubernetes.io/region:us-central1] map[]} {10.245.2.0/24 14039176986159344293 gce://stclair-k8s-ext/us-central1-b/e2e-test-stclair-minion-gilj false} {map[memory:{7864139776.000 BinarySI} pods:{110.000 DecimalSI} cpu:{2.000 DecimalSI}] map[memory:{7864139776.000 BinarySI} pods:{110.000 DecimalSI} cpu:{2.000 DecimalSI}]  [{OutOfDisk False 2016-03-03 00:52:23 -0800 PST 2016-02-26 19:07:11 -0800 PST KubeletHasSufficientDisk kubelet has sufficient disk space available} {Ready True 2016-03-03 00:52:23 -0800 PST 2016-02-26 19:07:57 -0800 PST KubeletReady kubelet is posting ready status}] [{InternalIP 10.240.0.3} {ExternalIP 104.197.77.217}] {{10250}} { 2CE9E1F2-2367-C238-4080-958AAE3B0414 8ff3a71e-abab-4be9-bfb4-4bca0548f28b 3.16.0-4-amd64 Debian GNU/Linux 7 (wheezy) docker://1.9.1 v1.2.0-alpha.8.532+2dd4f69e437e98 v1.2.0-alpha.8.532+2dd4f69e437e98} [{[heapster:perf_test] 88683588} {[<none>:<none>] 88683588} {[<none>:<none>] 88683588} {[<none>:<none>] 88683580} {[heapster:e2e_test] 88735785} {[<none>:<none>] 88740395} {[<none>:<none>] 88739905} {[<none>:<none>] 88739905} {[<none>:<none>] 88735785} {[<none>:<none>] 88740744} {[<none>:<none>] 88736101} {[<none>:<none>] 88735758} {[<none>:<none>] 88735694} {[<none>:<none>] 88735694} {[<none>:<none>] 88735670} {[gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0] 165544629} {[redis:latest] 151331559} {[gcr.io/google_containers/nettest:1.7] 24051275} {[gcr.io/google_containers/fluentd-elasticsearch:1.14] 562034622} {[gcr.io/google_containers/netexec:1.4] 7297019} {[gcr.io/google_containers/busybox:1.24] 1113554} {[gcr.io/google_containers/mounttest:0.6] 2084693} {[gcr.io/google_containers/hostexec:1.2] 13209617} {[gcr.io/google_containers/mounttest-user:0.3] 1718853} {[gcr.io/google_containers/mounttest:0.5] 1718853} {[gcr.io/google_containers/pause:2.0] 350164} {[gcr.io/google_containers/jessie-dnsutils:e2e] 190148402} {[gcr.io/google_containers/mounttest:0.2] 1752375} {[gcr.io/google_containers/dnsutils:e2e] 141895666} {[gcr.io/google_containers/pause:0.8.0] 241656} {[gcr.io/google_containers/eptest:0.1] 2970692} {[gcr.io/google_containers/serve_hostname:1.1] 4522409} {[b.gcr.io/k8s_authenticated_test/serve_hostname:1.1] 4522409} {[gcr.io/google_containers/update-demo:nautilus] 4555533} {[gcr.io/google_containers/nginx:1.7.9] 91664166} {[gcr.io/google_containers/test-webserver:e2e] 4534272} {[gcr.io/google_containers/liveness:e2e] 4387474} {[gcr.io/google_containers/pause:latest] 239840}]}}
+Mar  3 00:52:34.536: INFO: 
+Logging kubelet events for node e2e-test-stclair-minion-gilj
+Mar  3 00:52:34.578: INFO: 
+Logging pods the kubelet thinks is on node e2e-test-stclair-minion-gilj
+Mar  3 00:52:34.699: INFO: heapster-perf-summary-57xg4 started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.699: INFO: heapster-perf-kubelet-1ln3r started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.699: INFO: fluentd-elasticsearch-e2e-test-stclair-minion-gilj started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.699: INFO: kube-proxy-e2e-test-stclair-minion-gilj started at <nil> (0 container statuses recorded)
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="info"} => 1 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="inspect_image"} => 43 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="list_containers"} => 34 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="list_images"} => 6 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="logs"} => 1 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="pull_image"} => 2 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="stop_container"} => 84 @[0]
+Mar  3 00:52:34.833: INFO: ERROR kubelet_docker_errors{operation_type="version"} => 24 @[0]
+Mar  3 00:52:34.833: INFO: 
+Latency metrics for node e2e-test-stclair-minion-gilj
+Mar  3 00:52:34.833: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.99 Latency:11m0.651617s}
+Mar  3 00:52:34.833: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.9 Latency:11m0.651617s}
+Mar  3 00:52:34.833: INFO: 
+Logging node info for node e2e-test-stclair-minion-wr35
+Mar  3 00:52:34.875: INFO: Node Info: &{{ } {e2e-test-stclair-minion-wr35   /api/v1/nodes/e2e-test-stclair-minion-wr35 64097fea-dce5-11e5-b1ab-42010af00002 165496 0 2016-02-26 16:02:28 -0800 PST <nil> <nil> map[beta.kubernetes.io/instance-type:n1-standard-2 failure-domain.beta.kubernetes.io/region:us-central1 failure-domain.beta.kubernetes.io/zone:us-central1-b kubernetes.io/e2e-edebf535-dcfc-11e5-af12-7446a0c373f1:42 kubernetes.io/hostname:e2e-test-stclair-minion-wr35] map[]} {10.245.0.0/24 1707388360207656859 gce://stclair-k8s-ext/us-central1-b/e2e-test-stclair-minion-wr35 false} {map[pods:{110.000 DecimalSI} cpu:{2.000 DecimalSI} memory:{7864139776.000 BinarySI}] map[cpu:{2.000 DecimalSI} memory:{7864139776.000 BinarySI} pods:{110.000 DecimalSI}]  [{OutOfDisk False 2016-03-03 00:52:25 -0800 PST 2016-02-26 16:02:28 -0800 PST KubeletHasSufficientDisk kubelet has sufficient disk space available} {Ready True 2016-03-03 00:52:25 -0800 PST 2016-02-26 16:03:15 -0800 PST KubeletReady kubelet is posting ready status}] [{InternalIP 10.240.0.4} {ExternalIP 130.211.137.44}] {{10250}} { 9BB916FA-E394-5CD9-282E-CDE938C385EC 71c3d219-6fa8-4f52-8a9c-beff1ff6366a 3.16.0-4-amd64 Debian GNU/Linux 7 (wheezy) docker://1.9.1 v1.2.0-alpha.8.532+2dd4f69e437e98 v1.2.0-alpha.8.532+2dd4f69e437e98} [{[heapster:perf_test] 88683588} {[<none>:<none>] 88683588} {[<none>:<none>] 88683588} {[<none>:<none>] 88683580} {[heapster:e2e_test] 88735785} {[<none>:<none>] 88740395} {[<none>:<none>] 88739905} {[<none>:<none>] 88739905} {[<none>:<none>] 88735785} {[<none>:<none>] 88740744} {[<none>:<none>] 88736101} {[<none>:<none>] 88735758} {[<none>:<none>] 88735694} {[<none>:<none>] 88735694} {[<none>:<none>] 88735670} {[gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0] 165544629} {[redis:latest] 151331559} {[gcr.io/google_containers/nettest:1.8] 25178998} {[nginx:latest] 134617408} {[gcr.io/google_samples/gb-frontend:v4] 510252254} {[gcr.io/google_containers/nettest:1.7] 24051275} {[gcr.io/google_containers/fluentd-elasticsearch:1.14] 562034622} {[gcr.io/google_containers/kubernetes-dashboard-amd64:v0.1.0] 35409795} {[gcr.io/google_containers/netexec:1.4] 7297019} {[gcr.io/google_containers/fakegitserver:0.1] 5007469} {[gcr.io/google_containers/busybox:1.24] 1113554} {[gcr.io/google_containers/elasticsearch:1.8] 410989305} {[gcr.io/google_containers/resource_consumer:beta2] 132819513} {[gcr.io/google_containers/mounttest:0.6] 2084693} {[gcr.io/google_containers/hostexec:1.2] 13209617} {[gcr.io/google_containers/mounttest-user:0.3] 1718853} {[gcr.io/google_containers/mounttest:0.5] 1718853} {[gcr.io/google_containers/heapster_grafana:v2.1.1] 206641132} {[gcr.io/google_containers/pause:2.0] 350164} {[gcr.io/google_containers/porter:cd5cb5791ebaa8641955f0e8c2a9bed669b1eaab] 5010921} {[gcr.io/google_containers/goproxy:0.1] 5489816} {[gcr.io/google_containers/portforwardtester:1.0] 2296329} {[gcr.io/google_containers/heapster_influxdb:v0.5] 251005705} {[gcr.io/google_samples/gb-redisslave:v1] 109508753} {[gcr.io/google_containers/jessie-dnsutils:e2e] 190148402} {[gcr.io/google_containers/kibana:1.3] 396897764} {[gcr.io/google_containers/dnsutils:e2e] 141895666} {[gcr.io/google_containers/pause:0.8.0] 241656} {[gcr.io/google_containers/eptest:0.1] 2970692} {[gcr.io/google_containers/serve_hostname:1.1] 4522409} {[b.gcr.io/k8s_authenticated_test/serve_hostname:1.1] 4522409} {[gcr.io/google_containers/update-demo:nautilus] 4555533} {[gcr.io/google_containers/update-demo:kitten] 4549069} {[gcr.io/google_containers/nginx:1.7.9] 91664166} {[gcr.io/google_containers/test-webserver:e2e] 4534272} {[gcr.io/google_containers/pause:latest] 239840}]}}
+Mar  3 00:52:34.875: INFO: 
+Logging kubelet events for node e2e-test-stclair-minion-wr35
+Mar  3 00:52:34.916: INFO: 
+Logging pods the kubelet thinks is on node e2e-test-stclair-minion-wr35
+Mar  3 00:52:35.038: INFO: kubernetes-dashboard-v0.1.0-5mext started at <nil> (0 container statuses recorded)
+Mar  3 00:52:35.038: INFO: fluentd-elasticsearch-e2e-test-stclair-minion-wr35 started at <nil> (0 container statuses recorded)
+Mar  3 00:52:35.038: INFO: kube-proxy-e2e-test-stclair-minion-wr35 started at <nil> (0 container statuses recorded)
+Mar  3 00:52:35.038: INFO: kibana-logging-v1-quz04 started at <nil> (0 container statuses recorded)
+Mar  3 00:52:35.038: INFO: elasticsearch-logging-v1-2itwe started at <nil> (0 container statuses recorded)
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="info"} => 1 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="inspect_image"} => 53 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="list_containers"} => 35 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="list_images"} => 5 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="pull_image"} => 2 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="start_container"} => 2 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="stop_container"} => 235 @[0]
+Mar  3 00:52:35.201: INFO: ERROR kubelet_docker_errors{operation_type="version"} => 22 @[0]
+Mar  3 00:52:35.201: INFO: 
+Latency metrics for node e2e-test-stclair-minion-wr35
+Mar  3 00:52:35.201: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.99 Latency:10m59.710595s}
+Mar  3 00:52:35.201: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.9 Latency:10m59.710595s}
+Mar  3 00:52:35.201: INFO: {Operation: Method:pod_start_latency_microseconds Quantile:0.5 Latency:10m58.289225s}
+[1mSTEP[0m: Collecting resource usage data
+Mar  3 00:52:35.201: INFO: Closed stop channel. Waiting for 3 workers
+Mar  3 00:52:35.201: INFO: Closing worker for e2e-test-stclair-minion-wr35
+Mar  3 00:52:35.201: INFO: Closing worker for e2e-test-stclair-minion-gilj
+Mar  3 00:52:35.201: INFO: Closing worker for e2e-test-stclair-minion-4yju
+Mar  3 00:52:35.201: INFO: Waitgroup finished.
+Mar  3 00:52:35.201: INFO: 90 percentile:
+container                                                                  cpu(cores) memory(MB)
+"elasticsearch-logging-v1-2itwe/elasticsearch-logging"                     0.066      2337.74
+"elasticsearch-logging-v1-8g0nr/elasticsearch-logging"                     0.068      2388.35
+"fluentd-elasticsearch-e2e-test-stclair-minion-4yju/fluentd-elasticsearch" 0.000      127.90
+"fluentd-elasticsearch-e2e-test-stclair-minion-gilj/fluentd-elasticsearch" 0.001      91.75
+"fluentd-elasticsearch-e2e-test-stclair-minion-wr35/fluentd-elasticsearch" 0.043      142.67
+"heapster-perf-kubelet-1ln3r/heapster-test"                                0.214      152.16
+"heapster-perf-summary-57xg4/heapster-test"                                0.043      30.84
+"kibana-logging-v1-quz04/kibana-logging"                                   0.000      61.69
+"kube-dns-v10-7nmgp/etcd"                                                  0.004      28.14
+"kube-dns-v10-7nmgp/healthz"                                               0.001      1.27
+"kube-dns-v10-7nmgp/kube2sky"                                              0.000      7.21
+"kube-dns-v10-7nmgp/skydns"                                                0.001      3.77
+"kube-proxy-e2e-test-stclair-minion-4yju/kube-proxy"                       0.001      12.57
+"kube-proxy-e2e-test-stclair-minion-gilj/kube-proxy"                       0.001      13.67
+"kube-proxy-e2e-test-stclair-minion-wr35/kube-proxy"                       0.001      12.85
+"kubernetes-dashboard-v0.1.0-5mext/kubernetes-dashboard"                   0.000      2.88
+"l7-lb-controller-v0.5.2-demum/default-http-backend"                       0.000      1.41
+"l7-lb-controller-v0.5.2-demum/l7-lb-controller"                           0.000      6.66
+99 percentile:
+container                                                                  cpu(cores) memory(MB)
+"elasticsearch-logging-v1-2itwe/elasticsearch-logging"                     0.070      2341.58
+"elasticsearch-logging-v1-8g0nr/elasticsearch-logging"                     0.097      2396.13
+"fluentd-elasticsearch-e2e-test-stclair-minion-4yju/fluentd-elasticsearch" 0.001      127.90
+"fluentd-elasticsearch-e2e-test-stclair-minion-gilj/fluentd-elasticsearch" 0.001      91.75
+"fluentd-elasticsearch-e2e-test-stclair-minion-wr35/fluentd-elasticsearch" 0.045      143.18
+"heapster-perf-kubelet-1ln3r/heapster-test"                                0.229      152.20
+"heapster-perf-summary-57xg4/heapster-test"                                0.047      31.00
+"kibana-logging-v1-quz04/kibana-logging"                                   0.000      61.69
+"kube-dns-v10-7nmgp/etcd"                                                  0.004      29.04
+"kube-dns-v10-7nmgp/healthz"                                               0.001      1.27
+"kube-dns-v10-7nmgp/kube2sky"                                              0.003      7.21
+"kube-dns-v10-7nmgp/skydns"                                                0.001      3.77
+"kube-proxy-e2e-test-stclair-minion-4yju/kube-proxy"                       0.001      12.59
+"kube-proxy-e2e-test-stclair-minion-gilj/kube-proxy"                       0.001      13.74
+"kube-proxy-e2e-test-stclair-minion-wr35/kube-proxy"                       0.001      12.89
+"kubernetes-dashboard-v0.1.0-5mext/kubernetes-dashboard"                   0.000      2.88
+"l7-lb-controller-v0.5.2-demum/default-http-backend"                       0.000      1.42
+"l7-lb-controller-v0.5.2-demum/l7-lb-controller"                           0.000      6.66
+
+Mar  3 00:52:35.202: INFO: Waiting up to 1m0s for all nodes to be ready
+[1mSTEP[0m: Destroying namespace "e2e-tests-density-hhmie" for this suite.
+
+[91m[1m• Failure in Spec Teardown (AfterEach) [692.464 seconds][0m
+Density
+[90m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:533[0m
+  [91m[1m[Feature:Performance] should allow starting 30 pods per node [AfterEach][0m
+  [90m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:531[0m
+
+  [91mThere should be no high-latency requests
+  Expected
+      <int>: 1
+  not to be >
+      <int>: 0[0m
+
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:138
+[90m------------------------------[0m
+[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m
+[90m------------------------------[0m
+[0mLoad capacity[0m 
+  [1m[Feature:Performance] should be able to handle 30 pods per node[0m
+  [37m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/load.go:151[0m
+[BeforeEach] Load capacity
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/framework.go:100
+[1mSTEP[0m: Creating a kubernetes client
+Mar  3 00:52:40.407: INFO: >>> testContext.KubeConfig: /usr/local/google/home/stclair/.kube/config
+
+[1mSTEP[0m: Building a namespace api object
+Mar  3 00:52:40.455: INFO: Waiting up to 2m0s for service account default to be provisioned in ns e2e-tests-load-n4tag
+Mar  3 00:52:40.495: INFO: Service account default in ns e2e-tests-load-n4tag with secrets found. (39.845024ms)
+[1mSTEP[0m: Waiting for a default service account to be provisioned in namespace
+Mar  3 00:52:40.495: INFO: Waiting up to 2m0s for service account default to be provisioned in ns e2e-tests-load-n4tag
+Mar  3 00:52:40.534: INFO: Service account default in ns e2e-tests-load-n4tag with secrets found. (39.493346ms)
+[BeforeEach] Load capacity
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/load.go:89
+Mar  3 00:52:40.710: INFO: Waiting for terminating namespaces to be deleted...
+Mar  3 00:52:40.749: INFO: Resetting latency metrics in apiserver...
+[It] [Feature:Performance] should be able to handle 30 pods per node
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/load.go:151
+[1mSTEP[0m: creating replication controller load-test-small-rc-9 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:41.399: INFO: Created replication controller with name: load-test-small-rc-9, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-3 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:41.474: INFO: Created replication controller with name: load-test-small-rc-3, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-1 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:42.745: INFO: Created replication controller with name: load-test-small-rc-1, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-4 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:45.746: INFO: Created replication controller with name: load-test-small-rc-4, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-7 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:47.472: INFO: Created replication controller with name: load-test-small-rc-7, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-2 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:47.816: INFO: Created replication controller with name: load-test-small-rc-2, namespace: e2e-tests-load-n4tag, replica count: 5
+Mar  3 00:52:51.399: INFO: load-test-small-rc-9 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:52:51.474: INFO: load-test-small-rc-3 Pods: 5 out of 5 created, 4 running, 1 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+[1mSTEP[0m: creating replication controller load-test-small-rc-5 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:52.681: INFO: Created replication controller with name: load-test-small-rc-5, namespace: e2e-tests-load-n4tag, replica count: 5
+Mar  3 00:52:52.745: INFO: load-test-small-rc-1 Pods: 5 out of 5 created, 3 running, 2 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+[1mSTEP[0m: creating replication controller load-test-small-rc-10 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:53.699: INFO: Created replication controller with name: load-test-small-rc-10, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-8 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:55.475: INFO: Created replication controller with name: load-test-small-rc-8, namespace: e2e-tests-load-n4tag, replica count: 5
+Mar  3 00:52:55.746: INFO: load-test-small-rc-4 Pods: 5 out of 5 created, 1 running, 4 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+[1mSTEP[0m: creating replication controller load-test-medium-rc-1 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:57.326: INFO: Created replication controller with name: load-test-medium-rc-1, namespace: e2e-tests-load-n4tag, replica count: 30
+Mar  3 00:52:57.472: INFO: load-test-small-rc-7 Pods: 5 out of 5 created, 2 running, 3 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+[1mSTEP[0m: creating replication controller load-test-small-rc-12 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:57.817: INFO: load-test-small-rc-2 Pods: 5 out of 5 created, 0 running, 5 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:52:57.850: INFO: Created replication controller with name: load-test-small-rc-12, namespace: e2e-tests-load-n4tag, replica count: 5
+[1mSTEP[0m: creating replication controller load-test-small-rc-6 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: creating replication controller load-test-small-rc-11 in namespace e2e-tests-load-n4tag
+Mar  3 00:52:58.082: INFO: Created replication controller with name: load-test-small-rc-6, namespace: e2e-tests-load-n4tag, replica count: 5
+Mar  3 00:52:58.108: INFO: Created replication controller with name: load-test-small-rc-11, namespace: e2e-tests-load-n4tag, replica count: 5
+Mar  3 00:53:01.475: INFO: load-test-small-rc-3 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:02.682: INFO: load-test-small-rc-5 Pods: 5 out of 5 created, 0 running, 5 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:02.746: INFO: load-test-small-rc-1 Pods: 5 out of 5 created, 3 running, 2 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:03.700: INFO: load-test-small-rc-10 Pods: 5 out of 5 created, 2 running, 3 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:05.475: INFO: load-test-small-rc-8 Pods: 5 out of 5 created, 2 running, 3 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:05.746: INFO: load-test-small-rc-4 Pods: 5 out of 5 created, 4 running, 1 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:07.326: INFO: load-test-medium-rc-1 Pods: 30 out of 30 created, 0 running, 30 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:07.472: INFO: load-test-small-rc-7 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:07.817: INFO: load-test-small-rc-2 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:07.851: INFO: load-test-small-rc-12 Pods: 5 out of 5 created, 0 running, 5 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:08.082: INFO: load-test-small-rc-6 Pods: 5 out of 5 created, 0 running, 5 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:08.108: INFO: load-test-small-rc-11 Pods: 5 out of 5 created, 0 running, 5 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:12.682: INFO: load-test-small-rc-5 Pods: 5 out of 5 created, 4 running, 1 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:12.746: INFO: load-test-small-rc-1 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:13.700: INFO: load-test-small-rc-10 Pods: 5 out of 5 created, 4 running, 1 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:15.475: INFO: load-test-small-rc-8 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:15.747: INFO: load-test-small-rc-4 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:17.327: INFO: load-test-medium-rc-1 Pods: 30 out of 30 created, 12 running, 18 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:17.851: INFO: load-test-small-rc-12 Pods: 5 out of 5 created, 2 running, 3 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:18.082: INFO: load-test-small-rc-6 Pods: 5 out of 5 created, 3 running, 2 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:18.108: INFO: load-test-small-rc-11 Pods: 5 out of 5 created, 2 running, 3 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:22.682: INFO: load-test-small-rc-5 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:23.700: INFO: load-test-small-rc-10 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:27.327: INFO: load-test-medium-rc-1 Pods: 30 out of 30 created, 30 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:27.851: INFO: load-test-small-rc-12 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:28.083: INFO: load-test-small-rc-6 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+Mar  3 00:53:28.108: INFO: load-test-small-rc-11 Pods: 5 out of 5 created, 5 running, 0 pending, 0 waiting, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady 
+[1mSTEP[0m: ============================================================================
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-10 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-12 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-medium-rc-1 in namespace e2e-tests-load-n4tag to 34
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-9 in namespace e2e-tests-load-n4tag to 5
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-5 in namespace e2e-tests-load-n4tag to 2
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-4 in namespace e2e-tests-load-n4tag to 4
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-6 in namespace e2e-tests-load-n4tag to 3
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-11 in namespace e2e-tests-load-n4tag to 5
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-1 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-7 in namespace e2e-tests-load-n4tag to 2
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-3 in namespace e2e-tests-load-n4tag to 4
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-8 in namespace e2e-tests-load-n4tag to 3
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-2 in namespace e2e-tests-load-n4tag to 4
+[1mSTEP[0m: ============================================================================
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-4 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-10 in namespace e2e-tests-load-n4tag to 5
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-11 in namespace e2e-tests-load-n4tag to 5
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-1 in namespace e2e-tests-load-n4tag to 3
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-9 in namespace e2e-tests-load-n4tag to 3
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-8 in namespace e2e-tests-load-n4tag to 5
+[1mSTEP[0m: Scaling replication controller load-test-medium-rc-1 in namespace e2e-tests-load-n4tag to 29
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-5 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-12 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-6 in namespace e2e-tests-load-n4tag to 6
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-3 in namespace e2e-tests-load-n4tag to 3
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-2 in namespace e2e-tests-load-n4tag to 5
+[1mSTEP[0m: Scaling replication controller load-test-small-rc-7 in namespace e2e-tests-load-n4tag to 2
+[1mSTEP[0m: ============================================================================
+[1mSTEP[0m: deleting replication controller load-test-small-rc-5 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: deleting replication controller load-test-medium-rc-1 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: deleting replication controller load-test-small-rc-1 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: deleting replication controller load-test-small-rc-7 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: deleting replication controller load-test-small-rc-11 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:16.598: INFO: Deleting RC load-test-small-rc-5 took: 2.333144629s
+[1mSTEP[0m: deleting replication controller load-test-small-rc-9 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:17.316: INFO: Deleting RC load-test-medium-rc-1 took: 2.343888568s
+Mar  3 00:54:17.853: INFO: Deleting RC load-test-small-rc-1 took: 2.326811704s
+Mar  3 00:54:17.960: INFO: Deleting RC load-test-small-rc-7 took: 2.326216576s
+Mar  3 00:54:18.826: INFO: Deleting RC load-test-small-rc-11 took: 2.33535816s
+Mar  3 00:54:18.945: INFO: Deleting RC load-test-small-rc-9 took: 2.283976323s
+[1mSTEP[0m: deleting replication controller load-test-small-rc-10 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: deleting replication controller load-test-small-rc-3 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:22.306: INFO: Deleting RC load-test-small-rc-10 took: 2.284649199s
+[1mSTEP[0m: deleting replication controller load-test-small-rc-6 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:22.713: INFO: Deleting RC load-test-small-rc-3 took: 2.286156407s
+[1mSTEP[0m: deleting replication controller load-test-small-rc-4 in namespace e2e-tests-load-n4tag
+[1mSTEP[0m: deleting replication controller load-test-small-rc-12 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:24.673: INFO: Deleting RC load-test-small-rc-6 took: 2.285705612s
+Mar  3 00:54:24.690: INFO: Terminating RC load-test-small-rc-5 pods took: 8.092004879s
+[1mSTEP[0m: deleting replication controller load-test-small-rc-2 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:26.173: INFO: Deleting RC load-test-small-rc-4 took: 2.286220952s
+Mar  3 00:54:26.778: INFO: Deleting RC load-test-small-rc-12 took: 2.287100759s
+Mar  3 00:54:27.506: INFO: Deleting RC load-test-small-rc-2 took: 2.287701368s
+[1mSTEP[0m: deleting replication controller load-test-small-rc-8 in namespace e2e-tests-load-n4tag
+Mar  3 00:54:30.264: INFO: Deleting RC load-test-small-rc-8 took: 2.287110674s
+Mar  3 00:54:33.941: INFO: Terminating RC load-test-small-rc-1 pods took: 16.087487185s
+Mar  3 00:54:36.761: INFO: Terminating RC load-test-small-rc-6 pods took: 12.087772922s
+Mar  3 00:54:38.261: INFO: Terminating RC load-test-small-rc-4 pods took: 12.088190887s
+Mar  3 00:54:38.394: INFO: Terminating RC load-test-small-rc-10 pods took: 16.087095379s
+Mar  3 00:54:40.799: INFO: Terminating RC load-test-small-rc-3 pods took: 18.086832585s
+Mar  3 00:54:40.895: INFO: Terminating RC load-test-small-rc-12 pods took: 14.116549472s
+Mar  3 00:54:41.595: INFO: Terminating RC load-test-small-rc-2 pods took: 14.088561322s
+Mar  3 00:54:42.045: INFO: Terminating RC load-test-small-rc-7 pods took: 24.085447022s
+Mar  3 00:54:42.913: INFO: Terminating RC load-test-small-rc-11 pods took: 24.08748774s
+Mar  3 00:54:45.490: INFO: Terminating RC load-test-medium-rc-1 pods took: 28.174188862s
+Mar  3 00:54:47.031: INFO: Terminating RC load-test-small-rc-9 pods took: 28.08666433s
+Mar  3 00:54:48.350: INFO: Terminating RC load-test-small-rc-8 pods took: 18.086150682s
+[AfterEach] Load capacity
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/load.go:63
+Mar  3 00:54:48.503: INFO: Top latency metric: {Resource:pods Verb:DELETE Latency:{Perc50:5.256ms Perc90:34.667ms Perc99:67.774ms}}
+Mar  3 00:54:48.503: INFO: Top latency metric: {Resource:pods Verb:POST Latency:{Perc50:7.985ms Perc90:40.014ms Perc99:48.698ms}}
+Mar  3 00:54:48.503: INFO: Top latency metric: {Resource:pods Verb:LIST Latency:{Perc50:2.782ms Perc90:6.45ms Perc99:41.903ms}}
+Mar  3 00:54:48.503: INFO: Top latency metric: {Resource:nodes Verb:PUT Latency:{Perc50:5.939ms Perc90:9.481ms Perc99:38.223ms}}
+Mar  3 00:54:48.503: INFO: Top latency metric: {Resource:replicationcontrollers Verb:PUT Latency:{Perc50:3.648ms Perc90:9.778ms Perc99:22.195ms}}
+Mar  3 00:54:48.503: INFO: API calls latencies: {
+  "apicalls": [
+    {
+      "resource": "pods",
+      "verb": "DELETE",
+      "latency": {
+        "Perc50": 5256000,
+        "Perc90": 34667000,
+        "Perc99": 67774000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "POST",
+      "latency": {
+        "Perc50": 7985000,
+        "Perc90": 40014000,
+        "Perc99": 48698000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 2782000,
+        "Perc90": 6450000,
+        "Perc99": 41903000
+      }
+    },
+    {
+      "resource": "nodes",
+      "verb": "PUT",
+      "latency": {
+        "Perc50": 5939000,
+        "Perc90": 9481000,
+        "Perc99": 38223000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "PUT",
+      "latency": {
+        "Perc50": 3648000,
+        "Perc90": 9778000,
+        "Perc99": 22195000
+      }
+    },
+    {
+      "resource": "bindings",
+      "verb": "POST",
+      "latency": {
+        "Perc50": 5564000,
+        "Perc90": 13405000,
+        "Perc99": 19256000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "PUT",
+      "latency": {
+        "Perc50": 3622000,
+        "Perc90": 8503000,
+        "Perc99": 18810000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1140000,
+        "Perc90": 3872000,
+        "Perc99": 8489000
+      }
+    },
+    {
+      "resource": "pods",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 693000,
+        "Perc90": 1636000,
+        "Perc99": 7248000
+      }
+    },
+    {
+      "resource": "nodes",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1730000,
+        "Perc90": 2066000,
+        "Perc99": 5657000
+      }
+    },
+    {
+      "resource": "secrets",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1164000,
+        "Perc90": 1523000,
+        "Perc99": 5216000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "POST",
+      "latency": {
+        "Perc50": 2499000,
+        "Perc90": 3184000,
+        "Perc99": 4551000
+      }
+    },
+    {
+      "resource": "endpoints",
+      "verb": "GET",
+      "latency": {
+        "Perc50": 1862000,
+        "Perc90": 3279000,
+        "Perc99": 3796000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 1699000,
+        "Perc90": 3224000,
+        "Perc99": 3261000
+      }
+    },
+    {
+      "resource": "replicationcontrollers",
+      "verb": "DELETE",
+      "latency": {
+        "Perc50": 1985000,
+        "Perc90": 2689000,
+        "Perc99": 3064000
+      }
+    },
+    {
+      "resource": "limitranges",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 1775000,
+        "Perc90": 2859000,
+        "Perc99": 2859000
+      }
+    },
+    {
+      "resource": "nodes",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 2032000,
+        "Perc90": 2480000,
+        "Perc99": 2808000
+      }
+    },
+    {
+      "resource": "endpoints",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 988000,
+        "Perc90": 988000,
+        "Perc99": 988000
+      }
+    },
+    {
+      "resource": "horizontalpodautoscalers",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 727000,
+        "Perc90": 778000,
+        "Perc99": 778000
+      }
+    },
+    {
+      "resource": "services",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 540000,
+        "Perc90": 630000,
+        "Perc99": 630000
+      }
+    },
+    {
+      "resource": "jobs",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 209000,
+        "Perc90": 283000,
+        "Perc99": 283000
+      }
+    },
+    {
+      "resource": "daemonsets",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 200000,
+        "Perc90": 253000,
+        "Perc99": 253000
+      }
+    },
+    {
+      "resource": "deployments",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 213000,
+        "Perc90": 226000,
+        "Perc99": 226000
+      }
+    },
+    {
+      "resource": "replicasets",
+      "verb": "LIST",
+      "latency": {
+        "Perc50": 191000,
+        "Perc90": 225000,
+        "Perc99": 225000
+      }
+    }
+  ]
+}
+
+[AfterEach] Load capacity
+  /usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/framework.go:101
+[1mSTEP[0m: Collecting resource usage data
+Mar  3 00:54:48.503: INFO: Closed stop channel. Waiting for 3 workers
+Mar  3 00:54:48.503: INFO: Closing worker for e2e-test-stclair-minion-gilj
+Mar  3 00:54:48.503: INFO: Closing worker for e2e-test-stclair-minion-wr35
+Mar  3 00:54:48.503: INFO: Closing worker for e2e-test-stclair-minion-4yju
+Mar  3 00:54:48.503: INFO: Waitgroup finished.
+Mar  3 00:54:48.504: INFO: 90 percentile:
+container                                                                  cpu(cores) memory(MB)
+"elasticsearch-logging-v1-2itwe/elasticsearch-logging"                     0.069      2336.15
+"elasticsearch-logging-v1-8g0nr/elasticsearch-logging"                     0.067      2382.44
+"fluentd-elasticsearch-e2e-test-stclair-minion-4yju/fluentd-elasticsearch" 0.001      127.90
+"fluentd-elasticsearch-e2e-test-stclair-minion-gilj/fluentd-elasticsearch" 0.001      91.75
+"fluentd-elasticsearch-e2e-test-stclair-minion-wr35/fluentd-elasticsearch" 0.051      145.80
+"heapster-perf-kubelet-1ln3r/heapster-test"                                0.140      152.21
+"heapster-perf-summary-57xg4/heapster-test"                                0.031      41.38
+"kibana-logging-v1-quz04/kibana-logging"                                   0.000      61.69
+"kube-dns-v10-7nmgp/etcd"                                                  0.006      30.44
+"kube-dns-v10-7nmgp/healthz"                                               0.001      1.27
+"kube-dns-v10-7nmgp/kube2sky"                                              0.005      7.21
+"kube-dns-v10-7nmgp/skydns"                                                0.001      3.77
+"kube-proxy-e2e-test-stclair-minion-4yju/kube-proxy"                       0.001      12.58
+"kube-proxy-e2e-test-stclair-minion-gilj/kube-proxy"                       0.001      13.55
+"kube-proxy-e2e-test-stclair-minion-wr35/kube-proxy"                       0.001      12.62
+"kubernetes-dashboard-v0.1.0-5mext/kubernetes-dashboard"                   0.000      2.88
+"l7-lb-controller-v0.5.2-demum/default-http-backend"                       0.000      1.42
+"l7-lb-controller-v0.5.2-demum/l7-lb-controller"                           0.000      6.64
+99 percentile:
+container                                                                  cpu(cores) memory(MB)
+"elasticsearch-logging-v1-2itwe/elasticsearch-logging"                     0.069      2336.15
+"elasticsearch-logging-v1-8g0nr/elasticsearch-logging"                     0.067      2382.44
+"fluentd-elasticsearch-e2e-test-stclair-minion-4yju/fluentd-elasticsearch" 0.001      127.90
+"fluentd-elasticsearch-e2e-test-stclair-minion-gilj/fluentd-elasticsearch" 0.001      91.75
+"fluentd-elasticsearch-e2e-test-stclair-minion-wr35/fluentd-elasticsearch" 0.051      145.80
+"heapster-perf-kubelet-1ln3r/heapster-test"                                0.140      152.21
+"heapster-perf-summary-57xg4/heapster-test"                                0.031      41.38
+"kibana-logging-v1-quz04/kibana-logging"                                   0.000      61.69
+"kube-dns-v10-7nmgp/etcd"                                                  0.006      30.44
+"kube-dns-v10-7nmgp/healthz"                                               0.001      1.27
+"kube-dns-v10-7nmgp/kube2sky"                                              0.005      7.21
+"kube-dns-v10-7nmgp/skydns"                                                0.001      3.77
+"kube-proxy-e2e-test-stclair-minion-4yju/kube-proxy"                       0.001      12.58
+"kube-proxy-e2e-test-stclair-minion-gilj/kube-proxy"                       0.001      13.55
+"kube-proxy-e2e-test-stclair-minion-wr35/kube-proxy"                       0.001      12.62
+"kubernetes-dashboard-v0.1.0-5mext/kubernetes-dashboard"                   0.000      2.88
+"l7-lb-controller-v0.5.2-demum/default-http-backend"                       0.000      1.42
+"l7-lb-controller-v0.5.2-demum/l7-lb-controller"                           0.000      6.64
+
+Mar  3 00:54:48.504: INFO: Waiting up to 1m0s for all nodes to be ready
+[1mSTEP[0m: Destroying namespace "e2e-tests-load-n4tag" for this suite.
+
+[32m• [SLOW TEST:133.298 seconds][0m
+Load capacity
+[90m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/load.go:153[0m
+  [Feature:Performance] should be able to handle 30 pods per node
+  [90m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/load.go:151[0m
+[90m------------------------------[0m
+[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m[36mS[0m
+
+[91m[1mSummarizing 1 Failure:[0m
+
+[91m[1m[Fail] [0m[90mDensity [0m[91m[1m[AfterEach] [Feature:Performance] should allow starting 30 pods per node [0m
+[37m/usr/local/google/home/stclair/k8s/_output/local/go/src/k8s.io/kubernetes/test/e2e/density.go:138[0m
+
+[1m[91mRan 2 of 246 Specs in 826.054 seconds[0m
+[1m[91mFAIL![0m -- [32m[1m1 Passed[0m | [91m[1m1 Failed[0m | [33m[1m0 Pending[0m | [36m[1m244 Skipped[0m --- FAIL: TestE2E (826.64s)
+FAIL
+
+Ginkgo ran 1 suite in 13m47.317949352s
+Test Suite Failed
+!!! Error in /usr/local/google/home/stclair/k8s/hack/ginkgo-e2e.sh:94
+  '"${ginkgo}" "${ginkgo_args[@]:+${ginkgo_args[@]}}" "${e2e_test}" -- "${auth_config[@]:+${auth_config[@]}}" --host="${KUBE_MASTER_URL}" --provider="${KUBERNETES_PROVIDER}" --gce-project="${PROJECT:-}" --gce-zone="${ZONE:-}" --gce-service-account="${GCE_SERVICE_ACCOUNT:-}" --gke-cluster="${CLUSTER_NAME:-}" --kube-master="${KUBE_MASTER:-}" --cluster-tag="${CLUSTER_ID:-}" --repo-root="${KUBE_ROOT}" --node-instance-group="${NODE_INSTANCE_GROUP:-}" --prefix="${KUBE_GCE_INSTANCE_PREFIX:-e2e}" ${NUM_NODES:+"--num-nodes=${NUM_NODES}"} ${E2E_CLEAN_START:+"--clean-start=true"} ${E2E_MIN_STARTUP_PODS:+"--minStartupPods=${E2E_MIN_STARTUP_PODS}"} ${E2E_REPORT_DIR:+"--report-dir=${E2E_REPORT_DIR}"} "${@:-}"' exited with status 1
+Call stack:
+  1: /usr/local/google/home/stclair/k8s/hack/ginkgo-e2e.sh:94 main(...)
+Exiting with status 1
+2016/03/03 00:54:53 e2e.go:201: Error running Ginkgo tests: exit status 1
+2016/03/03 00:54:53 e2e.go:197: Step 'Ginkgo tests' finished in 13m50.085140262s
+exit status 1
