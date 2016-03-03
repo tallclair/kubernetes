@@ -350,6 +350,8 @@ var _ = Describe("Density", func() {
 				Logf("%v: %v pause pods, system pods: %v", node, pausePodAllocation[node], systemPodAllocation[node])
 			}
 
+			time.Sleep(10 * time.Minute)
+
 			if itArg.runLatencyTest {
 				By("Scheduling additional Pods to measure startup latencies")
 
