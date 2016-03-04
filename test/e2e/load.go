@@ -103,7 +103,7 @@ var _ = Describe("Load capacity", func() {
 	for _, testArg := range loadTests {
 		name := fmt.Sprintf("should be able to handle %v pods per node", testArg.podsPerNode)
 		if testArg.podsPerNode == 30 {
-			name = "[Feature:Performance] " + name
+			name = "[DISABLED:Feature:Performance] " + name
 		} else {
 			name = "[Feature:ManualPerformance] " + name
 		}

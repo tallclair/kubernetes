@@ -197,7 +197,7 @@ var _ = Describe("Density", func() {
 	densityTests := []Density{
 		// TODO: Expose runLatencyTest as ginkgo flag.
 		{podsPerNode: 3, runLatencyTest: false, interval: 10 * time.Second},
-		{podsPerNode: 30, runLatencyTest: true, interval: 10 * time.Second},
+		{podsPerNode: 30, runLatencyTest: false, interval: 10 * time.Second},
 		{podsPerNode: 50, runLatencyTest: false, interval: 10 * time.Second},
 		{podsPerNode: 95, runLatencyTest: true, interval: 10 * time.Second},
 		{podsPerNode: 100, runLatencyTest: false, interval: 1 * time.Second},
@@ -350,7 +350,11 @@ var _ = Describe("Density", func() {
 				Logf("%v: %v pause pods, system pods: %v", node, pausePodAllocation[node], systemPodAllocation[node])
 			}
 
-			time.Sleep(10 * time.Minute)
+			const testMinutes = 20
+			for i := testMinutes; i > 0; i-- {
+				Logf("soaking.... %d minutes remaining", i)
+				time.Sleep(time.Minute)
+			}
 
 			if itArg.runLatencyTest {
 				By("Scheduling additional Pods to measure startup latencies")
