@@ -1,0 +1,2000 @@
+      hostname = stclair-heapster-scale-minion-sl2u
+      type = pod_container
+      container_name = fluentd-cloud-logging
+      container_base_image = gcr.io/google_containers/fluentd-gcp:1.16
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      host_id = 13509331488408734919
+      nodename = stclair-heapster-scale-minion-sl2u
+   Metrics:
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 100
+      memory/limit = 209715200
+      memory/usage = 167989248
+      memory/page_faults = 13042701
+      memory/major_page_faults = 0
+      cpu/usage_rate = 126
+      memory/request = 209715200
+      cpu/limit = 100
+      uptime = 90895363
+      cpu/usage = 11492550952605
+      memory/working_set = 167981056
+      memory/page_faults_rate = 49.789471
+   Labeled Metrics:
+      filesystem/usage = 32768
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97685385216
+         resource_id = /
+      filesystem/usage = 32768
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97685385216
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-kx9k/container:kubelet
+   Scrape time: 2016-03-04 23:32:55 +0000 UTC 1457134375000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-kx9k
+      hostname = stclair-heapster-scale-minion-kx9k
+      host_id = 1444778917380346452
+      type = sys_container
+      container_name = kubelet
+   Metrics:
+      cpu/usage = 1277185800541
+      memory/page_faults = 78020140
+      cpu/usage_rate = 16
+      memory/major_page_faults_rate = 0.000000
+      uptime = 91000063
+      memory/usage = 723894272
+      memory/working_set = 146321408
+      memory/major_page_faults = 7
+      memory/page_faults_rate = 1014.606079
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988591616
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988591616
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-wgqc/container:system
+   Scrape time: 2016-03-04 23:33:02 +0000 UTC 1457134382000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-wgqc
+      host_id = 13954340604881310188
+      nodename = stclair-heapster-scale-minion-wgqc
+      type = sys_container
+      container_name = system
+   Metrics:
+      memory/working_set = 154853376
+      memory/page_faults = 39080650
+      cpu/usage_rate = 6
+      memory/major_page_faults_rate = 0.000000
+      uptime = 90921084
+      memory/usage = 238206976
+      memory/major_page_faults = 155
+      memory/page_faults_rate = 518.312500
+      cpu/usage = 520917982434
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988497408
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988497408
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-wgqc/container:kubelet
+   Scrape time: 2016-03-04 23:32:58 +0000 UTC 1457134378000000000
+   Labels:
+      type = sys_container
+      container_name = kubelet
+      nodename = stclair-heapster-scale-minion-wgqc
+      hostname = stclair-heapster-scale-minion-wgqc
+      host_id = 13954340604881310188
+   Metrics:
+      memory/page_faults = 73210737
+      memory/major_page_faults = 8
+      cpu/usage_rate = 13
+      memory/page_faults_rate = 896.787903
+      memory/major_page_faults_rate = 0.000000
+      uptime = 90991084
+      cpu/usage = 1062906300310
+      memory/working_set = 144719872
+      memory/usage = 724111360
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988497408
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988497408
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-tj37/container:kube-proxy
+   Scrape time: 2016-03-04 23:32:50 +0000 UTC 1457134370000000000
+   Labels:
+      container_name = kube-proxy
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      nodename = stclair-heapster-scale-minion-tj37
+      hostname = stclair-heapster-scale-minion-tj37
+      host_id = 6438714462549508757
+      type = pod_container
+      pod_name = kube-proxy-stclair-heapster-scale-minion-tj37
+      pod_namespace = kube-system
+      pod_id = c48d8552-e18d-11e5-98d5-42010af00002
+      namespace_name = kube-system
+      labels = 
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      memory/usage = 5328896
+      memory/page_faults = 7965313
+      cpu/usage_rate = 0
+      memory/request = 0
+      memory/major_page_faults_rate = 0.000000
+      memory/page_faults_rate = 84.416664
+      cpu/request = 200
+      cpu/limit = 0
+      uptime = 90895245
+      cpu/usage = 42151599933
+      memory/working_set = 5324800
+      memory/major_page_faults = 0
+      memory/limit = 0
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991684096
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97991684096
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-fsbs/container:kube-proxy
+   Scrape time: 2016-03-04 23:32:57 +0000 UTC 1457134377000000000
+   Labels:
+      pod_id = c5ef0cf3-e18d-11e5-98d5-42010af00002
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      labels = 
+      host_id = 11685903702843260083
+      type = pod_container
+      container_name = kube-proxy
+      pod_name = kube-proxy-stclair-heapster-scale-minion-fsbs
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-fsbs
+      hostname = stclair-heapster-scale-minion-fsbs
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      memory/page_faults_rate = 77.346153
+      cpu/request = 200
+      memory/request = 0
+      memory/limit = 0
+      uptime = 90911389
+      memory/page_faults = 8004064
+      cpu/usage_rate = 0
+      memory/major_page_faults = 0
+      memory/major_page_faults_rate = 0.000000
+      cpu/limit = 0
+      cpu/usage = 43099192611
+      memory/usage = 5373952
+      memory/working_set = 5365760
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988505600
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988505600
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-q2lo
+   Scrape time: 2016-03-04 23:33:02 +0000 UTC 1457134382000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-q2lo
+      host_id = 16099457502134996268
+      type = pod
+      pod_id = c77545b1-e18d-11e5-98d5-42010af00002
+      pod_name = kube-proxy-stclair-heapster-scale-minion-q2lo
+      namespace_name = kube-system
+      labels = 
+      hostname = stclair-heapster-scale-minion-q2lo
+      pod_namespace = kube-system
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      memory/major_page_faults_rate = 0.000000
+      network/tx_errors_rate = 0.000000
+      network/rx_errors_rate = 0.000000
+      memory/page_faults_rate = 73.296295
+      uptime = 90909008
+      memory/working_set = 5271552
+      cpu/request = 200
+      memory/request = 0
+      memory/limit = 0
+      network/tx = 413757440
+      network/rx_rate = 3587.133301
+      cpu/usage_rate = 0
+      network/tx_rate = 2743.288818
+      cpu/limit = 0
+      memory/usage = 5279744
+      network/rx = 808180256
+      network/rx_errors = 0
+      network/tx_errors = 0
+   Labeled Metrics:
+      filesystem/usage = 8556544
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988415488
+         resource_id = Volume:varlog
+      filesystem/usage = 741376
+         resource_id = Volume:ssl-certs-host
+      filesystem/limit = 105553100800
+         resource_id = Volume:ssl-certs-host
+      filesystem/available = 97988415488
+         resource_id = Volume:ssl-certs-host
+      filesystem/usage = 4096
+         resource_id = Volume:kubeconfig
+      filesystem/limit = 105553100800
+         resource_id = Volume:kubeconfig
+      filesystem/available = 97988415488
+         resource_id = Volume:kubeconfig
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-fv2n
+   Scrape time: 2016-03-04 23:33:02 +0000 UTC 1457134382000000000
+   Labels:
+      host_id = 1855481677903915630
+      hostname = stclair-heapster-scale-minion-fv2n
+      pod_id = c680881d-e18d-11e5-98d5-42010af00002
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-fv2n
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-fv2n
+      type = pod
+      namespace_name = kube-system
+      labels = k8s-app:fluentd-logging
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      memory/page_faults_rate = 0.444444
+      cpu/usage_rate = 9
+      network/tx = 38377577
+      network/tx_errors = 0
+      network/tx_rate = 437.052612
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 100
+      memory/limit = 209715200
+      memory/working_set = 84045824
+      network/rx = 72272190
+      network/rx_errors_rate = 0.000000
+      network/rx_rate = 845.605225
+      cpu/limit = 100
+      memory/request = 209715200
+      uptime = 90911014
+      network/rx_errors = 0
+      network/tx_errors_rate = 0.000000
+      memory/usage = 84471808
+   Labeled Metrics:
+      filesystem/usage = 5287936
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97991696384
+         resource_id = Volume:varlog
+      filesystem/usage = 2789376
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97991696384
+         resource_id = Volume:varlibdockercontainers
+
+MetricSet: node:stclair-heapster-scale-minion-7cfd
+   Scrape time: 2016-03-04 23:33:01 +0000 UTC 1457134381000000000
+   Labels:
+      type = node
+      host_id = 17115366056776213371
+      nodename = stclair-heapster-scale-minion-7cfd
+      hostname = stclair-heapster-scale-minion-7cfd
+   Metrics:
+      memory/working_set = 1256554496
+      network/rx = 805297282
+      cpu/usage_rate = 88
+      memory/page_faults_rate = 0.000000
+      cpu/limit = 100
+      memory/node_reservation = 0.026667
+      cpu/usage = 8252351447710
+      memory/usage = 2674892800
+      network/rx_rate = 3802.133057
+      network/tx_errors_rate = 0.000000
+      cpu/request = 300
+      memory/node_utilization = 0.340138
+      network/tx = 411612752
+      memory/major_page_faults_rate = 0.000000
+      network/rx_errors_rate = 0.000000
+      network/tx_rate = 2884.199951
+      cpu/node_reservation = 0.150000
+      memory/major_page_faults = 830
+      network/rx_errors = 0
+      network/tx_errors = 0
+      memory/request = 209715200
+      memory/limit = 209715200
+      cpu/node_utilization = 0.044000
+      uptime = 91005143
+      memory/page_faults = 589248
+   Labeled Metrics:
+      filesystem/usage = 3145674752
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988591616
+         resource_id = /
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-xkqw/container:kube-proxy
+   Scrape time: 2016-03-04 23:33:02 +0000 UTC 1457134382000000000
+   Labels:
+      host_id = 6283797614445926054
+      pod_name = kube-proxy-stclair-heapster-scale-minion-xkqw
+      container_name = kube-proxy
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      labels = 
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      type = pod_container
+      pod_id = c772d262-e18d-11e5-98d5-42010af00002
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      nodename = stclair-heapster-scale-minion-xkqw
+      hostname = stclair-heapster-scale-minion-xkqw
+   Metrics:
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 200
+      memory/request = 0
+      uptime = 90909147
+      memory/page_faults = 8004377
+      cpu/usage_rate = 0
+      memory/page_faults_rate = 111.611122
+      cpu/limit = 0
+      memory/limit = 0
+      cpu/usage = 45401592684
+      memory/usage = 5419008
+      memory/working_set = 5414912
+      memory/major_page_faults = 0
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988456448
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988456448
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-tyke/container:system
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      type = sys_container
+      container_name = system
+      hostname = stclair-heapster-scale-minion-tyke
+      host_id = 13054884805603681015
+      nodename = stclair-heapster-scale-minion-tyke
+   Metrics:
+      uptime = 90927224
+      memory/working_set = 157286400
+      cpu/usage_rate = 12
+      memory/page_faults_rate = 743.193542
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage = 708788611415
+      memory/usage = 240816128
+      memory/page_faults = 43846440
+      memory/major_page_faults = 156
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97987284992
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97987284992
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-r6bd/container:kube-proxy
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-r6bd
+      hostname = stclair-heapster-scale-minion-r6bd
+      host_id = 11539558003798332795
+      container_name = kube-proxy
+      pod_id = be0e133d-e18d-11e5-98d5-42010af00002
+      pod_name = kube-proxy-stclair-heapster-scale-minion-r6bd
+      labels = 
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      type = pod_container
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+   Metrics:
+      memory/major_page_faults = 0
+      cpu/usage_rate = 0
+      memory/page_faults_rate = 66.129028
+      cpu/request = 200
+      memory/limit = 0
+      cpu/usage = 45977089912
+      memory/usage = 5242880
+      memory/page_faults = 7994450
+      memory/request = 0
+      cpu/limit = 0
+      uptime = 90924325
+      memory/working_set = 5234688
+      memory/major_page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988595712
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988595712
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-lq14
+   Scrape time: 2016-03-04 23:32:55 +0000 UTC 1457134375000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-lq14
+      labels = k8s-app:fluentd-logging
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      pod_id = c06dc0b3-e18d-11e5-98d5-42010af00002
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-lq14
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      hostname = stclair-heapster-scale-minion-lq14
+      host_id = 3122808077960784978
+      type = pod
+   Metrics:
+      network/rx_rate = 510.399994
+      memory/page_faults_rate = 0.307692
+      cpu/request = 100
+      memory/working_set = 85860352
+      memory/limit = 209715200
+      uptime = 90921049
+      network/rx_errors = 0
+      network/tx_errors = 0
+      cpu/usage_rate = 7
+      memory/request = 209715200
+      network/rx = 71278401
+      network/tx = 37926081
+      network/rx_errors_rate = 0.000000
+      memory/major_page_faults_rate = 0.000000
+      cpu/limit = 100
+      network/tx_rate = 284.000000
+      network/tx_errors_rate = 0.000000
+      memory/usage = 86294528
+   Labeled Metrics:
+      filesystem/usage = 8384512
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988575232
+         resource_id = Volume:varlog
+      filesystem/usage = 2801664
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97988575232
+         resource_id = Volume:varlibdockercontainers
+
+MetricSet: node:stclair-heapster-scale-minion-1flr/container:docker-daemon
+   Scrape time: 2016-03-04 23:32:54 +0000 UTC 1457134374000000000
+   Labels:
+      host_id = 689840425416724693
+      type = sys_container
+      container_name = docker-daemon
+      nodename = stclair-heapster-scale-minion-1flr
+      hostname = stclair-heapster-scale-minion-1flr
+   Metrics:
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage = 801525621119
+      memory/usage = 132169728
+      memory/working_set = 50618368
+      memory/major_page_faults = 0
+      memory/page_faults_rate = 0.000000
+      uptime = 90999083
+      memory/page_faults = 917736
+      cpu/usage_rate = 12
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991720960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97991720960
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-imc3/container:docker-daemon
+   Scrape time: 2016-03-04 23:33:03 +0000 UTC 1457134383000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-imc3
+      host_id = 17199089754203367290
+      type = sys_container
+      container_name = docker-daemon
+      nodename = stclair-heapster-scale-minion-imc3
+   Metrics:
+      memory/usage = 398286848
+      memory/working_set = 80158720
+      memory/major_page_faults = 0
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 13
+      uptime = 90994090
+      memory/page_faults = 758732
+      memory/page_faults_rate = 0.000000
+      cpu/usage = 812922350814
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97723666432
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97723666432
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-gnbn/container:kubelet
+   Scrape time: 2016-03-04 23:32:58 +0000 UTC 1457134378000000000
+   Labels:
+      host_id = 12318675628458828507
+      nodename = stclair-heapster-scale-minion-gnbn
+      hostname = stclair-heapster-scale-minion-gnbn
+      type = sys_container
+      container_name = kubelet
+   Metrics:
+      cpu/usage = 1150639798259
+      memory/working_set = 34545664
+      cpu/usage_rate = 13
+      memory/page_faults_rate = 876.000000
+      uptime = 90990121
+      memory/usage = 34639872
+      memory/page_faults = 77452381
+      memory/major_page_faults = 5
+      memory/major_page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991852032
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97991852032
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-4xeb/container:kubelet
+   Scrape time: 2016-03-04 23:32:53 +0000 UTC 1457134373000000000
+   Labels:
+      container_name = kubelet
+      nodename = stclair-heapster-scale-minion-4xeb
+      hostname = stclair-heapster-scale-minion-4xeb
+      host_id = 6021788818486194723
+      type = sys_container
+   Metrics:
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 18
+      uptime = 90994131
+      memory/working_set = 44032000
+      memory/page_faults = 77575590
+      memory/page_faults_rate = 1019.842102
+      cpu/usage = 1255026262606
+      memory/usage = 44130304
+      memory/major_page_faults = 6
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988530176
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988530176
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-fzo5/container:fluentd-cloud-logging
+   Scrape time: 2016-03-04 23:32:51 +0000 UTC 1457134371000000000
+   Labels:
+      pod_namespace = kube-system
+      pod_id = c7cf6ac3-e18d-11e5-98d5-42010af00002
+      container_base_image = gcr.io/google_containers/fluentd-gcp:1.16
+      labels = k8s-app:fluentd-logging
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-fzo5
+      namespace_name = kube-system
+      nodename = stclair-heapster-scale-minion-fzo5
+      hostname = stclair-heapster-scale-minion-fzo5
+      host_id = 3136988948405558332
+      type = pod_container
+      container_name = fluentd-cloud-logging
+   Metrics:
+      memory/working_set = 81620992
+      memory/major_page_faults_rate = 0.000000
+      memory/page_faults_rate = 0.375000
+      cpu/request = 100
+      memory/request = 209715200
+      cpu/limit = 100
+      memory/limit = 209715200
+      uptime = 90890278
+      cpu/usage = 588681339862
+      memory/usage = 82051072
+      memory/page_faults = 62380
+      memory/major_page_faults = 0
+      cpu/usage_rate = 7
+   Labeled Metrics:
+      filesystem/usage = 32768
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988517888
+         resource_id = /
+      filesystem/usage = 24576
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988517888
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-yvsf
+   Scrape time: 2016-03-04 23:32:52 +0000 UTC 1457134372000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-yvsf
+      hostname = stclair-heapster-scale-minion-yvsf
+      type = node
+      host_id = 16326096382484800860
+   Metrics:
+      uptime = 91009342
+      cpu/request = 300
+      memory/limit = 209715200
+      memory/node_utilization = 0.341317
+      network/tx_errors_rate = 0.000000
+      cpu/usage_rate = 98
+      memory/page_faults_rate = 0.000000
+      memory/major_page_faults_rate = 0.000000
+      memory/usage = 2684166144
+      memory/page_faults = 584056
+      network/rx_rate = 4879.277832
+      network/rx_errors_rate = 0.000000
+      memory/request = 209715200
+      cpu/node_utilization = 0.049000
+      network/tx_errors = 0
+      cpu/limit = 100
+      cpu/node_reservation = 0.150000
+      cpu/usage = 8276312095544
+      memory/working_set = 1263960064
+      network/rx_errors = 0
+      network/tx = 406744956
+      memory/major_page_faults = 830
+      network/rx = 804380465
+      network/tx_rate = 3791.500244
+      memory/node_reservation = 0.026667
+   Labeled Metrics:
+      filesystem/usage = 3145658368
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988608000
+         resource_id = /
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-ujzo/container:kube-proxy
+   Scrape time: 2016-03-04 23:32:56 +0000 UTC 1457134376000000000
+   Labels:
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      hostname = stclair-heapster-scale-minion-ujzo
+      host_id = 5845481181931597852
+      type = pod_container
+      pod_id = 29db75b2-e18e-11e5-98d5-42010af00002
+      container_name = kube-proxy
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      pod_name = kube-proxy-stclair-heapster-scale-minion-ujzo
+      nodename = stclair-heapster-scale-minion-ujzo
+      labels = 
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      memory/page_faults = 3129002
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 200
+      memory/request = 0
+      uptime = 35679350
+      cpu/usage = 18521399350
+      memory/usage = 27570176
+      memory/working_set = 7651328
+      cpu/limit = 0
+      memory/major_page_faults = 199
+      memory/page_faults_rate = 12.481482
+      cpu/usage_rate = 0
+      memory/limit = 0
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97992216576
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97992216576
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-sl2u
+   Scrape time: 2016-03-04 23:33:02 +0000 UTC 1457134382000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-sl2u
+      host_id = 13509331488408734919
+      namespace_name = kube-system
+      labels = k8s-app:fluentd-logging
+      nodename = stclair-heapster-scale-minion-sl2u
+      type = pod
+      pod_id = c50d4f7d-e18d-11e5-98d5-42010af00002
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-sl2u
+      pod_namespace = kube-system
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      network/tx = 15192094737
+      network/rx_rate = 1919.153931
+      network/tx_errors_rate = 0.000000
+      memory/major_page_faults_rate = 0.000000
+      network/tx_rate = 119036.539062
+      memory/limit = 209715200
+      memory/usage = 167989248
+      memory/working_set = 167981056
+      network/rx = 154059596
+      network/tx_errors = 0
+      network/rx_errors_rate = 0.000000
+      cpu/usage_rate = 126
+      cpu/request = 100
+      cpu/limit = 100
+      uptime = 90913363
+      network/rx_errors = 0
+      memory/page_faults_rate = 49.789471
+      memory/request = 209715200
+   Labeled Metrics:
+      filesystem/usage = 6422528
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97685385216
+         resource_id = Volume:varlog
+      filesystem/usage = 307752960
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97685385216
+         resource_id = Volume:varlibdockercontainers
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-xkcd/container:kube-proxy
+   Scrape time: 2016-03-04 23:32:54 +0000 UTC 1457134374000000000
+   Labels:
+      pod_name = kube-proxy-stclair-heapster-scale-minion-xkcd
+      nodename = stclair-heapster-scale-minion-xkcd
+      hostname = stclair-heapster-scale-minion-xkcd
+      host_id = 17585122704809472458
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      pod_id = bf9a269f-e18d-11e5-98d5-42010af00002
+      pod_namespace = kube-system
+      type = pod_container
+      container_name = kube-proxy
+      labels = 
+      namespace_name = kube-system
+   Metrics:
+      cpu/usage_rate = 0
+      memory/page_faults_rate = 0.130435
+      cpu/request = 200
+      memory/request = 0
+      memory/limit = 0
+      cpu/usage = 47157892553
+      memory/usage = 5349376
+      memory/page_faults = 7941567
+      memory/major_page_faults_rate = 0.000000
+      cpu/limit = 0
+      uptime = 90906074
+      memory/working_set = 5345280
+      memory/major_page_faults = 0
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991593984
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97991593984
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-7cfd/container:system
+   Scrape time: 2016-03-04 23:32:57 +0000 UTC 1457134377000000000
+   Labels:
+      host_id = 17115366056776213371
+      type = sys_container
+      container_name = system
+      nodename = stclair-heapster-scale-minion-7cfd
+      hostname = stclair-heapster-scale-minion-7cfd
+   Metrics:
+      memory/major_page_faults = 157
+      cpu/usage_rate = 6
+      memory/page_faults_rate = 420.069000
+      uptime = 90932143
+      memory/usage = 238247936
+      memory/page_faults = 38948584
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage = 600040185857
+      memory/working_set = 154632192
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988591616
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988591616
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-ye6p
+   Scrape time: 2016-03-04 23:32:56 +0000 UTC 1457134376000000000
+   Labels:
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      nodename = stclair-heapster-scale-minion-ye6p
+      hostname = stclair-heapster-scale-minion-ye6p
+      pod_id = c7c3a5ba-e18d-11e5-98d5-42010af00002
+      pod_namespace = kube-system
+      labels = k8s-app:fluentd-logging
+      host_id = 5196478437255673451
+      type = pod
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-ye6p
+      namespace_name = kube-system
+   Metrics:
+      network/rx_errors = 0
+      network/tx = 38913526
+      memory/working_set = 87400448
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 100
+      network/rx = 73402254
+      network/tx_errors = 0
+      memory/limit = 209715200
+      cpu/usage_rate = 8
+      memory/usage = 87830528
+      memory/page_faults_rate = 0.500000
+      uptime = 90909167
+      network/rx_errors_rate = 0.000000
+      memory/request = 209715200
+      network/rx_rate = 852.486511
+      network/tx_rate = 448.891907
+      network/tx_errors_rate = 0.000000
+      cpu/limit = 100
+   Labeled Metrics:
+      filesystem/usage = 8400896
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988571136
+         resource_id = Volume:varlog
+      filesystem/usage = 2789376
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97988571136
+         resource_id = Volume:varlibdockercontainers
+
+MetricSet: node:stclair-heapster-scale-minion-8wrm/container:system
+   Scrape time: 2016-03-04 23:32:50 +0000 UTC 1457134370000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-8wrm
+      hostname = stclair-heapster-scale-minion-8wrm
+      host_id = 4977014427818640434
+      type = sys_container
+      container_name = system
+   Metrics:
+      memory/usage = 238518272
+      memory/page_faults = 39039678
+      memory/major_page_faults = 156
+      cpu/usage_rate = 5
+      memory/page_faults_rate = 390.290344
+      uptime = 90920233
+      cpu/usage = 590941630995
+      memory/working_set = 154877952
+      memory/major_page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988571136
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988571136
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-h1hx/container:system
+   Scrape time: 2016-03-04 23:32:56 +0000 UTC 1457134376000000000
+   Labels:
+      container_name = system
+      nodename = stclair-heapster-scale-minion-h1hx
+      hostname = stclair-heapster-scale-minion-h1hx
+      host_id = 17596749489483305469
+      type = sys_container
+   Metrics:
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage = 294407535400
+      memory/usage = 920977408
+      memory/major_page_faults = 157
+      cpu/usage_rate = 2
+      uptime = 90922245
+      memory/working_set = 254390272
+      memory/page_faults = 19822855
+      memory/page_faults_rate = 192.354843
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97858121728
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97858121728
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-igf2/container:kubelet
+   Scrape time: 2016-03-04 23:33:01 +0000 UTC 1457134381000000000
+   Labels:
+      host_id = 17081702709680655733
+      nodename = stclair-heapster-scale-minion-igf2
+      hostname = stclair-heapster-scale-minion-igf2
+      type = sys_container
+      container_name = kubelet
+   Metrics:
+      uptime = 91005252
+      cpu/usage = 1059935486694
+      memory/usage = 722407424
+      memory/page_faults = 77359500
+      memory/page_faults_rate = 920.892822
+      memory/major_page_faults_rate = 0.000000
+      memory/working_set = 144048128
+      memory/major_page_faults = 8
+      cpu/usage_rate = 12
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988485120
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988485120
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-r6bd
+   Scrape time: 2016-03-04 23:32:59 +0000 UTC 1457134379000000000
+   Labels:
+      host_id = 11539558003798332795
+      pod_namespace = kube-system
+      labels = k8s-app:fluentd-logging
+      hostname = stclair-heapster-scale-minion-r6bd
+      nodename = stclair-heapster-scale-minion-r6bd
+      type = pod
+      pod_id = be0e2775-e18d-11e5-98d5-42010af00002
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-r6bd
+      namespace_name = kube-system
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      cpu/usage_rate = 7
+      cpu/limit = 100
+      network/rx = 70120114
+      network/rx_errors = 0
+      cpu/request = 100
+      memory/request = 209715200
+      network/tx = 37405827
+      network/rx_errors_rate = 0.000000
+      network/tx_errors_rate = 0.000000
+      memory/major_page_faults_rate = 0.000000
+      network/rx_rate = 810.343750
+      network/tx_rate = 410.031250
+      memory/usage = 83968000
+      memory/limit = 209715200
+      uptime = 90924324
+      network/tx_errors = 0
+      memory/page_faults_rate = 0.387097
+      memory/working_set = 83542016
+   Labeled Metrics:
+      filesystem/usage = 8372224
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988599808
+         resource_id = Volume:varlog
+      filesystem/usage = 2789376
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97988599808
+         resource_id = Volume:varlibdockercontainers
+
+MetricSet: node:stclair-heapster-scale-minion-r6bd/container:docker-daemon
+   Scrape time: 2016-03-04 23:33:01 +0000 UTC 1457134381000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-r6bd
+      host_id = 11539558003798332795
+      nodename = stclair-heapster-scale-minion-r6bd
+      type = sys_container
+      container_name = docker-daemon
+   Metrics:
+      cpu/usage = 863800109483
+      memory/usage = 131325952
+      memory/page_faults_rate = 0.000000
+      memory/major_page_faults_rate = 0.000000
+      uptime = 91003324
+      memory/working_set = 48758784
+      memory/page_faults = 917221
+      memory/major_page_faults = 0
+      cpu/usage_rate = 12
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988595712
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988595712
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-sl2u
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      host_id = 13509331488408734919
+      type = node
+      nodename = stclair-heapster-scale-minion-sl2u
+      hostname = stclair-heapster-scale-minion-sl2u
+   Metrics:
+      memory/page_faults = 580366
+      network/rx_errors = 0
+      network/rx_errors_rate = 0.000000
+      network/tx_rate = 2288335.000000
+      network/tx_errors_rate = 0.000000
+      memory/request = 576716800
+      memory/node_utilization = 0.407849
+      memory/working_set = 1603903488
+      memory/node_reservation = 0.073335
+      network/tx_errors = 0
+      cpu/usage_rate = 940
+      memory/page_faults_rate = 0.000000
+      cpu/node_utilization = 0.470000
+      cpu/node_reservation = 0.200000
+      uptime = 90990362
+      memory/major_page_faults = 833
+      network/tx = 19328076953
+      network/rx_rate = 816780.562500
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 400
+      cpu/limit = 200
+      memory/usage = 3207385088
+      network/rx = 19499282172
+      memory/limit = 576716800
+      cpu/usage = 19495415865665
+   Labeled Metrics:
+      filesystem/usage = 3448881152
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97685385216
+         resource_id = /
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-jyro
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-jyro
+      host_id = 12587910877371622461
+      type = pod
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-jyro
+      pod_namespace = kube-system
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      nodename = stclair-heapster-scale-minion-jyro
+      pod_id = c4de9b6e-e18d-11e5-98d5-42010af00002
+      namespace_name = kube-system
+      labels = k8s-app:fluentd-logging
+   Metrics:
+      network/tx = 38772945
+      network/tx_errors_rate = 0.000000
+      cpu/request = 100
+      memory/request = 209715200
+      memory/limit = 209715200
+      uptime = 90913041
+      network/rx = 73137684
+      network/rx_errors = 0
+      network/tx_rate = 467.547607
+      cpu/usage_rate = 7
+      memory/working_set = 87703552
+      network/tx_errors = 0
+      cpu/limit = 100
+      memory/usage = 88129536
+      memory/major_page_faults_rate = 0.000000
+      network/rx_rate = 892.857178
+      network/rx_errors_rate = 0.000000
+      memory/page_faults_rate = 0.428571
+   Labeled Metrics:
+      filesystem/usage = 5279744
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97991692288
+         resource_id = Volume:varlog
+      filesystem/usage = 2789376
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97991692288
+         resource_id = Volume:varlibdockercontainers
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-326p
+   Scrape time: 2016-03-04 23:32:53 +0000 UTC 1457134373000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-326p
+      hostname = stclair-heapster-scale-minion-326p
+      host_id = 5060816508616308305
+      type = pod
+      pod_id = bde7bc3a-e18d-11e5-98d5-42010af00002
+      pod_namespace = kube-system
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      pod_name = kube-proxy-stclair-heapster-scale-minion-326p
+      namespace_name = kube-system
+      labels = 
+   Metrics:
+      network/rx_rate = 2151.000000
+      memory/working_set = 5206016
+      cpu/limit = 0
+      uptime = 90925042
+      network/rx_errors = 0
+      cpu/request = 200
+      memory/request = 0
+      network/rx = 804157570
+      network/tx = 406887528
+      memory/major_page_faults_rate = 0.000000
+      network/tx_errors = 0
+      network/rx_errors_rate = 0.000000
+      network/tx_rate = 3542.227295
+      network/tx_errors_rate = 0.000000
+      cpu/usage_rate = 0
+      memory/page_faults_rate = 66.866661
+      memory/limit = 0
+      memory/usage = 5218304
+   Labeled Metrics:
+      filesystem/usage = 741376
+         resource_id = Volume:ssl-certs-host
+      filesystem/limit = 105553100800
+         resource_id = Volume:ssl-certs-host
+      filesystem/available = 97988481024
+         resource_id = Volume:ssl-certs-host
+      filesystem/usage = 4096
+         resource_id = Volume:kubeconfig
+      filesystem/limit = 105553100800
+         resource_id = Volume:kubeconfig
+      filesystem/available = 97988481024
+         resource_id = Volume:kubeconfig
+      filesystem/usage = 8503296
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988481024
+         resource_id = Volume:varlog
+
+MetricSet: node:stclair-heapster-scale-minion-xkcd/container:kubelet
+   Scrape time: 2016-03-04 23:32:59 +0000 UTC 1457134379000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-xkcd
+      host_id = 17585122704809472458
+      nodename = stclair-heapster-scale-minion-xkcd
+      type = sys_container
+      container_name = kubelet
+   Metrics:
+      uptime = 91000074
+      cpu/usage = 1254208244058
+      memory/working_set = 35397632
+      cpu/usage_rate = 15
+      memory/page_faults_rate = 975.882385
+      memory/major_page_faults_rate = 0.000000
+      memory/usage = 35491840
+      memory/page_faults = 77576257
+      memory/major_page_faults = 6
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991593984
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97991593984
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-cu2a/container:kube-proxy
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      pod_name = kube-proxy-stclair-heapster-scale-minion-cu2a
+      labels = 
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-cu2a
+      type = pod_container
+      pod_id = bbf8ddd9-e18d-11e5-98d5-42010af00002
+      container_name = kube-proxy
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      namespace_name = kube-system
+      hostname = stclair-heapster-scale-minion-cu2a
+      host_id = 5934478541966060404
+   Metrics:
+      memory/usage = 5378048
+      memory/working_set = 5369856
+      memory/page_faults = 7969644
+      memory/page_faults_rate = 52.195652
+      memory/major_page_faults_rate = 0.000000
+      memory/request = 0
+      cpu/limit = 0
+      uptime = 90928239
+      memory/limit = 0
+      memory/major_page_faults = 0
+      cpu/usage_rate = 0
+      cpu/request = 200
+      cpu/usage = 44030545413
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988562944
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988562944
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-n9gh/container:system
+   Scrape time: 2016-03-04 23:32:54 +0000 UTC 1457134374000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-n9gh
+      hostname = stclair-heapster-scale-minion-n9gh
+      host_id = 3584008554129726392
+      type = sys_container
+      container_name = system
+   Metrics:
+      uptime = 90926294
+      memory/usage = 237764608
+      memory/working_set = 154341376
+      memory/page_faults_rate = 486.350006
+      cpu/usage = 520778986249
+      memory/page_faults = 39339815
+      memory/major_page_faults = 156
+      cpu/usage_rate = 5
+      memory/major_page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988542464
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988542464
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-66a8
+   Scrape time: 2016-03-04 23:32:51 +0000 UTC 1457134371000000000
+   Labels:
+      type = pod
+      labels = 
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      hostname = stclair-heapster-scale-minion-66a8
+      host_id = 9848283079413031000
+      pod_id = c7f8f0cd-e18d-11e5-98d5-42010af00002
+      pod_name = kube-proxy-stclair-heapster-scale-minion-66a8
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-66a8
+   Metrics:
+      uptime = 90908078
+      network/rx = 808636049
+      network/tx_errors = 0
+      network/tx_rate = 4040.706055
+      cpu/request = 200
+      network/rx_errors = 0
+      network/tx = 415510599
+      cpu/usage_rate = 0
+      memory/working_set = 5443584
+      network/rx_rate = 2266.058838
+      memory/major_page_faults_rate = 0.000000
+      memory/page_faults_rate = 64.000000
+      memory/request = 0
+      cpu/limit = 0
+      memory/limit = 0
+      memory/usage = 5455872
+      network/rx_errors_rate = 0.000000
+      network/tx_errors_rate = 0.000000
+   Labeled Metrics:
+      filesystem/usage = 8486912
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988493312
+         resource_id = Volume:varlog
+      filesystem/usage = 741376
+         resource_id = Volume:ssl-certs-host
+      filesystem/limit = 105553100800
+         resource_id = Volume:ssl-certs-host
+      filesystem/available = 97988493312
+         resource_id = Volume:ssl-certs-host
+      filesystem/usage = 4096
+         resource_id = Volume:kubeconfig
+      filesystem/limit = 105553100800
+         resource_id = Volume:kubeconfig
+      filesystem/available = 97988493312
+         resource_id = Volume:kubeconfig
+
+MetricSet: node:stclair-heapster-scale-minion-66a8/container:docker-daemon
+   Scrape time: 2016-03-04 23:32:54 +0000 UTC 1457134374000000000
+   Labels:
+      host_id = 9848283079413031000
+      type = sys_container
+      container_name = docker-daemon
+      nodename = stclair-heapster-scale-minion-66a8
+      hostname = stclair-heapster-scale-minion-66a8
+   Metrics:
+      uptime = 90987078
+      memory/working_set = 48553984
+      memory/page_faults = 927529
+      memory/page_faults_rate = 0.000000
+      cpu/usage = 844079205835
+      memory/usage = 132030464
+      memory/major_page_faults = 0
+      cpu/usage_rate = 12
+      memory/major_page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988476928
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988476928
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:l7-lb-controller-v0.5.2-8ok15/container:l7-lb-controller
+   Scrape time: 2016-03-04 23:32:51 +0000 UTC 1457134371000000000
+   Labels:
+      type = pod_container
+      pod_name = l7-lb-controller-v0.5.2-8ok15
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      container_base_image = gcr.io/google_containers/glbc:0.5.2
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-imc3
+      hostname = stclair-heapster-scale-minion-imc3
+      host_id = 17199089754203367290
+      pod_id = 9d002215-e18d-11e5-98d5-42010af00002
+      namespace_name = kube-system
+      container_name = l7-lb-controller
+      labels = k8s-app:glbc,kubernetes.io/cluster-service:true,name:glbc,version:v0.5.2
+   Metrics:
+      memory/working_set = 7852032
+      memory/major_page_faults = 0
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 100
+      memory/request = 52428800
+      cpu/limit = 100
+      uptime = 90882090
+      memory/usage = 7852032
+      memory/page_faults = 4945
+      cpu/usage_rate = 3
+      memory/page_faults_rate = 0.000000
+      memory/limit = 104857600
+      cpu/usage = 328644467452
+   Labeled Metrics:
+      filesystem/usage = 28672
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97723666432
+         resource_id = /
+      filesystem/usage = 20480
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97723666432
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:l7-lb-controller-v0.5.2-8ok15/container:default-http-backend
+   Scrape time: 2016-03-04 23:33:00 +0000 UTC 1457134380000000000
+   Labels:
+      pod_id = 9d002215-e18d-11e5-98d5-42010af00002
+      host_id = 17199089754203367290
+      type = pod_container
+      container_name = default-http-backend
+      pod_name = l7-lb-controller-v0.5.2-8ok15
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      nodename = stclair-heapster-scale-minion-imc3
+      hostname = stclair-heapster-scale-minion-imc3
+      container_base_image = gcr.io/google_containers/defaultbackend:1.0
+      labels = k8s-app:glbc,kubernetes.io/cluster-service:true,name:glbc,version:v0.5.2
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+   Metrics:
+      memory/request = 20971520
+      cpu/limit = 10
+      memory/page_faults = 3314
+      memory/major_page_faults = 0
+      cpu/usage_rate = 0
+      memory/major_page_faults_rate = 0.000000
+      memory/page_faults_rate = 0.000000
+      cpu/request = 10
+      memory/limit = 20971520
+      uptime = 90892090
+      cpu/usage = 4162705297
+      memory/usage = 1294336
+      memory/working_set = 1294336
+   Labeled Metrics:
+      filesystem/usage = 28672
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97723666432
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97723666432
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-y2j5
+   Scrape time: 2016-03-04 23:32:58 +0000 UTC 1457134378000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-y2j5
+      hostname = stclair-heapster-scale-minion-y2j5
+      host_id = 4179702381345510911
+      type = node
+   Metrics:
+      cpu/usage = 8432270692630
+      network/rx = 806836855
+      memory/major_page_faults_rate = 0.000000
+      network/rx_rate = 1911.735352
+      memory/request = 209715200
+      cpu/node_reservation = 0.150000
+      memory/working_set = 1244639232
+      memory/page_faults = 600260
+      cpu/request = 300
+      cpu/node_utilization = 0.051500
+      network/tx = 409245382
+      network/tx_errors_rate = 0.000000
+      network/rx_errors_rate = 0.000000
+      cpu/limit = 100
+      memory/limit = 209715200
+      uptime = 90812120
+      memory/usage = 2670276608
+      memory/major_page_faults = 835
+      network/rx_errors = 0
+      network/tx_errors = 0
+      cpu/usage_rate = 103
+      memory/page_faults_rate = 0.000000
+      network/tx_rate = 2713.264648
+      memory/node_utilization = 0.339551
+      memory/node_reservation = 0.026667
+   Labeled Metrics:
+      filesystem/usage = 3142590464
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991675904
+         resource_id = /
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-8sgt
+   Scrape time: 2016-03-04 23:32:58 +0000 UTC 1457134378000000000
+   Labels:
+      host_id = 2070991241687083140
+      type = pod
+      pod_id = c5eea665-e18d-11e5-98d5-42010af00002
+      pod_name = kube-proxy-stclair-heapster-scale-minion-8sgt
+      pod_namespace = kube-system
+      labels = 
+      hostname = stclair-heapster-scale-minion-8sgt
+      namespace_name = kube-system
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      nodename = stclair-heapster-scale-minion-8sgt
+   Metrics:
+      network/rx_rate = 2343.666748
+      cpu/limit = 0
+      cpu/usage_rate = 0
+      network/rx_errors = 0
+      memory/request = 0
+      network/rx_errors_rate = 0.000000
+      network/tx_errors_rate = 0.000000
+      memory/working_set = 5390336
+      memory/page_faults_rate = 65.096771
+      memory/limit = 0
+      memory/usage = 5398528
+      uptime = 90911125
+      network/tx_errors = 0
+      cpu/request = 200
+      network/tx_rate = 2922.589844
+      memory/major_page_faults_rate = 0.000000
+      network/rx = 807452077
+      network/tx = 414119782
+   Labeled Metrics:
+      filesystem/usage = 741376
+         resource_id = Volume:ssl-certs-host
+      filesystem/limit = 105553100800
+         resource_id = Volume:ssl-certs-host
+      filesystem/available = 97991671808
+         resource_id = Volume:ssl-certs-host
+      filesystem/usage = 4096
+         resource_id = Volume:kubeconfig
+      filesystem/limit = 105553100800
+         resource_id = Volume:kubeconfig
+      filesystem/available = 97991671808
+         resource_id = Volume:kubeconfig
+      filesystem/usage = 5287936
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97991671808
+         resource_id = Volume:varlog
+
+MetricSet: node:stclair-heapster-scale-minion-1wxg/container:kubelet
+   Scrape time: 2016-03-04 23:32:59 +0000 UTC 1457134379000000000
+   Labels:
+      container_name = kubelet
+      hostname = stclair-heapster-scale-minion-1wxg
+      host_id = 12316265131352255574
+      nodename = stclair-heapster-scale-minion-1wxg
+      type = sys_container
+   Metrics:
+      cpu/usage_rate = 17
+      memory/working_set = 138792960
+      memory/page_faults = 77819255
+      memory/major_page_faults = 9
+      memory/page_faults_rate = 940.500061
+      memory/major_page_faults_rate = 0.000000
+      uptime = 91009169
+      cpu/usage = 1381772348789
+      memory/usage = 720031744
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988481024
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988481024
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-su9n/container:fluentd-cloud-logging
+   Scrape time: 2016-03-04 23:33:01 +0000 UTC 1457134381000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-su9n
+      hostname = stclair-heapster-scale-minion-su9n
+      host_id = 11908559736853256072
+      type = pod_container
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-su9n
+      container_base_image = gcr.io/google_containers/fluentd-gcp:1.16
+      namespace_name = kube-system
+      pod_id = c0f15284-e18d-11e5-98d5-42010af00002
+      container_name = fluentd-cloud-logging
+      labels = k8s-app:fluentd-logging
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      pod_namespace = kube-system
+   Metrics:
+      memory/request = 209715200
+      cpu/limit = 100
+      memory/limit = 209715200
+      cpu/usage = 11139535365225
+      memory/working_set = 134819840
+      memory/major_page_faults = 0
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 92
+      uptime = 90900171
+      memory/usage = 134823936
+      memory/page_faults = 8388798
+      memory/page_faults_rate = 85.233330
+      cpu/request = 100
+   Labeled Metrics:
+      filesystem/usage = 32768
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97715011584
+         resource_id = /
+      filesystem/usage = 28672
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97715011584
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-8sgt
+   Scrape time: 2016-03-04 23:33:01 +0000 UTC 1457134381000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-8sgt
+      hostname = stclair-heapster-scale-minion-8sgt
+      host_id = 2070991241687083140
+      type = node
+   Metrics:
+      memory/working_set = 1249333248
+      network/rx_errors = 0
+      cpu/request = 300
+      memory/limit = 209715200
+      memory/node_utilization = 0.339721
+      uptime = 90987125
+      cpu/usage = 8237194866083
+      memory/page_faults_rate = 0.000000
+      network/rx_rate = 3765.685547
+      network/tx_rate = 3007.457031
+      cpu/limit = 100
+      cpu/node_reservation = 0.150000
+      memory/usage = 2671616000
+      memory/major_page_faults = 829
+      memory/request = 209715200
+      cpu/node_utilization = 0.054500
+      memory/node_reservation = 0.026667
+      network/rx = 807509835
+      memory/major_page_faults_rate = 0.000000
+      network/tx_errors = 0
+      cpu/usage_rate = 109
+      network/rx_errors_rate = 0.000000
+      network/tx_errors_rate = 0.000000
+      memory/page_faults = 589822
+      network/tx = 414124461
+   Labeled Metrics:
+      filesystem/usage = 3142594560
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991671808
+         resource_id = /
+
+MetricSet: node:stclair-heapster-scale-minion-uxds/container:system
+   Scrape time: 2016-03-04 23:32:59 +0000 UTC 1457134379000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-uxds
+      hostname = stclair-heapster-scale-minion-uxds
+      host_id = 14141530337298928860
+      type = sys_container
+      container_name = system
+   Metrics:
+      uptime = 90922142
+      cpu/usage = 313643003659
+      memory/usage = 920576000
+      memory/working_set = 255225856
+      memory/page_faults = 20990317
+      memory/major_page_faults = 157
+      memory/page_faults_rate = 121.371429
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 1
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97955614720
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97955614720
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-n9gh/container:kube-proxy
+   Scrape time: 2016-03-04 23:33:00 +0000 UTC 1457134380000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-n9gh
+      host_id = 3584008554129726392
+      type = pod_container
+      container_base_image = gcr.io/google_containers/kube-proxy:fa7404bd0e21c75b8e840f41fd848df0
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      pod_id = c081a280-e18d-11e5-98d5-42010af00002
+      pod_name = kube-proxy-stclair-heapster-scale-minion-n9gh
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      hostname = stclair-heapster-scale-minion-n9gh
+      container_name = kube-proxy
+      labels = 
+   Metrics:
+      uptime = 90920294
+      cpu/usage = 39631984919
+      cpu/usage_rate = 0
+      memory/page_faults_rate = 78.500000
+      memory/limit = 0
+      memory/usage = 5332992
+      memory/working_set = 5324800
+      memory/page_faults = 7985508
+      memory/major_page_faults = 0
+      memory/major_page_faults_rate = 0.000000
+      cpu/request = 200
+      memory/request = 0
+      cpu/limit = 0
+   Labeled Metrics:
+      filesystem/usage = 40960
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988542464
+         resource_id = /
+      filesystem/usage = 16384
+         resource_id = logs
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988542464
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-fv2n/container:docker-daemon
+   Scrape time: 2016-03-04 23:32:50 +0000 UTC 1457134370000000000
+   Labels:
+      hostname = stclair-heapster-scale-minion-fv2n
+      host_id = 1855481677903915630
+      nodename = stclair-heapster-scale-minion-fv2n
+      type = sys_container
+      container_name = docker-daemon
+   Metrics:
+      cpu/usage = 959287972968
+      memory/usage = 134057984
+      memory/page_faults = 961086
+      memory/major_page_faults = 0
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 15
+      uptime = 90992014
+      memory/working_set = 51048448
+      memory/page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97991696384
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97991696384
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-u5o5/container:system
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-u5o5
+      hostname = stclair-heapster-scale-minion-u5o5
+      host_id = 12810725812388886149
+      type = sys_container
+      container_name = system
+   Metrics:
+      cpu/usage = 746403675215
+      memory/page_faults = 46196080
+      memory/major_page_faults = 156
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 5
+      uptime = 90924078
+      memory/working_set = 158167040
+      memory/page_faults_rate = 356.233307
+      memory/usage = 241856512
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97985847296
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97985847296
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:kube-proxy-stclair-heapster-scale-minion-4xeb
+   Scrape time: 2016-03-04 23:32:51 +0000 UTC 1457134371000000000
+   Labels:
+      pod_id = c3a67556-e18d-11e5-98d5-42010af00002
+      namespace_name = kube-system
+      nodename = stclair-heapster-scale-minion-4xeb
+      host_id = 6021788818486194723
+      type = pod
+      labels = 
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      hostname = stclair-heapster-scale-minion-4xeb
+      pod_name = kube-proxy-stclair-heapster-scale-minion-4xeb
+      pod_namespace = kube-system
+   Metrics:
+      cpu/limit = 0
+      network/rx_errors_rate = 0.000000
+      network/tx_rate = 3706.045166
+      network/tx_errors_rate = 0.000000
+      cpu/usage_rate = 0
+      network/rx_errors = 0
+      cpu/request = 200
+      memory/limit = 0
+      network/rx_rate = 4749.454102
+      memory/major_page_faults_rate = 0.000000
+      memory/page_faults_rate = 59.199997
+      memory/request = 0
+      network/rx = 807464956
+      network/tx = 412750950
+      network/tx_errors = 0
+      uptime = 90916131
+      memory/working_set = 5255168
+      memory/usage = 5259264
+   Labeled Metrics:
+      filesystem/usage = 741376
+         resource_id = Volume:ssl-certs-host
+      filesystem/limit = 105553100800
+         resource_id = Volume:ssl-certs-host
+      filesystem/available = 97988530176
+         resource_id = Volume:ssl-certs-host
+      filesystem/usage = 4096
+         resource_id = Volume:kubeconfig
+      filesystem/limit = 105553100800
+         resource_id = Volume:kubeconfig
+      filesystem/available = 97988530176
+         resource_id = Volume:kubeconfig
+      filesystem/usage = 8441856
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988530176
+         resource_id = Volume:varlog
+
+MetricSet: node:stclair-heapster-scale-minion-z43q/container:kubelet
+   Scrape time: 2016-03-04 23:33:04 +0000 UTC 1457134384000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-z43q
+      hostname = stclair-heapster-scale-minion-z43q
+      host_id = 17106017660060387417
+      type = sys_container
+      container_name = kubelet
+   Metrics:
+      cpu/usage = 1072377324338
+      memory/usage = 723165184
+      memory/major_page_faults = 7
+      memory/page_faults_rate = 934.818176
+      uptime = 90991250
+      memory/working_set = 144138240
+      memory/page_faults = 77185818
+      cpu/usage_rate = 12
+      memory/major_page_faults_rate = 0.000000
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988546560
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988546560
+         resource_id = logs
+
+MetricSet: node:stclair-heapster-scale-minion-yvsf/container:kubelet
+   Scrape time: 2016-03-04 23:33:01 +0000 UTC 1457134381000000000
+   Labels:
+      nodename = stclair-heapster-scale-minion-yvsf
+      hostname = stclair-heapster-scale-minion-yvsf
+      host_id = 16326096382484800860
+      type = sys_container
+      container_name = kubelet
+   Metrics:
+      uptime = 91009342
+      memory/page_faults_rate = 896.299927
+      memory/working_set = 141668352
+      memory/page_faults = 72552982
+      memory/major_page_faults = 8
+      memory/major_page_faults_rate = 0.000000
+      cpu/usage_rate = 16
+      cpu/usage = 1288650431339
+      memory/usage = 721436672
+   Labeled Metrics:
+      filesystem/limit = 105553100800
+         resource_id = /
+      filesystem/available = 97988608000
+         resource_id = /
+      filesystem/limit = 105553100800
+         resource_id = logs
+      filesystem/available = 97988608000
+         resource_id = logs
+
+MetricSet: namespace:kube-system/pod:heapster-perf-summary-jlylm
+   Scrape time: 2016-03-04 23:32:59 +0000 UTC 1457134379000000000
+   Labels:
+      pod_name = heapster-perf-summary-jlylm
+      namespace_name = kube-system
+      pod_namespace = kube-system
+      labels = k8s-app:heapster-perf-summary
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      nodename = stclair-heapster-scale-minion-sl2u
+      type = pod
+      pod_id = df3366ba-e191-11e5-98d5-42010af00002
+      hostname = stclair-heapster-scale-minion-sl2u
+      host_id = 13509331488408734919
+   Metrics:
+      memory/page_faults_rate = 2.100000
+      memory/working_set = 134516736
+      network/tx = 262993052
+      network/rx_errors_rate = 0.000000
+      network/rx_rate = 30148.656250
+      cpu/limit = 100
+      memory/major_page_faults_rate = 0.000000
+      memory/request = 367001600
+      memory/usage = 134516736
+      uptime = 89152362
+      network/rx = 3259784846
+      network/tx_errors_rate = 0.000000
+      cpu/request = 100
+      memory/limit = 367001600
+      cpu/usage_rate = 9
+      network/rx_errors = 0
+      network/tx_errors = 0
+      network/tx_rate = 2552.142822
+   Labeled Metrics:
+      filesystem/usage = 897024
+         resource_id = Volume:ssl-certs
+      filesystem/limit = 105553100800
+         resource_id = Volume:ssl-certs
+      filesystem/available = 97685385216
+         resource_id = Volume:ssl-certs
+      filesystem/usage = 12288
+         resource_id = Volume:default-token-8giur
+      filesystem/limit = 3932069888
+         resource_id = Volume:default-token-8giur
+      filesystem/available = 3932057600
+         resource_id = Volume:default-token-8giur
+
+MetricSet: namespace:kube-system/pod:fluentd-cloud-logging-stclair-heapster-scale-minion-fsbs
+   Scrape time: 2016-03-04 23:32:58 +0000 UTC 1457134378000000000
+   Labels:
+      namespace_id = 95b628ff-e18d-11e5-98d5-42010af00002
+      nodename = stclair-heapster-scale-minion-fsbs
+      hostname = stclair-heapster-scale-minion-fsbs
+      type = pod
+      pod_name = fluentd-cloud-logging-stclair-heapster-scale-minion-fsbs
+      pod_namespace = kube-system
+      labels = k8s-app:fluentd-logging
+      host_id = 11685903702843260083
+      pod_id = c5eec00b-e18d-11e5-98d5-42010af00002
+      namespace_name = kube-system
+   Metrics:
+      network/rx_errors_rate = 0.000000
+      network/tx_errors_rate = 0.000000
+      cpu/usage_rate = 6
+      uptime = 90912389
+      memory/request = 209715200
+      memory/working_set = 85757952
+      memory/limit = 209715200
+      cpu/limit = 100
+      network/rx_errors = 0
+      network/tx = 39027780
+      network/rx_rate = 646.966614
+      memory/page_faults_rate = 0.387097
+      cpu/request = 100
+      network/rx = 73832754
+      network/tx_errors = 0
+      network/tx_rate = 339.766632
+      memory/major_page_faults_rate = 0.000000
+      memory/usage = 86188032
+   Labeled Metrics:
+      filesystem/usage = 2785280
+         resource_id = Volume:varlibdockercontainers
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlibdockercontainers
+      filesystem/available = 97988505600
+         resource_id = Volume:varlibdockercontainers
+      filesystem/usage = 8462336
+         resource_id = Volume:varlog
+      filesystem/limit = 105553100800
+         resource_id = Volume:varlog
+      filesystem/available = 97988505600
+         resource_id = Volume:varlog
+
