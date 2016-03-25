@@ -171,6 +171,17 @@ docker:
     - group: root
     - mode: 755
     - makedirs: true
+
+{% for binary in ['docker', 'docker-containerd', 'docker-containerd-ctr', 'docker-containerd-shim', 'docker-runc'] %}
+/usr/bin/{{ binary }}:
+  file.managed:
+    - source: salt://docker/release/{{ binary }}
+    - user: root
+    - group: root
+    - mode: 755
+    - makedirs: true
+{% endfor %}
+
 {% endif %}
 
 # Work around Salt #18089: https://github.com/saltstack/salt/issues/18089
