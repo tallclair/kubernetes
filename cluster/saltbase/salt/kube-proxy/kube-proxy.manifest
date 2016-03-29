@@ -37,7 +37,7 @@ spec:
     command:
     - /bin/sh
     - -c
-    - kube-proxy {{api_servers_with_port}} {{kubeconfig}} --resource-container="" {{log_level}} {{test_args}} 1>>/var/log/kube-proxy.log 2>&1
+    - umount /proc/sys && kube-proxy {{api_servers_with_port}} {{kubeconfig}} --resource-container="" {{log_level}} {{test_args}} 1>>/var/log/kube-proxy.log 2>&1
     securityContext:
       privileged: true
     volumeMounts:
