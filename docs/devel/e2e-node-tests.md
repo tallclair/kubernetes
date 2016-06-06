@@ -73,15 +73,16 @@ This will: run the *ginkgo* binary against the subdirectory *test/e2e_node*, whi
 
 ## Remotely
 
-Why Run tests *Remotely*?  Tests will be run in a customized pristine environment.  Closely mimics what will be done as pre- and post- submit testing performed by the project.
+Why Run tests *Remotely*?  Tests will be run in a customized pristine environment.  Closely mimics what will be done
+as pre- and post- submit testing performed by the project.
 
 Prerequisites:
 - [join the googlegroup](https://groups.google.com/forum/#!forum/kubernetes-dev)
 `kubernetes-dev@googlegroups.com`
   - *This provides read access to the node test images.*
 - Setup a [Google Cloud Platform](https://cloud.google.com/) account and project with Google Compute Engine enabled
-- Install and setup the [gcloud skd](https://cloud.google.com/sdk/downloads)
-  - Verify the sdk is setup correctly by running `gcloud compute images list`
+- Install and setup the [gcloud sdk](https://cloud.google.com/sdk/downloads)
+  - Verify the sdk is setup correctly by running `gcloud compute instances list` and `gcloud compute images list --project kubernetes-node-e2e-images`
 
 Run:
 
@@ -92,34 +93,41 @@ make test_e2e_node REMOTE=true
 This will:
 - Build the Kubernetes source code
 - Create a new GCE instance using the default test image
-  - Instance will be called *test-e2e-node-containervm-v20160321-image*
+  - Instance will be called **test-e2e-node-containervm-v20160321-image**
 - Lookup the instance public ip address
 - Copy a compressed archive file to the host containing the following binaries:
   - ginkgo
   - kubelet
   - kube-apiserver
   - e2e_node.test (this binary contains the actual tests to be run)
-- Unzip the archive to a directory under /tmp/gcloud*
+- Unzip the archive to a directory under **/tmp/gcloud**
 - Run the tests using the `ginkgo` command
   - Starts etcd, kube-apiserver, kubelet
   - The ginkgo command is used because this supports more features than running the test binary directly
 - Output the remote test results to STDOUT
 - `scp` the log files back to the local host under /tmp/_artifacts/e2e-node-containervm-v20160321-image
-- Delete the created GCE instance
+- Stop the processes on the remote host
+- **Leave the GCE instance running**
+
+**Note: Subsequent tests run using the same image will *reuse the existing host* instead of deleting it and
+provisioning a new one.  To delete the GCE instance after each test see
+*[DELETE_INSTANCE](#delete-instance-after-tests-run)*.**
+
 
 # Additional Remote Options
 
 ## Run tests using different images
 
-This is useful if you want to run tests against a host using a different OS distro or container runtime than provided by the default image.
+This is useful if you want to run tests against a host using a different OS distro or container runtime than
+provided by the default image.
 
 List the available test images using gcloud.
 
 ```sh
-gcloud compute images list --project kubernetes-node-e2e-images | grep "e2e-node-"
+make test_e2e_node LIST_IMAGES=true
 ```
 
-This will output a list of the available images.
+This will output a list of the available images for the default image project.
 
 Then run:
 
@@ -135,38 +143,37 @@ This is useful if you have an host instance running already and want to run the 
 make test_e2e_node REMOTE=true HOSTS="<comma-separated-list-of-hostnames>"
 ```
 
-## Keep instance around after tests run
+## Delete instance after tests run
 
-This is useful if you want to inspect or debug the host after the tests complete, or if you want to run
-additional tests without recreating a new instance each time the tests are run.
-**Note: When not-deleting an instance, subsequent tests run using the same image will *reuse the existing host*,
-even if they would normally provision a new instance.**
+This is useful if you want recreate the instance for each test run to trigger flakes related to starting the instance.
 
 ```sh
-make test_e2e_node REMOTE=true DELETE_INSTANCES=false
+make test_e2e_node REMOTE=true DELETE_INSTANCES=true
 ```
 
 ## Keep instance, test binaries, and *processes* around after tests run
 
-This is useful if you want to manually inspect or debug the running kubelet after the tests.  **Note: If you just want to
-reuse the host for new tests, only supply DELETE_INSTANCES without CLEANUP.**
+This is useful if you want to manually inspect or debug the kubelet process run as part of the tests.
 
 ```sh
-make test_e2e_node REMOTE=true DELETE_INSTANCES=false CLEANUP=false
+make test_e2e_node REMOTE=true CLEANUP=false
 ```
 
 ## Run tests using an image in another project
 
-This is useful if you want to create your own host image for testing.
+This is useful if you want to create your own host image in another project and use it for testing.
 
 ```sh
 make test_e2e_node REMOTE=true IMAGE_PROJECT="<name-of-project-with-images>" IMAGES="<image-name>"
 ```
 
+Setting up your own host image may require additional steps such as installing etcd or docker.  See
+[setup_host.sh](../../test/e2e_node/environment/setup_host.sh) for common steps to setup hosts to run node tests.
+
 ## Create instances using a different instance name prefix
 
 This is useful if you want to create instances using a different name so that you can run multiple copies of the
-test in parallel.
+test in parallel against different instances of the same image.
 
 ```sh
 make test_e2e_node REMOTE=true INSTANCE_PREFIX="my-prefix"

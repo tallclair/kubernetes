@@ -22,13 +22,22 @@ skip=${SKIP:-""}
 report=${REPORT:-"/tmp/"}
 artifacts=${ARTIFACTS:-"/tmp/_artifacts"}
 remote=${REMOTE:-"false"}
-images=${IMAGES:-"e2e-node-containervm-v20160321-image"}
+images=${IMAGES:-""}
 hosts=${HOSTS:-""}
+if [[ $hosts == "" && $images == "" ]]; then
+  images="e2e-node-containervm-v20160321-image"
+fi
 image_project=${IMAGE_PROJECT:-"kubernetes-node-e2e-images"}
 instance_prefix=${INSTANCE_PREFIX:-"test"}
 cleanup=${CLEANUP:-"true"}
-delete_instances=${DELETE_INSTANCES:-"true"}
+delete_instances=${DELETE_INSTANCES:-"false"}
 run_until_failure=${RUN_UNTIL_FAILURE:-"false"}
+list_images=${LIST_IMAGES:-"false"}
+
+if  [[ $list_images == "true" ]]; then
+  gcloud compute images list --project="${image_project}" | grep "e2e-node"
+  exit 0
+fi
 
 ginkgo=$(kube::util::find-binary "ginkgo")
 if [[ -z "${ginkgo}" ]]; then
@@ -62,22 +71,25 @@ if [ "$REMOTE" = true ] ; then
     exit 1
   fi
 
+  # Reuse running instances if they match the specified images.
+  if [[ $images != "" ]]; then
   IFS=',' read -ra IM <<< "$images"
-  images=""
-  for i in "${IM[@]}"; do
-    if [[ $(gcloud compute instances list "${instance_prefix}-$i" | grep $i) ]]; then
-      if [[ $hosts != "" ]]; then
-        hosts="$hosts,"
-      fi
-      echo "Reusing host ${instance_prefix}-$i"
-      hosts="${hosts}${instance_prefix}-${i}"
-    else
-      if [[ $images != "" ]]; then
-        images="$images,"
-      fi
-      images="$images$i"
-    fi
-  done
+       images=""
+       for i in "${IM[@]}"; do
+         if [[ $(gcloud compute instances list "${instance_prefix}-$i" | grep $i) ]]; then
+           if [[ $hosts != "" ]]; then
+             hosts="$hosts,"
+           fi
+           echo "Reusing host ${instance_prefix}-$i"
+           hosts="${hosts}${instance_prefix}-${i}"
+         else
+           if [[ $images != "" ]]; then
+             images="$images,"
+           fi
+           images="$images$i"
+         fi
+       done
+  fi
 
   echo "Running tests remotely using"
   echo "Project: $project"
