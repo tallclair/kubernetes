@@ -21,17 +21,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/resource"
-	apiUnversioned "k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/kubelet/api/v1alpha1/stats"
-	"k8s.io/kubernetes/pkg/util/errors"
-	"k8s.io/kubernetes/pkg/util/sets"
 	"k8s.io/kubernetes/test/e2e/framework"
+	m "k8s.io/kubernetes/test/matchers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -47,17 +44,93 @@ var _ = framework.KubeDescribe("Summary API", func() {
 			By("Creating test pods")
 			createSummaryTestPods(f, pod0, pod1)
 
-			// Setup expectations
-			lower := lowerBound
-			lower.Pods = []stats.PodStats{
-				namedPod(f.Namespace.Name, pod0, podLower),
-				namedPod(f.Namespace.Name, pod1, podLower),
-			}
-			upper := upperBound
-			upper.Pods = []stats.PodStats{
-				namedPod(f.Namespace.Name, pod0, podUpper),
-				namedPod(f.Namespace.Name, pod1, podUpper),
-			}
+			// // Setup expectations
+			// lower := lowerBound
+			// lower.Pods = []stats.PodStats{
+			// 	namedPod(f.Namespace.Name, pod0, podLower),
+			// 	namedPod(f.Namespace.Name, pod1, podLower),
+			// }
+			// upper := upperBound
+			// upper.Pods = []stats.PodStats{
+			// 	namedPod(f.Namespace.Name, pod0, podUpper),
+			// 	namedPod(f.Namespace.Name, pod1, podUpper),
+			// }
+
+			// 			CPU: &stats.CPUStats{
+			// 				UsageNanoCores:       val(2E9),
+			// 				UsageCoreNanoSeconds: val(10E12),
+			// 			},
+			// 			Memory: &stats.MemoryStats{
+			// 				AvailableBytes:  val(100 * gb),
+			// 				UsageBytes:      val(10 * gb),
+			// 				WorkingSetBytes: val(1 * gb),
+			// 				RSSBytes:        val(1 * gb),
+			// 				PageFaults:      val(1E9),
+			// 				MajorPageFaults: val(100000),
+			// 			},
+			// 			Network: &stats.NetworkStats{
+			// 				RxBytes:  val(100 * gb),
+			// 				RxErrors: val(100000),
+			// 				TxBytes:  val(10 * gb),
+			// 				TxErrors: val(100000),
+			// 			},
+			// 			Fs: &stats.FsStats{
+			// 				AvailableBytes: val(100 * gb),
+			// 				CapacityBytes:  val(100 * gb),
+			// 				UsedBytes:      val(10 * gb),
+			// 				InodesFree:     val(1E6),
+			// 			},
+			// 			Runtime: &stats.RuntimeStats{
+			// 				ImageFs: &stats.FsStats{
+			// 					AvailableBytes: val(100 * gb),
+			// 					CapacityBytes:  val(100 * gb),
+			// 					UsedBytes:      val(10 * gb),
+			// 					InodesFree:     val(1E6),
+			// 				},
+			// 			},
+
+			expectations := m.StrictStruct(m.Fields{
+				"Node": m.StrictStruct(m.Fields{
+					"SystemContainers": m.Ignore(), // FIXME
+					"CPU": m.Ptr(m.StrictStruct(m.Fields{
+						"UsageNanoCores":       m.Ptr(m.InRange(100E3, 2E9)),
+						"UsageCoreNanoSeconds": m.Ptr(m.InRange(1E9, 10E12)),
+					})),
+					"Memory": m.Ptr(m.StrictStruct(m.Fields{
+						"AvailableBytes":  m.Ptr(m.InRange(100*mb, 100*gb)),
+						"UsageBytes":      m.Ptr(m.InRange(10*mb, 10*gb)),
+						"WorkingSetBytes": m.Ptr(m.InRange(10*mb, 1*gb)),
+						"RSSBytes":        m.Ptr(m.InRange(1*mb, 1*gb)),
+						"PageFaults":      m.Ptr(m.InRange(1000, 1E9)),
+						"MajorPageFaults": m.Ptr(m.InRange(0, 100000)),
+					})),
+					"Network": m.Ignore(),
+					"Fs":      m.Ignore(),
+					"Runtime": m.Ignore(),
+					// 	Network: &stats.NetworkStats{
+					// 		RxBytes:  val(1 * mb),
+					// 		RxErrors: val(0),
+					// 		TxBytes:  val(10 * kb),
+					// 		TxErrors: val(0),
+					// 	},
+					// 	Fs: &stats.FsStats{
+					// 		AvailableBytes: val(100 * mb),
+					// 		CapacityBytes:  val(100 * mb),
+					// 		UsedBytes:      val(kb),
+					// 		InodesFree:     val(1E4),
+					// 	},
+					// 	Runtime: &stats.RuntimeStats{
+					// 		ImageFs: &stats.FsStats{
+					// 			AvailableBytes: val(100 * mb),
+					// 			CapacityBytes:  val(100 * mb),
+					// 			UsedBytes:      val(kb),
+					// 			InodesFree:     val(1E4),
+					// 		},
+					// 	},
+					// },
+				}),
+				"Pods": m.Ignore(),
+			})
 
 			By("Returning stats summary")
 			summary := stats.Summary{}
@@ -76,12 +149,10 @@ var _ = framework.KubeDescribe("Summary API", func() {
 				if err != nil {
 					return fmt.Errorf("Failed to parse /stats/summary to go struct: %+v", resp)
 				}
-				errs := checkSummary(summary, lowerBound, upperBound)
-				if len(errs) > 0 {
-					return errors.NewAggregate(errs)
-				}
-				return nil
-			}, 1*time.Minute, time.Second*15).Should(BeNil())
+
+				_, err = expectations.Match(summary)
+				return err
+			}, /*1*time.Minute FIXME */ 30*time.Second, time.Second*15).Should(BeNil())
 		})
 	})
 })
@@ -134,414 +205,312 @@ const (
 	gb = 1000 * mb
 )
 
-var (
-	podLower = stats.PodStats{
-		Containers: []stats.ContainerStats{
-			{
-				Name: "busybox-container",
-				CPU: &stats.CPUStats{
-					UsageNanoCores:       val(100000),
-					UsageCoreNanoSeconds: val(10000000),
-				},
-				Memory: &stats.MemoryStats{
-					AvailableBytes:  val(1 * mb),
-					UsageBytes:      val(10 * kb),
-					WorkingSetBytes: val(10 * kb),
-					RSSBytes:        val(1 * kb),
-					PageFaults:      val(100),
-					MajorPageFaults: val(0),
-				},
-				Rootfs: &stats.FsStats{
-					AvailableBytes: val(100 * mb),
-					CapacityBytes:  val(100 * mb),
-					UsedBytes:      val(kb),
-				},
-				Logs: &stats.FsStats{
-					AvailableBytes: val(100 * mb),
-					CapacityBytes:  val(100 * mb),
-					UsedBytes:      val(kb),
-				},
-			},
-		},
-		Network: &stats.NetworkStats{
-			RxBytes:  val(10),
-			RxErrors: val(0),
-			TxBytes:  val(10),
-			TxErrors: val(0),
-		},
-		VolumeStats: []stats.VolumeStats{{
-			Name: "test-empty-dir",
-			FsStats: stats.FsStats{
-				AvailableBytes: val(100 * mb),
-				CapacityBytes:  val(100 * mb),
-				UsedBytes:      val(kb),
-			},
-		}},
-	}
+// var (
+// 	podLower = stats.PodStats{
+// 		Containers: []stats.ContainerStats{
+// 			{
+// 				Name: "busybox-container",
+// 				CPU: &stats.CPUStats{
+// 					UsageNanoCores:       val(100000),
+// 					UsageCoreNanoSeconds: val(10000000),
+// 				},
+// 				Memory: &stats.MemoryStats{
+// 					AvailableBytes:  val(1 * mb),
+// 					UsageBytes:      val(10 * kb),
+// 					WorkingSetBytes: val(10 * kb),
+// 					RSSBytes:        val(1 * kb),
+// 					PageFaults:      val(100),
+// 					MajorPageFaults: val(0),
+// 				},
+// 				Rootfs: &stats.FsStats{
+// 					AvailableBytes: val(100 * mb),
+// 					CapacityBytes:  val(100 * mb),
+// 					UsedBytes:      val(kb),
+// 				},
+// 				Logs: &stats.FsStats{
+// 					AvailableBytes: val(100 * mb),
+// 					CapacityBytes:  val(100 * mb),
+// 					UsedBytes:      val(kb),
+// 				},
+// 			},
+// 		},
+// 		Network: &stats.NetworkStats{
+// 			RxBytes:  val(10),
+// 			RxErrors: val(0),
+// 			TxBytes:  val(10),
+// 			TxErrors: val(0),
+// 		},
+// 		VolumeStats: []stats.VolumeStats{{
+// 			Name: "test-empty-dir",
+// 			FsStats: stats.FsStats{
+// 				AvailableBytes: val(100 * mb),
+// 				CapacityBytes:  val(100 * mb),
+// 				UsedBytes:      val(kb),
+// 			},
+// 		}},
+// 	}
 
-	lowerBound = stats.Summary{
-		Node: stats.NodeStats{
-			SystemContainers: []stats.ContainerStats{
-				{
-					Name: "kubelet",
-					CPU: &stats.CPUStats{
-						UsageNanoCores:       val(100000),
-						UsageCoreNanoSeconds: val(10000000),
-					},
-					Memory: &stats.MemoryStats{
-						AvailableBytes:  val(100 * mb),
-						UsageBytes:      val(10 * mb),
-						WorkingSetBytes: val(10 * mb),
-						RSSBytes:        val(10 * mb),
-						PageFaults:      val(1000),
-						MajorPageFaults: val(0),
-					},
-					Rootfs: &stats.FsStats{
-						AvailableBytes: val(100 * mb),
-						CapacityBytes:  val(100 * mb),
-						UsedBytes:      val(0),
-					},
-					Logs: &stats.FsStats{
-						AvailableBytes: val(100 * mb),
-						CapacityBytes:  val(100 * mb),
-						UsedBytes:      val(kb),
-					},
-				},
-				{
-					Name: "runtime",
-					CPU: &stats.CPUStats{
-						UsageNanoCores:       val(100000),
-						UsageCoreNanoSeconds: val(10000000),
-					},
-					Memory: &stats.MemoryStats{
-						AvailableBytes:  val(100 * mb),
-						UsageBytes:      val(100 * mb),
-						WorkingSetBytes: val(10 * mb),
-						RSSBytes:        val(10 * mb),
-						PageFaults:      val(100000),
-						MajorPageFaults: val(0),
-					},
-					Rootfs: &stats.FsStats{
-						AvailableBytes: val(100 * mb),
-						CapacityBytes:  val(100 * mb),
-						UsedBytes:      val(0),
-					},
-					Logs: &stats.FsStats{
-						AvailableBytes: val(100 * mb),
-						CapacityBytes:  val(100 * mb),
-						UsedBytes:      val(kb),
-					},
-				},
-			},
-			CPU: &stats.CPUStats{
-				UsageNanoCores:       val(100000),
-				UsageCoreNanoSeconds: val(1000000000),
-			},
-			Memory: &stats.MemoryStats{
-				AvailableBytes:  val(100 * mb),
-				UsageBytes:      val(10 * mb),
-				WorkingSetBytes: val(10 * mb),
-				RSSBytes:        val(1 * mb),
-				PageFaults:      val(1000),
-				MajorPageFaults: val(0),
-			},
-			Network: &stats.NetworkStats{
-				RxBytes:  val(1 * mb),
-				RxErrors: val(0),
-				TxBytes:  val(10 * kb),
-				TxErrors: val(0),
-			},
-			Fs: &stats.FsStats{
-				AvailableBytes: val(100 * mb),
-				CapacityBytes:  val(100 * mb),
-				UsedBytes:      val(kb),
-				InodesFree:     val(1E4),
-			},
-			Runtime: &stats.RuntimeStats{
-				ImageFs: &stats.FsStats{
-					AvailableBytes: val(100 * mb),
-					CapacityBytes:  val(100 * mb),
-					UsedBytes:      val(kb),
-					InodesFree:     val(1E4),
-				},
-			},
-		},
-	}
+// 	lowerBound = stats.Summary{
+// 		Node: stats.NodeStats{
+// 			SystemContainers: []stats.ContainerStats{
+// 				{
+// 					Name: "kubelet",
+// 					CPU: &stats.CPUStats{
+// 						UsageNanoCores:       val(100000),
+// 						UsageCoreNanoSeconds: val(10000000),
+// 					},
+// 					Memory: &stats.MemoryStats{
+// 						AvailableBytes:  val(100 * mb),
+// 						UsageBytes:      val(10 * mb),
+// 						WorkingSetBytes: val(10 * mb),
+// 						RSSBytes:        val(10 * mb),
+// 						PageFaults:      val(1000),
+// 						MajorPageFaults: val(0),
+// 					},
+// 					Rootfs: &stats.FsStats{
+// 						AvailableBytes: val(100 * mb),
+// 						CapacityBytes:  val(100 * mb),
+// 						UsedBytes:      val(0),
+// 					},
+// 					Logs: &stats.FsStats{
+// 						AvailableBytes: val(100 * mb),
+// 						CapacityBytes:  val(100 * mb),
+// 						UsedBytes:      val(kb),
+// 					},
+// 				},
+// 				{
+// 					Name: "runtime",
+// 					CPU: &stats.CPUStats{
+// 						UsageNanoCores:       val(100000),
+// 						UsageCoreNanoSeconds: val(10000000),
+// 					},
+// 					Memory: &stats.MemoryStats{
+// 						AvailableBytes:  val(100 * mb),
+// 						UsageBytes:      val(100 * mb),
+// 						WorkingSetBytes: val(10 * mb),
+// 						RSSBytes:        val(10 * mb),
+// 						PageFaults:      val(100000),
+// 						MajorPageFaults: val(0),
+// 					},
+// 					Rootfs: &stats.FsStats{
+// 						AvailableBytes: val(100 * mb),
+// 						CapacityBytes:  val(100 * mb),
+// 						UsedBytes:      val(0),
+// 					},
+// 					Logs: &stats.FsStats{
+// 						AvailableBytes: val(100 * mb),
+// 						CapacityBytes:  val(100 * mb),
+// 						UsedBytes:      val(kb),
+// 					},
+// 				},
+// 			},
+// 			CPU: &stats.CPUStats{
+// 				UsageNanoCores:       val(100000),
+// 				UsageCoreNanoSeconds: val(1000000000),
+// 			},
+// 			Memory: &stats.MemoryStats{
+// 				AvailableBytes:  val(100 * mb),
+// 				UsageBytes:      val(10 * mb),
+// 				WorkingSetBytes: val(10 * mb),
+// 				RSSBytes:        val(1 * mb),
+// 				PageFaults:      val(1000),
+// 				MajorPageFaults: val(0),
+// 			},
+// 			Network: &stats.NetworkStats{
+// 				RxBytes:  val(1 * mb),
+// 				RxErrors: val(0),
+// 				TxBytes:  val(10 * kb),
+// 				TxErrors: val(0),
+// 			},
+// 			Fs: &stats.FsStats{
+// 				AvailableBytes: val(100 * mb),
+// 				CapacityBytes:  val(100 * mb),
+// 				UsedBytes:      val(kb),
+// 				InodesFree:     val(1E4),
+// 			},
+// 			Runtime: &stats.RuntimeStats{
+// 				ImageFs: &stats.FsStats{
+// 					AvailableBytes: val(100 * mb),
+// 					CapacityBytes:  val(100 * mb),
+// 					UsedBytes:      val(kb),
+// 					InodesFree:     val(1E4),
+// 				},
+// 			},
+// 		},
+// 	}
 
-	podUpper = stats.PodStats{
-		Containers: []stats.ContainerStats{
-			{
-				Name: "busybox-container",
-				CPU: &stats.CPUStats{
-					UsageNanoCores:       val(100000000),
-					UsageCoreNanoSeconds: val(1000000000),
-				},
-				Memory: &stats.MemoryStats{
-					AvailableBytes:  val(10 * mb),
-					UsageBytes:      val(mb),
-					WorkingSetBytes: val(mb),
-					RSSBytes:        val(mb),
-					PageFaults:      val(100000),
-					MajorPageFaults: val(10),
-				},
-				Rootfs: &stats.FsStats{
-					AvailableBytes: val(100 * gb),
-					CapacityBytes:  val(100 * gb),
-					UsedBytes:      val(10 * mb),
-				},
-				Logs: &stats.FsStats{
-					AvailableBytes: val(100 * gb),
-					CapacityBytes:  val(100 * gb),
-					UsedBytes:      val(10 * mb),
-				},
-			},
-		},
-		Network: &stats.NetworkStats{
-			RxBytes:  val(10 * mb),
-			RxErrors: val(1000),
-			TxBytes:  val(10 * mb),
-			TxErrors: val(1000),
-		},
-		VolumeStats: []stats.VolumeStats{{
-			Name: "test-empty-dir",
-			FsStats: stats.FsStats{
-				AvailableBytes: val(100 * gb),
-				CapacityBytes:  val(100 * gb),
-				UsedBytes:      val(1 * mb),
-			},
-		}},
-	}
+// 	podUpper = stats.PodStats{
+// 		Containers: []stats.ContainerStats{
+// 			{
+// 				Name: "busybox-container",
+// 				CPU: &stats.CPUStats{
+// 					UsageNanoCores:       val(100000000),
+// 					UsageCoreNanoSeconds: val(1000000000),
+// 				},
+// 				Memory: &stats.MemoryStats{
+// 					AvailableBytes:  val(10 * mb),
+// 					UsageBytes:      val(mb),
+// 					WorkingSetBytes: val(mb),
+// 					RSSBytes:        val(mb),
+// 					PageFaults:      val(100000),
+// 					MajorPageFaults: val(10),
+// 				},
+// 				Rootfs: &stats.FsStats{
+// 					AvailableBytes: val(100 * gb),
+// 					CapacityBytes:  val(100 * gb),
+// 					UsedBytes:      val(10 * mb),
+// 				},
+// 				Logs: &stats.FsStats{
+// 					AvailableBytes: val(100 * gb),
+// 					CapacityBytes:  val(100 * gb),
+// 					UsedBytes:      val(10 * mb),
+// 				},
+// 			},
+// 		},
+// 		Network: &stats.NetworkStats{
+// 			RxBytes:  val(10 * mb),
+// 			RxErrors: val(1000),
+// 			TxBytes:  val(10 * mb),
+// 			TxErrors: val(1000),
+// 		},
+// 		VolumeStats: []stats.VolumeStats{{
+// 			Name: "test-empty-dir",
+// 			FsStats: stats.FsStats{
+// 				AvailableBytes: val(100 * gb),
+// 				CapacityBytes:  val(100 * gb),
+// 				UsedBytes:      val(1 * mb),
+// 			},
+// 		}},
+// 	}
 
-	upperBound = stats.Summary{
-		Node: stats.NodeStats{
-			SystemContainers: []stats.ContainerStats{
-				{
-					Name: "kubelet",
-					CPU: &stats.CPUStats{
-						UsageNanoCores:       val(2E9),
-						UsageCoreNanoSeconds: val(10E12),
-					},
-					Memory: &stats.MemoryStats{
-						AvailableBytes:  val(100 * gb),
-						UsageBytes:      val(10 * gb),
-						WorkingSetBytes: val(1 * gb),
-						RSSBytes:        val(1 * gb),
-						PageFaults:      val(1E9),
-						MajorPageFaults: val(100000),
-					},
-					Rootfs: &stats.FsStats{
-						AvailableBytes: val(100 * gb),
-						CapacityBytes:  val(100 * gb),
-						UsedBytes:      val(0), // Kubelet doesn't write.
-					},
-					Logs: &stats.FsStats{
-						AvailableBytes: val(100 * gb),
-						CapacityBytes:  val(100 * gb),
-						UsedBytes:      val(10 * gb),
-					},
-				},
-				{
-					Name: "runtime",
-					CPU: &stats.CPUStats{
-						UsageNanoCores:       val(2E9),
-						UsageCoreNanoSeconds: val(10E12),
-					},
-					Memory: &stats.MemoryStats{
-						AvailableBytes:  val(100 * gb),
-						UsageBytes:      val(10 * gb),
-						WorkingSetBytes: val(1 * gb),
-						RSSBytes:        val(1 * gb),
-						PageFaults:      val(1E9),
-						MajorPageFaults: val(100000),
-					},
-					Rootfs: &stats.FsStats{
-						AvailableBytes: val(100 * gb),
-						CapacityBytes:  val(100 * gb),
-						UsedBytes:      val(10 * gb),
-					},
-					Logs: &stats.FsStats{
-						AvailableBytes: val(100 * gb),
-						CapacityBytes:  val(100 * gb),
-						UsedBytes:      val(10 * gb),
-					},
-				},
-			},
-			CPU: &stats.CPUStats{
-				UsageNanoCores:       val(2E9),
-				UsageCoreNanoSeconds: val(10E12),
-			},
-			Memory: &stats.MemoryStats{
-				AvailableBytes:  val(100 * gb),
-				UsageBytes:      val(10 * gb),
-				WorkingSetBytes: val(1 * gb),
-				RSSBytes:        val(1 * gb),
-				PageFaults:      val(1E9),
-				MajorPageFaults: val(100000),
-			},
-			Network: &stats.NetworkStats{
-				RxBytes:  val(100 * gb),
-				RxErrors: val(100000),
-				TxBytes:  val(10 * gb),
-				TxErrors: val(100000),
-			},
-			Fs: &stats.FsStats{
-				AvailableBytes: val(100 * gb),
-				CapacityBytes:  val(100 * gb),
-				UsedBytes:      val(10 * gb),
-				InodesFree:     val(1E6),
-			},
-			Runtime: &stats.RuntimeStats{
-				ImageFs: &stats.FsStats{
-					AvailableBytes: val(100 * gb),
-					CapacityBytes:  val(100 * gb),
-					UsedBytes:      val(10 * gb),
-					InodesFree:     val(1E6),
-				},
-			},
-		},
-	}
+// 	upperBound = stats.Summary{
+// 		Node: stats.NodeStats{
+// 			SystemContainers: []stats.ContainerStats{
+// 				{
+// 					Name: "kubelet",
+// 					CPU: &stats.CPUStats{
+// 						UsageNanoCores:       val(2E9),
+// 						UsageCoreNanoSeconds: val(10E12),
+// 					},
+// 					Memory: &stats.MemoryStats{
+// 						AvailableBytes:  val(100 * gb),
+// 						UsageBytes:      val(10 * gb),
+// 						WorkingSetBytes: val(1 * gb),
+// 						RSSBytes:        val(1 * gb),
+// 						PageFaults:      val(1E9),
+// 						MajorPageFaults: val(100000),
+// 					},
+// 					Rootfs: &stats.FsStats{
+// 						AvailableBytes: val(100 * gb),
+// 						CapacityBytes:  val(100 * gb),
+// 						UsedBytes:      val(0), // Kubelet doesn't write.
+// 					},
+// 					Logs: &stats.FsStats{
+// 						AvailableBytes: val(100 * gb),
+// 						CapacityBytes:  val(100 * gb),
+// 						UsedBytes:      val(10 * gb),
+// 					},
+// 				},
+// 				{
+// 					Name: "runtime",
+// 					CPU: &stats.CPUStats{
+// 						UsageNanoCores:       val(2E9),
+// 						UsageCoreNanoSeconds: val(10E12),
+// 					},
+// 					Memory: &stats.MemoryStats{
+// 						AvailableBytes:  val(100 * gb),
+// 						UsageBytes:      val(10 * gb),
+// 						WorkingSetBytes: val(1 * gb),
+// 						RSSBytes:        val(1 * gb),
+// 						PageFaults:      val(1E9),
+// 						MajorPageFaults: val(100000),
+// 					},
+// 					Rootfs: &stats.FsStats{
+// 						AvailableBytes: val(100 * gb),
+// 						CapacityBytes:  val(100 * gb),
+// 						UsedBytes:      val(10 * gb),
+// 					},
+// 					Logs: &stats.FsStats{
+// 						AvailableBytes: val(100 * gb),
+// 						CapacityBytes:  val(100 * gb),
+// 						UsedBytes:      val(10 * gb),
+// 					},
+// 				},
+// 			},
+// 			CPU: &stats.CPUStats{
+// 				UsageNanoCores:       val(2E9),
+// 				UsageCoreNanoSeconds: val(10E12),
+// 			},
+// 			Memory: &stats.MemoryStats{
+// 				AvailableBytes:  val(100 * gb),
+// 				UsageBytes:      val(10 * gb),
+// 				WorkingSetBytes: val(1 * gb),
+// 				RSSBytes:        val(1 * gb),
+// 				PageFaults:      val(1E9),
+// 				MajorPageFaults: val(100000),
+// 			},
+// 			Network: &stats.NetworkStats{
+// 				RxBytes:  val(100 * gb),
+// 				RxErrors: val(100000),
+// 				TxBytes:  val(10 * gb),
+// 				TxErrors: val(100000),
+// 			},
+// 			Fs: &stats.FsStats{
+// 				AvailableBytes: val(100 * gb),
+// 				CapacityBytes:  val(100 * gb),
+// 				UsedBytes:      val(10 * gb),
+// 				InodesFree:     val(1E6),
+// 			},
+// 			Runtime: &stats.RuntimeStats{
+// 				ImageFs: &stats.FsStats{
+// 					AvailableBytes: val(100 * gb),
+// 					CapacityBytes:  val(100 * gb),
+// 					UsedBytes:      val(10 * gb),
+// 					InodesFree:     val(1E6),
+// 				},
+// 			},
+// 		},
+// 	}
 
-	ignoredFields = sets.NewString(
-		"Name",
-		"NodeName",
-		"PodRef",
-		"StartTime",
-		"UserDefinedMetrics",
-	)
+// 	ignoredFields = sets.NewString(
+// 		"Name",
+// 		"NodeName",
+// 		"PodRef",
+// 		"StartTime",
+// 		"UserDefinedMetrics",
+// 	)
 
-	allowedNils = sets.NewString(
-		".Node.SystemContainers[kubelet].Memory.AvailableBytes",
-		".Node.SystemContainers[runtime].Memory.AvailableBytes",
-		// TODO(#28395): Figure out why UsedBytes is nil on ubuntu-trusty-docker10 and coreos-stable20160622
-		".Node.SystemContainers[kubelet].Rootfs.UsedBytes",
-		".Node.SystemContainers[kubelet].Logs.UsedBytes",
-		".Node.SystemContainers[runtime].Rootfs.UsedBytes",
-		".Node.SystemContainers[runtime].Logs.UsedBytes",
-		// TODO: Handle non-eth0 network interface names.
-		".Node.Network",
-	)
-)
+// 	allowedNils = sets.NewString(
+// 		".Node.SystemContainers[kubelet].Memory.AvailableBytes",
+// 		".Node.SystemContainers[runtime].Memory.AvailableBytes",
+// 		// TODO(#28395): Figure out why UsedBytes is nil on ubuntu-trusty-docker10 and coreos-stable20160622
+// 		".Node.SystemContainers[kubelet].Rootfs.UsedBytes",
+// 		".Node.SystemContainers[kubelet].Logs.UsedBytes",
+// 		".Node.SystemContainers[runtime].Rootfs.UsedBytes",
+// 		".Node.SystemContainers[runtime].Logs.UsedBytes",
+// 		// TODO: Handle non-eth0 network interface names.
+// 		".Node.Network",
+// 	)
+// )
 
-func checkSummary(actual, lower, upper stats.Summary) []error {
-	return checkValue("", reflect.ValueOf(actual), reflect.ValueOf(lower), reflect.ValueOf(upper))
-}
+// func checkSummary(actual, lower, upper stats.Summary) []error {
+// 	return checkValue("", reflect.ValueOf(actual), reflect.ValueOf(lower), reflect.ValueOf(upper))
+// }
 
-func checkValue(name string, actual, lower, upper reflect.Value) (errs []error) {
-	// Provide more useful error messages in the case of a panic.
-	defer func() {
-		if err := recover(); err != nil {
-			errs = append(errs, fmt.Errorf("panic checking %s (%v): %v", name, actual, err))
-		}
-	}()
-
-	if !actual.IsValid() {
-		if !lower.IsValid() {
-			// Expected zero-value, ignore it.
-			return nil
-		}
-		return []error{fmt.Errorf("%s is an unexpected zero-value!", name)}
-	}
-
-	switch actual.Kind() {
-
-	case reflect.Struct:
-		typ := actual.Type()
-		for i := 0; i < actual.NumField(); i++ {
-			fieldName := typ.Field(i).Name
-			if ignoredFields.Has(fieldName) {
-				continue
-			}
-
-			name := name + "." + typ.Field(i).Name
-			switch fieldName {
-			case "Time":
-				// Special-case timestamp fields.
-				errs = append(errs, checkTime(name, actual.Field(i).Interface().(apiUnversioned.Time))...)
-			default:
-				errs = append(errs, checkValue(name, actual.Field(i), lower.Field(i), upper.Field(i))...)
-			}
-		}
-
-	case reflect.Slice:
-		if actual.Type().Name() == "VolumeStats" && actual.Len() != lower.Len() {
-			errs = append(errs, fmt.Errorf("%s length mismatch! expected: %d, actual: %d", name, lower.Len(), actual.Len()))
-		}
-		for i := 0; i < lower.Len(); i++ {
-			actualIndex, err := findMatch(name, lower.Index(i), actual)
-			if err != nil {
-				errs = append(errs, err)
-				continue
-			}
-
-			name := fmt.Sprintf("%s[%s]", name, summaryObjectID(lower.Index(i)))
-			result := checkValue(name, actual.Index(actualIndex), lower.Index(i), upper.Index(i))
-			errs = append(errs, result...)
-		}
-
-	case reflect.Uint64:
-		if actual.Uint() < lower.Uint() {
-			errs = append(errs, fmt.Errorf("%s is too small! %d < %d", name, actual.Uint(), lower.Uint()))
-		} else if actual.Uint() > upper.Uint() {
-			errs = append(errs, fmt.Errorf("%s is too big! %d > %d", name, actual.Uint(), upper.Uint()))
-		}
-
-	case reflect.Ptr:
-		if actual.IsNil() {
-			if !allowedNils.Has(name) {
-				errs = append(errs, fmt.Errorf("%s is nil!", name))
-			}
-		} else {
-			errs = append(errs, checkValue(name, actual.Elem(), lower.Elem(), upper.Elem())...)
-		}
-
-	default:
-		errs = append(errs, fmt.Errorf("%s is an unhandled type (%s)", name, actual.Type().Name()))
-	}
-
-	return errs
-}
-
-func checkTime(name string, t apiUnversioned.Time) []error {
-	const maxInterval = time.Minute
-	now := time.Now()
-	if now.Sub(t.Time) > maxInterval {
-		return []error{fmt.Errorf("%s is too old! now: %v, then: %v", name, now, t)}
-	} else if t.After(now) {
-		return []error{fmt.Errorf("%s is in the future! now: %v, then: %v", name, now, t)}
-	}
-	return nil
-}
-
-func findMatch(name string, targetValue, sliceValue reflect.Value) (int, error) {
-	targetID := summaryObjectID(targetValue)
-	for i := 0; i < sliceValue.Len(); i++ {
-		id := summaryObjectID(sliceValue.Index(i))
-		if id == targetID {
-			return i, nil
-		}
-	}
-	return -1, fmt.Errorf("%s missing object %s", name, targetID)
-}
-
-func summaryObjectID(value reflect.Value) string {
-	switch v := value.Interface().(type) {
+func summaryObjectID(element interface{}) string {
+	switch el := element.(type) {
 	case stats.PodStats:
-		return fmt.Sprintf("%s::%s", v.PodRef.Namespace, v.PodRef.Name)
+		return fmt.Sprintf("%s::%s", el.PodRef.Namespace, el.PodRef.Name)
 	case stats.ContainerStats:
-		return v.Name
+		return el.Name
 	case stats.VolumeStats:
-		return v.Name
+		return el.Name
 	case stats.UserDefinedMetric:
-		return v.Name
+		return el.Name
 	default:
-		framework.Failf("Unknown type: %+v", v)
+		framework.Failf("Unknown type: %T", el)
 		return "???"
 	}
-}
-
-// Helpers for setting up bounds
-func val(v uint64) *uint64 {
-	return &v
 }
 
 func namedPod(namespace, name string, pod stats.PodStats) stats.PodStats {
