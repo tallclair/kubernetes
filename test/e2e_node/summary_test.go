@@ -32,10 +32,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 )
 
 var _ = framework.KubeDescribe("Summary API", func() {
-	f := NewDefaultFramework("summary-test")
+	f := framework.NewDefaultFramework("summary-test")
 	Context("when querying /stats/summary", func() {
 		It("it should report resource usage through the stats api", func() {
 			const pod0 = "stats-busybox-0"
@@ -56,103 +57,136 @@ var _ = framework.KubeDescribe("Summary API", func() {
 			// 	namedPod(f.Namespace.Name, pod1, podUpper),
 			// }
 
-			// 			CPU: &stats.CPUStats{
-			// 				UsageNanoCores:       val(2E9),
-			// 				UsageCoreNanoSeconds: val(10E12),
-			// 			},
-			// 			Memory: &stats.MemoryStats{
-			// 				AvailableBytes:  val(100 * gb),
-			// 				UsageBytes:      val(10 * gb),
-			// 				WorkingSetBytes: val(1 * gb),
-			// 				RSSBytes:        val(1 * gb),
-			// 				PageFaults:      val(1E9),
-			// 				MajorPageFaults: val(100000),
-			// 			},
-			// 			Network: &stats.NetworkStats{
-			// 				RxBytes:  val(100 * gb),
-			// 				RxErrors: val(100000),
-			// 				TxBytes:  val(10 * gb),
-			// 				TxErrors: val(100000),
-			// 			},
-			// 			Fs: &stats.FsStats{
-			// 				AvailableBytes: val(100 * gb),
-			// 				CapacityBytes:  val(100 * gb),
-			// 				UsedBytes:      val(10 * gb),
-			// 				InodesFree:     val(1E6),
-			// 			},
-			// 			Runtime: &stats.RuntimeStats{
-			// 				ImageFs: &stats.FsStats{
-			// 					AvailableBytes: val(100 * gb),
-			// 					CapacityBytes:  val(100 * gb),
-			// 					UsedBytes:      val(10 * gb),
-			// 					InodesFree:     val(1E6),
-			// 				},
-			// 			},
-
-			expectations := m.StrictStruct(m.Fields{
+			// Setup expectations.
+			fsCapacityBounds := bounded(100*mb, 10*tb)
+			match := m.StrictStruct(m.Fields{
 				"Node": m.StrictStruct(m.Fields{
-					"SystemContainers": m.Ignore(), // FIXME
-					"CPU": m.Ptr(m.StrictStruct(m.Fields{
-						"UsageNanoCores":       m.Ptr(m.InRange(100E3, 2E9)),
-						"UsageCoreNanoSeconds": m.Ptr(m.InRange(1E9, 10E12)),
-					})),
-					"Memory": m.Ptr(m.StrictStruct(m.Fields{
-						"AvailableBytes":  m.Ptr(m.InRange(100*mb, 100*gb)),
-						"UsageBytes":      m.Ptr(m.InRange(10*mb, 10*gb)),
-						"WorkingSetBytes": m.Ptr(m.InRange(10*mb, 1*gb)),
-						"RSSBytes":        m.Ptr(m.InRange(1*mb, 1*gb)),
-						"PageFaults":      m.Ptr(m.InRange(1000, 1E9)),
-						"MajorPageFaults": m.Ptr(m.InRange(0, 100000)),
-					})),
-					"Network": m.Ignore(),
-					"Fs":      m.Ignore(),
-					"Runtime": m.Ignore(),
-					// 	Network: &stats.NetworkStats{
-					// 		RxBytes:  val(1 * mb),
-					// 		RxErrors: val(0),
-					// 		TxBytes:  val(10 * kb),
-					// 		TxErrors: val(0),
-					// 	},
-					// 	Fs: &stats.FsStats{
-					// 		AvailableBytes: val(100 * mb),
-					// 		CapacityBytes:  val(100 * mb),
-					// 		UsedBytes:      val(kb),
-					// 		InodesFree:     val(1E4),
-					// 	},
-					// 	Runtime: &stats.RuntimeStats{
-					// 		ImageFs: &stats.FsStats{
-					// 			AvailableBytes: val(100 * mb),
-					// 			CapacityBytes:  val(100 * mb),
-					// 			UsedBytes:      val(kb),
-					// 			InodesFree:     val(1E4),
-					// 		},
-					// 	},
-					// },
+					"NodeName":  m.Ignore(),
+					"StartTime": m.Recent(time.Hour * 24 * 365), // 1 year
+					"SystemContainers": m.StrictSlice(summaryObjectID, m.Elements{
+						"kubelet": m.StrictStruct(m.Fields{
+							"Name":      m.Ignore(),
+							"StartTime": m.Recent(time.Hour * 24 * 365), // 1 year
+							"CPU": structP(m.Fields{
+								"Time":                 m.Recent(time.Minute),
+								"UsageNanoCores":       bounded(100000, 2E9),
+								"UsageCoreNanoSeconds": bounded(10000000, 1E15),
+							}),
+							"Memory": structP(m.Fields{
+								"Time":            m.Recent(time.Minute),
+								"AvailableBytes":  bounded(100*mb, 100*gb),
+								"UsageBytes":      bounded(10*mb, 10*gb),
+								"WorkingSetBytes": bounded(10*mb, 1*gb),
+								"RSSBytes":        bounded(10*mb, 1*gb),
+								"PageFaults":      bounded(1000, 1E9),
+								"MajorPageFaults": bounded(0, 100000),
+							}),
+							"Rootfs": structP(m.Fields{
+								"AvailableBytes": fsCapacityBounds,
+								"CapacityBytes":  fsCapacityBounds,
+								"UsedBytes":      bounded(0, 0), // Kubelet doesn't write.
+								"InodesFree":     bounded(1E4, 1E6),
+							}),
+							"Logs": structP(m.Fields{
+								"AvailableBytes": fsCapacityBounds,
+								"CapacityBytes":  fsCapacityBounds,
+								"UsedBytes":      bounded(kb, 10*gb),
+								"InodesFree":     bounded(1E4, 1E6),
+							}),
+						}),
+						"runtime": m.StrictStruct(m.Fields{
+							"Name":      m.Ignore(),
+							"StartTime": m.Recent(time.Hour * 24 * 365), // 1 year
+							"CPU": structP(m.Fields{
+								"Time":                 m.Recent(time.Minute),
+								"UsageNanoCores":       bounded(100000, 2E9),
+								"UsageCoreNanoSeconds": bounded(10000000, 1E15),
+							}),
+							"Memory": structP(m.Fields{
+								"Time":            m.Recent(time.Minute),
+								"AvailableBytes":  bounded(100*mb, 100*gb),
+								"UsageBytes":      bounded(100*mb, 10*gb),
+								"WorkingSetBytes": bounded(10*mb, 1*gb),
+								"RSSBytes":        bounded(10*mb, 1*gb),
+								"PageFaults":      bounded(100000, 1E9),
+								"MajorPageFaults": bounded(0, 100000),
+							}),
+							"Rootfs": structP(m.Fields{
+								"AvailableBytes": fsCapacityBounds,
+								"CapacityBytes":  fsCapacityBounds,
+								"UsedBytes":      bounded(0, 10*gb),
+								"InodesFree":     bounded(1E4, 1E6),
+							}),
+							"Logs": structP(m.Fields{
+								"AvailableBytes": fsCapacityBounds,
+								"CapacityBytes":  fsCapacityBounds,
+								"UsedBytes":      bounded(kb, 10*gb),
+								"InodesFree":     bounded(1E4, 1E6),
+							}),
+						}),
+					}),
+					"CPU": structP(m.Fields{
+						"Time":                 m.Recent(time.Minute),
+						"UsageNanoCores":       bounded(100E3, 2E9),
+						"UsageCoreNanoSeconds": bounded(1E9, 1E15),
+					}),
+					"Memory": structP(m.Fields{
+						"Time":            m.Recent(time.Minute),
+						"AvailableBytes":  bounded(100*mb, 100*gb),
+						"UsageBytes":      bounded(10*mb, 100*gb),
+						"WorkingSetBytes": bounded(10*mb, 100*gb),
+						"RSSBytes":        bounded(1*mb, 100*gb),
+						"PageFaults":      bounded(1000, 1E9),
+						"MajorPageFaults": bounded(0, 100000),
+					}),
+					// TODO: Handle non-eth0 network interface names.
+					"Network": m.NilOr(
+						structP(m.Fields{
+							"Time":     m.Recent(time.Minute),
+							"RxBytes":  bounded(1*mb, 100*gb),
+							"RxErrors": bounded(0, 100000),
+							"TxBytes":  bounded(10*kb, 10*gb),
+							"TxErrors": bounded(0, 100000),
+						}),
+					),
+					"Fs": structP(m.Fields{
+						"AvailableBytes": fsCapacityBounds,
+						"CapacityBytes":  fsCapacityBounds,
+						"UsedBytes":      bounded(kb, 10*gb),
+						"InodesFree":     bounded(1E4, 1E6),
+					}),
+					"Runtime": structP(m.Fields{
+						"ImageFs": structP(m.Fields{
+							"AvailableBytes": fsCapacityBounds,
+							"CapacityBytes":  fsCapacityBounds,
+							"UsedBytes":      bounded(kb, 10*gb),
+							"InodesFree":     bounded(1E4, 1E6),
+						}),
+					}),
 				}),
 				"Pods": m.Ignore(),
 			})
 
 			By("Returning stats summary")
-			summary := stats.Summary{}
-			Eventually(func() error {
+			Eventually(func() (stats.Summary, error) {
+				summary := stats.Summary{}
 				resp, err := http.Get(*kubeletAddress + "/stats/summary")
 				if err != nil {
-					return fmt.Errorf("Failed to get /stats/summary - %v", err)
+					return summary, fmt.Errorf("Failed to get /stats/summary - %v", err)
 				}
 				contentsBytes, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
-					return fmt.Errorf("Failed to read /stats/summary - %+v", resp)
+					return summary, fmt.Errorf("Failed to read /stats/summary - %+v", resp)
 				}
 				contents := string(contentsBytes)
 				decoder := json.NewDecoder(strings.NewReader(contents))
 				err = decoder.Decode(&summary)
 				if err != nil {
-					return fmt.Errorf("Failed to parse /stats/summary to go struct: %+v", resp)
+					return summary, fmt.Errorf("Failed to parse /stats/summary to go struct: %+v", resp)
 				}
 
-				_, err = expectations.Match(summary)
-				return err
-			}, /*1*time.Minute FIXME */ 30*time.Second, time.Second*15).Should(BeNil())
+				return summary, nil
+			}, /*1*time.Minute FIXME */ 30*time.Second, time.Second*15).Should(match)
 		})
 	})
 })
@@ -196,13 +230,14 @@ func createSummaryTestPods(f *framework.Framework, names ...string) {
 			},
 		})
 	}
-	f.CreatePods(pods)
+	f.PodClient().CreateBatch(pods)
 }
 
 const (
 	kb = 1000
 	mb = 1000 * kb
 	gb = 1000 * mb
+	tb = 1000 * gb
 )
 
 // var (
@@ -517,4 +552,13 @@ func namedPod(namespace, name string, pod stats.PodStats) stats.PodStats {
 	pod.PodRef.Name = name
 	pod.PodRef.Namespace = namespace
 	return pod
+}
+
+// Convenience functions for common matcher combinations.
+func structP(fields m.Fields) types.GomegaMatcher {
+	return m.Ptr(m.StrictStruct(fields))
+}
+
+func bounded(lower, upper interface{}) types.GomegaMatcher {
+	return m.Ptr(m.InRange(lower, upper))
 }

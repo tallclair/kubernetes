@@ -17,10 +17,11 @@ limitations under the License.
 package matchers
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
-	"k8s.io/kubernetes/pkg/util/errors"
+	errorsutil "k8s.io/kubernetes/pkg/util/errors"
 
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
@@ -29,10 +30,13 @@ import (
 type SliceMatcher struct {
 	// Matchers for each element.
 	Elements Elements
-	// Whether missing or extra elements are considered an error.
+	// Whether extra elements are considered an error.
 	Strict bool
 	// Function for identifying a slice element.
 	Identifier Identifier
+
+	// State.
+	failures []error
 }
 
 // Element ID to matcher.
@@ -46,9 +50,9 @@ func (m *SliceMatcher) Match(actual interface{}) (success bool, err error) {
 		return false, fmt.Errorf("%v is type %T, expected slice", actual, actual)
 	}
 
-	errs := m.matchElements(actual)
-	if len(errs) > 0 {
-		return false, errors.NewAggregate(errs)
+	m.failures = m.matchElements(actual)
+	if len(m.failures) > 0 {
+		return false, nil
 	}
 	return true, nil
 }
@@ -85,14 +89,19 @@ func (m *SliceMatcher) matchElements(actual interface{}) (errs []error) {
 			continue
 		}
 
+		if err == nil {
+			if nesting, ok := matcher.(NestingMatcher); ok {
+				err = errorsutil.NewAggregate(nesting.Failures())
+			} else {
+				err = errors.New(matcher.FailureMessage(element))
+			}
+		}
 		errs = append(errs, Nest(fmt.Sprintf("[%s]", id), err))
 	}
 
-	if m.Strict {
-		for id := range m.Elements {
-			if !elements[id] {
-				errs = append(errs, fmt.Errorf("missing expected element %s", id))
-			}
+	for id := range m.Elements {
+		if !elements[id] {
+			errs = append(errs, fmt.Errorf("missing expected element %s", id))
 		}
 	}
 
@@ -100,9 +109,14 @@ func (m *SliceMatcher) matchElements(actual interface{}) (errs []error) {
 }
 
 func (m *SliceMatcher) FailureMessage(actual interface{}) (message string) {
-	return format.Message(actual, "to match slice matcher")
+	failure := errorsutil.NewAggregate(m.failures)
+	return format.Message(actual, fmt.Sprintf("to match slice matcher: %v", failure))
 }
 
 func (m *SliceMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	return format.Message(actual, "not to match slice matcher")
+}
+
+func (m *SliceMatcher) Failures() []error {
+	return m.failures
 }

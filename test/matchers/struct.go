@@ -17,10 +17,11 @@ limitations under the License.
 package matchers
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
-	"k8s.io/kubernetes/pkg/util/errors"
+	errorsutil "k8s.io/kubernetes/pkg/util/errors"
 
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
@@ -29,8 +30,11 @@ import (
 type StructMatcher struct {
 	// Matchers for each field.
 	Fields Fields
-	// Whether missing or extra fields are considered an error.
+	// Whether extra fields are considered an error.
 	Strict bool
+
+	// State.
+	failures []error
 }
 
 // Field name to matcher.
@@ -41,9 +45,9 @@ func (m *StructMatcher) Match(actual interface{}) (success bool, err error) {
 		return false, fmt.Errorf("%v is type %T, expected struct", actual, actual)
 	}
 
-	errs := m.matchFields(actual)
-	if len(errs) > 0 {
-		return false, errors.NewAggregate(errs)
+	m.failures = m.matchFields(actual)
+	if len(m.failures) > 0 {
+		return false, nil
 	}
 	return true, nil
 }
@@ -61,31 +65,44 @@ func (m *StructMatcher) matchFields(actual interface{}) (errs []error) {
 			// Recover here to provide more useful error messages in that case.
 			defer func() {
 				if r := recover(); r != nil {
-					err = fmt.Errorf("panic checking %v: %v", actual, r)
+					err = fmt.Errorf("panic checking %+v: %v", actual, r)
 				}
 			}()
 
 			matcher, expected := m.Fields[fieldName]
 			if !expected {
 				if m.Strict {
-					return fmt.Errorf("unexpected field %s: %+v", fieldName, actual) // FIXME
+					return fmt.Errorf("unexpected field %s: %+v", fieldName, actual)
 				}
 				return nil
 			}
 
-			_, err = matcher.Match(val.Field(i).Interface())
-			return err
+			var field interface{}
+			if val.Field(i).IsValid() {
+				field = val.Field(i).Interface()
+			} else {
+				field = reflect.Zero(typ.Field(i).Type)
+			}
+
+			match, err := matcher.Match(field)
+			if err != nil {
+				return err
+			} else if !match {
+				if nesting, ok := matcher.(NestingMatcher); ok {
+					return errorsutil.NewAggregate(nesting.Failures())
+				}
+				return errors.New(matcher.FailureMessage(field))
+			}
+			return nil
 		}()
 		if err != nil {
 			errs = append(errs, Nest("."+fieldName, err))
 		}
 	}
 
-	if m.Strict {
-		for field := range m.Fields {
-			if !fields[field] {
-				errs = append(errs, fmt.Errorf("missing expected field %s", field))
-			}
+	for field := range m.Fields {
+		if !fields[field] {
+			errs = append(errs, fmt.Errorf("missing expected field %s", field))
 		}
 	}
 
@@ -93,9 +110,14 @@ func (m *StructMatcher) matchFields(actual interface{}) (errs []error) {
 }
 
 func (m *StructMatcher) FailureMessage(actual interface{}) (message string) {
-	return format.Message(actual, "to match struct matcher")
+	return format.Message(reflect.TypeOf(actual).Name(),
+		fmt.Sprintf("to match struct matcher: {\n%v\n}\n", errorutil.Join(m.failures, "\n")))
 }
 
 func (m *StructMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	return format.Message(actual, "not to match struct matcher")
+}
+
+func (m *StructMatcher) Failures() []error {
+	return m.failures
 }

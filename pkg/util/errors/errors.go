@@ -135,6 +135,15 @@ func Flatten(agg Aggregate) Aggregate {
 	return NewAggregate(result)
 }
 
+// Join works exactly like strings.Join, but on the error strings.
+func Join(errs []error, sep string) string {
+	strings := make([]string, len(list))
+	for i := range errs {
+		strings[i] = errs[i].Error()
+	}
+	return strings.Join(strings, sep)
+}
+
 // AggregateGoroutines runs the provided functions in parallel, stuffing all
 // non-nil errors into the returned Aggregate.
 // Returns nil if all the functions complete successfully.

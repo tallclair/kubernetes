@@ -38,7 +38,7 @@ func InRange(lower, upper interface{}) types.GomegaMatcher {
 // Applies the matcher m to the value being pointed to.
 func Ptr(m types.GomegaMatcher) types.GomegaMatcher {
 	transform := func(ptr interface{}) interface{} {
-		return reflect.ValueOf(ptr).Elem()
+		return reflect.ValueOf(ptr).Elem().Interface()
 	}
 	return gomega.WithTransform(transform, m)
 }
@@ -46,6 +46,11 @@ func Ptr(m types.GomegaMatcher) types.GomegaMatcher {
 // A matcher that always succeeds.
 func Ignore() types.GomegaMatcher {
 	return gomega.And()
+}
+
+// A matcher that always fails (mostly for development).
+func Fail() types.GomegaMatcher {
+	return gomega.Or()
 }
 
 // A struct matcher where each field must be present and match the expectations.
@@ -85,6 +90,6 @@ func LooseSlice(identifier Identifier, elements Elements) types.GomegaMatcher {
 }
 
 // A matcher that checks that the actual time was within duration d of Now.
-func BeRecent(d time.Duration) types.GomegaMatcher {
+func Recent(d time.Duration) types.GomegaMatcher {
 	return &RecentMatcher{d}
 }

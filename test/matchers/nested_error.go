@@ -18,9 +18,21 @@ package matchers
 
 import (
 	"fmt"
+	"strings"
 
 	"k8s.io/kubernetes/pkg/util/errors"
+
+	"github.com/onsi/gomega/types"
 )
+
+// A stateful matcher that nests other matchers within it and preserves the error types of the
+// nested matcher failures.
+type NestingMatcher interface {
+	types.GomegaMatcher
+
+	// Returns the failures of nested matchers.
+	Failures() []error
+}
 
 // An error type for labeling errors on deeply nested matchers.
 type NestedError struct {
@@ -29,7 +41,9 @@ type NestedError struct {
 }
 
 func (e *NestedError) Error() string {
-	return fmt.Sprintf("%s:\n%v", e.Path, e.Err)
+	// Indent Errors.
+	indented := strings.Replace(e.Err.Error(), "\n", "\n\t", -1)
+	return fmt.Sprintf("\n%s:\n\t%v", e.Path, indented)
 }
 
 // Create a NestedError with the given path.

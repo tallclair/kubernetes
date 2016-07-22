@@ -31,7 +31,7 @@ type RecentMatcher struct {
 
 func (m *RecentMatcher) Match(actual interface{}) (success bool, err error) {
 	if t, ok := actual.(unversioned.Time); ok {
-		return m.Match(t)
+		return m.Match(t.Time)
 	}
 	t, ok := actual.(time.Time)
 	if !ok {
