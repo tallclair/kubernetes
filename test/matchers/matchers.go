@@ -38,6 +38,9 @@ func InRange(lower, upper interface{}) types.GomegaMatcher {
 // Applies the matcher m to the value being pointed to.
 func Ptr(m types.GomegaMatcher) types.GomegaMatcher {
 	transform := func(ptr interface{}) interface{} {
+		if !reflect.ValueOf(ptr).IsValid() {
+			return nil
+		}
 		return reflect.ValueOf(ptr).Elem().Interface()
 	}
 	return gomega.WithTransform(transform, m)

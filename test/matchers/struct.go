@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
+	"strings"
 
 	errorsutil "k8s.io/kubernetes/pkg/util/errors"
 
@@ -65,7 +67,7 @@ func (m *StructMatcher) matchFields(actual interface{}) (errs []error) {
 			// Recover here to provide more useful error messages in that case.
 			defer func() {
 				if r := recover(); r != nil {
-					err = fmt.Errorf("panic checking %+v: %v", actual, r)
+					err = fmt.Errorf("panic checking %+v: %v\n%v", actual, r, debug.Stack())
 				}
 			}()
 
@@ -110,8 +112,12 @@ func (m *StructMatcher) matchFields(actual interface{}) (errs []error) {
 }
 
 func (m *StructMatcher) FailureMessage(actual interface{}) (message string) {
+	failures := make([]string, len(m.failures))
+	for i := range m.failures {
+		failures[i] = m.failures[i].Error()
+	}
 	return format.Message(reflect.TypeOf(actual).Name(),
-		fmt.Sprintf("to match struct matcher: {\n%v\n}\n", errorutil.Join(m.failures, "\n")))
+		fmt.Sprintf("to match struct matcher: {\n%v\n}\n", strings.Join(failures, "\n")))
 }
 
 func (m *StructMatcher) NegatedFailureMessage(actual interface{}) (message string) {

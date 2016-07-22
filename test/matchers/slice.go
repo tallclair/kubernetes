@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 
 	errorsutil "k8s.io/kubernetes/pkg/util/errors"
 
@@ -61,7 +62,7 @@ func (m *SliceMatcher) matchElements(actual interface{}) (errs []error) {
 	// Provide more useful error messages in the case of a panic.
 	defer func() {
 		if err := recover(); err != nil {
-			errs = append(errs, fmt.Errorf("panic checking %v: %v", actual, err))
+			errs = append(errs, fmt.Errorf("panic checking %+v: %v\n%v", actual, err, debug.Stack()))
 		}
 	}()
 
