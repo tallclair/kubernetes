@@ -30,11 +30,16 @@ const (
 	DefaultProfileAnnotationKey = "apparmor.security.alpha.kubernetes.io/defaultProfileName"
 	// The annotation key specifying the allowed AppArmor profiles.
 	AllowedProfilesAnnotationKey = "apparmor.security.alpha.kubernetes.io/allowedProfileNames"
+	// The annotation key specifying the status of AppArmor enforcement.
+	StatusAnnotationKey = "apparmor.security.alpha.kubernetes.io/status"
 
 	// The profile specifying the runtime default.
 	ProfileRuntimeDefault = "runtime/default"
 	// The prefix for specifying profiles loaded on the node.
 	ProfileNamePrefix = "localhost/"
+
+	// The value of the status annotation when a pod has requested apparmor, and it is enabled.
+	StatusEnabled = "enabled"
 )
 
 // Checks whether app armor is required for pod to be run.
