@@ -39,7 +39,7 @@ fi
 
 function get_latest_gci_image() {
   # GCI milestone to use
-  GCI_MILESTONE="53"
+  GCI_MILESTONE="54"
 
   # First try to find an active (non-deprecated) image on this milestone.
   gci_images=( $(gcloud compute images list --project google-containers \
