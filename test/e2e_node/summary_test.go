@@ -205,7 +205,7 @@ var _ = framework.KubeDescribe("Summary API", func() {
 func createSummaryTestPods(f *framework.Framework, names ...string) {
 	pods := make([]*api.Pod, 0, len(names))
 	for _, name := range names {
-		pods = append(pods, &api.Pod{
+		pod := &api.Pod{
 			ObjectMeta: api.ObjectMeta{
 				Name: name,
 			},
@@ -215,7 +215,7 @@ func createSummaryTestPods(f *framework.Framework, names ...string) {
 					{
 						Name:    "busybox-container",
 						Image:   "gcr.io/google_containers/busybox:1.24",
-						Command: []string{"sh", "-c", "ping -c 1 google.com; while true; do echo 'hello world' | tee /test-empty-dir-mnt/file ; sleep 1; done"},
+						Command: []string{"sh", "-c", "ping -c 1 google.com; while true; do date >> /test-empty-dir-mnt/file ; sleep 1; done"},
 						Resources: api.ResourceRequirements{
 							Limits: api.ResourceList{
 								// Must set memory limit to get MemoryStats.AvailableBytes
@@ -238,7 +238,9 @@ func createSummaryTestPods(f *framework.Framework, names ...string) {
 					{Name: "test-empty-dir", VolumeSource: api.VolumeSource{EmptyDir: &api.EmptyDirVolumeSource{}}},
 				},
 			},
-		})
+		}
+		pods = append(pods, pod)
+		f.LogPodOnFailure(pod)
 	}
 	f.PodClient().CreateBatch(pods)
 }

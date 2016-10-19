@@ -41,6 +41,7 @@ import (
 	"k8s.io/kubernetes/pkg/client/typed/dynamic"
 	client "k8s.io/kubernetes/pkg/client/unversioned"
 	"k8s.io/kubernetes/pkg/fields"
+	"k8s.io/kubernetes/pkg/kubelet/util/format"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/metrics"
 	"k8s.io/kubernetes/pkg/util/intstr"
@@ -99,6 +100,8 @@ type Framework struct {
 	// Federation specific params. These are set only if federated = true.
 	FederationClientset_1_5 *federation_release_1_5.Clientset
 	FederationNamespace     *v1.Namespace
+
+	podsToLog []*api.Pod
 }
 
 type TestDataSummary interface {
@@ -389,6 +392,10 @@ func (f *Framework) AfterEach() {
 			// Print logs of kube-dns pod
 			LogPodsWithLabels(f.Client, "kube-system", map[string]string{"k8s-app": "kube-dns"}, Logf)
 		}
+		for _, pod := range f.podsToLog {
+			By(fmt.Sprintf("Dumping logs of pod %s", format.Pod(pod)))
+			kubectlLogPod(f.Client, *pod, "", Logf)
+		}
 	}
 
 	summaries := make([]TestDataSummary, 0)
@@ -678,6 +685,10 @@ func (f *Framework) CreatePodsPerNodeForSimpleApp(appName string, podSpec func(n
 		}
 	}
 	return labels
+}
+
+func (f *Framework) LogPodOnFailure(pod *api.Pod) {
+	f.podsToLog = append(f.podsToLog, pod)
 }
 
 type KubeUser struct {
