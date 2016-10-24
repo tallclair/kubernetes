@@ -18,8 +18,6 @@ package dockertools
 
 import (
 	"bytes"
-	"crypto/md5"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -110,9 +107,6 @@ var (
 
 	// TODO: make this a TTL based pull (if image older than X policy, pull)
 	podInfraContainerImagePullPolicy = api.PullIfNotPresent
-
-	// Default set of seccomp security options.
-	defaultSeccompOpt = []dockerOpt{{"seccomp", "unconfined", ""}}
 )
 
 type DockerManager struct {
@@ -181,8 +175,7 @@ type DockerManager struct {
 	// The version cache of docker daemon.
 	versionCache *cache.ObjectCache
 
-	// Directory to host local seccomp profiles.
-	seccompProfileRoot string
+	optsHelper OptsHelper
 }
 
 // A subset of the pod.Manager interface extracted for testing purposes.
@@ -226,6 +219,7 @@ func NewDockerManager(
 	enableCustomMetrics bool,
 	hairpinMode bool,
 	seccompProfileRoot string,
+	appArmorValidator apparmor.Validator,
 	options ...kubecontainer.Option) *DockerManager {
 	// Wrap the docker client with instrumentedDockerInterface
 	client = NewInstrumentedDockerInterface(client)
@@ -263,6 +257,7 @@ func NewDockerManager(
 		configureHairpinMode:   hairpinMode,
 		imageStatsProvider:     newImageStatsProvider(client),
 		seccompProfileRoot:     seccompProfileRoot,
+		appArmorValidator:      appArmorValidator,
 	}
 	dm.runner = lifecycle.NewHandlerRunner(httpClient, dm, dm)
 	dm.imagePuller = images.NewImageManager(kubecontainer.FilterEventRecorder(recorder), dm, imageBackOff, serializeImagePulls, qps, burst)
@@ -273,6 +268,16 @@ func NewDockerManager(
 			return dm.getVersionInfo()
 		},
 		versionCacheTTL,
+	)
+
+	version, err := dm.APIVersion()
+	if err != nil {
+		version = apiVersion("0.0")
+	}
+	dm.optsHelper = NewOptsHelper(
+		version,
+		appArmorValidator,
+		seccompProfileRoot,
 	)
 
 	// apply optional settings..
@@ -1088,142 +1093,6 @@ func (dm *DockerManager) checkVersionCompatibility() error {
 		return fmt.Errorf("container runtime version is older than %s", minimumDockerAPIVersion)
 	}
 	return nil
-}
-
-func (dm *DockerManager) fmtDockerOpts(opts []dockerOpt) ([]string, error) {
-	version, err := dm.APIVersion()
-	if err != nil {
-		return nil, err
-	}
-
-	const (
-		// Docker changed the API for specifying options in v1.11
-		optSeparatorChangeVersion = "1.23" // Corresponds to docker 1.11.x
-		optSeparatorOld           = ':'
-		optSeparatorNew           = '='
-	)
-
-	sep := optSeparatorNew
-	if result, err := version.Compare(optSeparatorChangeVersion); err != nil {
-		return nil, fmt.Errorf("error parsing docker API version: %v", err)
-	} else if result < 0 {
-		sep = optSeparatorOld
-	}
-
-	fmtOpts := make([]string, len(opts))
-	for i, opt := range opts {
-		fmtOpts[i] = fmt.Sprintf("%s%c%s", opt.key, sep, opt.value)
-	}
-	return fmtOpts, nil
-}
-
-func (dm *DockerManager) getSecurityOpts(pod *api.Pod, ctrName string) ([]dockerOpt, error) {
-	var securityOpts []dockerOpt
-	if seccompOpts, err := dm.getSeccompOpts(pod, ctrName); err != nil {
-		return nil, err
-	} else {
-		securityOpts = append(securityOpts, seccompOpts...)
-	}
-
-	if appArmorOpts, err := dm.getAppArmorOpts(pod, ctrName); err != nil {
-		return nil, err
-	} else {
-		securityOpts = append(securityOpts, appArmorOpts...)
-	}
-
-	return securityOpts, nil
-}
-
-type dockerOpt struct {
-	// The key-value pair passed to docker.
-	key, value string
-	// The alternative value to use in log/event messages.
-	msg string
-}
-
-// Expose key/value from dockertools
-func (d dockerOpt) GetKV() (string, string) {
-	return d.key, d.value
-}
-
-// Get the docker security options for seccomp.
-func (dm *DockerManager) getSeccompOpts(pod *api.Pod, ctrName string) ([]dockerOpt, error) {
-	version, err := dm.APIVersion()
-	if err != nil {
-		return nil, err
-	}
-
-	// seccomp is only on docker versions >= v1.10
-	if result, err := version.Compare(dockerV110APIVersion); err != nil {
-		return nil, err
-	} else if result < 0 {
-		return nil, nil // return early for Docker < 1.10
-	}
-
-	return GetSeccompOpts(pod.ObjectMeta.Annotations, ctrName, dm.seccompProfileRoot)
-}
-
-// Temporarily export this function to share with dockershim.
-// TODO: clean this up.
-func GetSeccompOpts(annotations map[string]string, ctrName, profileRoot string) ([]dockerOpt, error) {
-	profile, profileOK := annotations[api.SeccompContainerAnnotationKeyPrefix+ctrName]
-	if !profileOK {
-		// try the pod profile
-		profile, profileOK = annotations[api.SeccompPodAnnotationKey]
-		if !profileOK {
-			// return early the default
-			return defaultSeccompOpt, nil
-		}
-	}
-
-	if profile == "unconfined" {
-		// return early the default
-		return defaultSeccompOpt, nil
-	}
-
-	if profile == "docker/default" {
-		// return nil so docker will load the default seccomp profile
-		return nil, nil
-	}
-
-	if !strings.HasPrefix(profile, "localhost/") {
-		return nil, fmt.Errorf("unknown seccomp profile option: %s", profile)
-	}
-
-	name := strings.TrimPrefix(profile, "localhost/") // by pod annotation validation, name is a valid subpath
-	fname := filepath.Join(profileRoot, filepath.FromSlash(name))
-	file, err := ioutil.ReadFile(fname)
-	if err != nil {
-		return nil, fmt.Errorf("cannot load seccomp profile %q: %v", name, err)
-	}
-
-	b := bytes.NewBuffer(nil)
-	if err := json.Compact(b, file); err != nil {
-		return nil, err
-	}
-	// Rather than the full profile, just put the filename & md5sum in the event log.
-	msg := fmt.Sprintf("%s(md5:%x)", name, md5.Sum(file))
-
-	return []dockerOpt{{"seccomp", b.String(), msg}}, nil
-}
-
-// Get the docker security options for AppArmor.
-func (dm *DockerManager) getAppArmorOpts(pod *api.Pod, ctrName string) ([]dockerOpt, error) {
-	return GetAppArmorOpts(pod.Annotations, ctrName)
-}
-
-// Temporarily export this function to share with dockershim.
-// TODO: clean this up.
-func GetAppArmorOpts(annotations map[string]string, ctrName string) ([]dockerOpt, error) {
-	profile := apparmor.GetProfileNameFromPodAnnotations(annotations, ctrName)
-	if profile == "" || profile == apparmor.ProfileRuntimeDefault {
-		// The docker applies the default profile by default.
-		return nil, nil
-	}
-
-	// Assume validation has already happened.
-	profileName := strings.TrimPrefix(profile, apparmor.ProfileNamePrefix)
-	return []dockerOpt{{"apparmor", profileName, ""}}, nil
 }
 
 type dockerExitError struct {

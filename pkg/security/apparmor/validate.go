@@ -38,6 +38,7 @@ var isDisabledBuild bool
 type Validator interface {
 	Validate(pod *api.Pod) error
 	ValidateHost() error
+	ValidateProfile(profile string) error
 }
 
 func NewValidator(runtime string) Validator {
@@ -118,6 +119,15 @@ func validateHost(runtime string) error {
 }
 
 // Verify that the profile is valid and loaded.
+func (v *validator) ValidateProfile(profile string) error {
+	loadedProfiles, err := v.getLoadedProfiles()
+	if err != nil {
+		return fmt.Errorf("could not read loaded profiles: %v", err)
+	}
+
+	return validateProfile(profile, loadedProfiles)
+}
+
 func validateProfile(profile string, loadedProfiles map[string]bool) error {
 	if err := ValidateProfileFormat(profile); err != nil {
 		return err

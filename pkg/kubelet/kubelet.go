@@ -482,6 +482,7 @@ func NewMainKubelet(kubeCfg *componentconfig.KubeletConfiguration, kubeDeps *Kub
 			kubeCfg.RemoteImageEndpoint = kubeCfg.RemoteRuntimeEndpoint
 		}
 	}
+	klet.appArmorValidator = apparmor.NewValidator(kubeCfg.ContainerRuntime)
 
 	// Initialize the runtime.
 	switch kubeCfg.ContainerRuntime {
@@ -544,6 +545,7 @@ func NewMainKubelet(kubeCfg *componentconfig.KubeletConfiguration, kubeDeps *Kub
 				// runtime to set the flag instead.
 				klet.hairpinMode == componentconfig.HairpinVeth && kubeCfg.NetworkPluginName != "kubenet",
 				kubeCfg.SeccompProfileRoot,
+				klet.appArmorValidator,
 				kubeDeps.ContainerRuntimeOptions...,
 			)
 		}
@@ -711,7 +713,6 @@ func NewMainKubelet(kubeCfg *componentconfig.KubeletConfiguration, kubeDeps *Kub
 	klet.AddPodSyncLoopHandler(activeDeadlineHandler)
 	klet.AddPodSyncHandler(activeDeadlineHandler)
 
-	klet.appArmorValidator = apparmor.NewValidator(kubeCfg.ContainerRuntime)
 	klet.AddPodAdmitHandler(lifecycle.NewAppArmorAdmitHandler(klet.appArmorValidator))
 	klet.AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(klet.getNodeAnyWay))
 	// apply functional Option's

@@ -190,7 +190,8 @@ func makePortsAndBindings(pm []*runtimeApi.PortMapping) (map[dockernat.Port]stru
 // annotations.
 // It is an experimental feature and may be promoted to official runtime api in the future.
 func getContainerSecurityOpts(containerName string, sandboxConfig *runtimeApi.PodSandboxConfig, seccompProfileRoot string) ([]string, error) {
-	appArmorOpts, err := dockertools.GetAppArmorOpts(sandboxConfig.GetAnnotations(), containerName)
+	// TODO(timstclair): Use cached docker validator.
+	appArmorOpts, err := dockertools.GetAppArmorOpts(nil, sandboxConfig.GetAnnotations(), containerName)
 	if err != nil {
 		return nil, err
 	}

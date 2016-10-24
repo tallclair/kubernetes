@@ -51,8 +51,9 @@ func NewFakeDockerManager(
 	fakePodGetter := &fakePodGetter{}
 	dm := NewDockerManager(client, recorder, livenessManager, containerRefManager, fakePodGetter, machineInfo, podInfraContainerImage, qps,
 		burst, containerLogsDir, osInterface, networkPlugin, runtimeHelper, httpClient, &NativeExecHandler{},
-		fakeOOMAdjuster, fakeProcFs, false, imageBackOff, false, false, true, "/var/lib/kubelet/seccomp")
+		fakeOOMAdjuster, fakeProcFs, false, imageBackOff, false, false, true, "", nil)
 	dm.dockerPuller = &FakeDockerPuller{}
+	dm.optsHelper = NewFakeOptsHelper()
 
 	// ttl of version cache is set to 0 so we always call version api directly in tests.
 	dm.versionCache = cache.NewObjectCache(
@@ -76,3 +77,17 @@ func (f *fakePodGetter) GetPodByUID(uid types.UID) (*api.Pod, bool) {
 	pod, found := f.pods[uid]
 	return pod, found
 }
+
+func NewFakeOptsHelper() OptsHelper {
+	return &optsHelper{
+		apiVersion:         apiVersion(dockerV110APIVersion),
+		appArmorValidator:  fakeAppArmorValidator{},
+		seccompProfileRoot: "/var/lib/kubelet/seccomp",
+	}
+}
+
+type fakeAppArmorValidator struct{}
+
+func (_ fakeAppArmorValidator) Validate(_ *api.Pod) error      { return nil }
+func (_ fakeAppArmorValidator) ValidateHost() error            { return nil }
+func (_ fakeAppArmorValidator) ValidateProfile(_ string) error { return nil }
