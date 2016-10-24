@@ -25,7 +25,7 @@ import (
 	runtimeApi "k8s.io/kubernetes/pkg/kubelet/api/v1alpha1/runtime"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/dockertools"
-	"k8s.io/kubernetes/pkg/util/term"
+	"k8s.io/kubernetes/pkg/kubelet/server/streaming"
 )
 
 const (
@@ -55,13 +55,22 @@ const (
 var internalLabelKeys []string = []string{containerTypeLabelKey, containerLogPathLabelKey, sandboxIDLabelKey}
 
 // NOTE: Anything passed to DockerService should be eventually handled in another way when we switch to running the shim as a different process.
-func NewDockerService(client dockertools.DockerInterface, seccompProfileRoot string, podSandboxImage string) DockerLegacyService {
-	return &dockerService{
+func NewDockerService(client dockertools.DockerInterface, seccompProfileRoot string, podSandboxImage string, streamingConfig *streaming.Config) (DockerLegacyService, error) {
+	ds := &dockerService{
 		seccompProfileRoot: seccompProfileRoot,
 		client:             dockertools.NewInstrumentedDockerInterface(client),
 		os:                 kubecontainer.RealOS{},
 		podSandboxImage:    podSandboxImage,
+		streamingRuntime:   &streamingRuntime{client},
 	}
+	if streamingConfig != nil {
+		var err error
+		ds.streamingServer, err = streaming.NewServer(streamingConfig, ds.streamingRuntime)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ds
 }
 
 // DockerLegacyService is an interface that embeds both the new
@@ -74,10 +83,6 @@ type DockerLegacyService interface {
 	// Supporting legacy methods for docker.
 	GetContainerLogs(pod *api.Pod, containerID kubecontainer.ContainerID, logOptions *api.PodLogOptions, stdout, stderr io.Writer) (err error)
 	kubecontainer.ContainerAttacher
-	PortForward(sandboxID string, port uint16, stream io.ReadWriteCloser) error
-
-	// TODO: Remove this once exec is properly defined in CRI.
-	ExecInContainer(containerID kubecontainer.ContainerID, cmd []string, stdin io.Reader, stdout, stderr io.WriteCloser, tty bool, resize <-chan term.Size) error
 }
 
 type dockerService struct {
@@ -85,7 +90,11 @@ type dockerService struct {
 	client             dockertools.DockerInterface
 	os                 kubecontainer.OSInterface
 	podSandboxImage    string
+	streamingRuntime   streaming.Runtime
+	streamingServer    streaming.Server
 }
+
+var _ DockerLegacyService = &dockerService{}
 
 // Version returns the runtime name, runtime version and runtime API version
 func (ds *dockerService) Version(_ string) (*runtimeApi.VersionResponse, error) {

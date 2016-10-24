@@ -18,7 +18,7 @@ package dockershim
 
 import (
 	"fmt"
-	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -383,9 +383,15 @@ func (ds *dockerService) ContainerStatus(containerID string) (*runtimeApi.Contai
 	}, nil
 }
 
-// Exec execute a command in the container.
-// TODO: Need to handle terminal resizing before implementing this function.
-// https://github.com/kubernetes/kubernetes/issues/29579.
-func (ds *dockerService) Exec(containerID string, cmd []string, tty bool, stdin io.Reader, stdout, stderr io.WriteCloser) error {
-	return fmt.Errorf("not implemented")
+// ExecSync executes a command in the container, and returns the stdout output.
+// If command exits with a non-zero exit code, an error is returned.
+func (ds *dockerService) ExecSync(containerID string, cmd []string, timeout time.Duration) (stdout []byte, stderr []byte, err error) {
+}
+
+// Exec prepares a streaming endpoint to execute a command in the container, and returns the address.
+func (ds *dockerService) Exec(containerID string, cmd []string, tty, stdin bool) (*url.URL, error) {
+}
+
+// Attach prepares a streaming endpoint to attach to a running container, and returns the address.
+func (ds *dockerService) Attach(containerID string, stdin bool) (*url.URL, error) {
 }
