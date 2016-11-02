@@ -510,6 +510,12 @@ func getNodeName(cloud cloudprovider.Interface, hostname string) (types.NodeName
 // InitializeTLS checks for a configured TLSCertFile and TLSPrivateKeyFile: if unspecified a new self-signed
 // certificate and key file are generated. Returns a configured server.TLSOptions object.
 func InitializeTLS(kc *componentconfig.KubeletConfiguration) (*server.TLSOptions, error) {
+	config := &tls.Config{
+		// Can't use SSLv3 because of POODLE and BEAST
+		// Can't use TLSv1.0 because of POODLE and BEAST using CBC cipher
+		// Can't use TLSv1.1 because of RC4 cipher usage
+		MinVersion: tls.VersionTLS12,
+	}
 	if kc.TLSCertFile == "" && kc.TLSPrivateKeyFile == "" {
 		kc.TLSCertFile = path.Join(kc.CertDirectory, "kubelet.crt")
 		kc.TLSPrivateKeyFile = path.Join(kc.CertDirectory, "kubelet.key")
@@ -527,16 +533,23 @@ func InitializeTLS(kc *componentconfig.KubeletConfiguration) (*server.TLSOptions
 				return nil, err
 			}
 
+			certificate, err := tls.X509KeyPair(cert, key)
+			if err != nil {
+				return nil, err
+			}
+			config.Certificates = append(config.Certificates, certificate)
+
 			glog.V(4).Infof("Using self-signed cert (%s, %s)", kc.TLSCertFile, kc.TLSPrivateKeyFile)
+		} else {
+			certificate, err := tls.LoadX509KeyPair(kc.TLSCertFile, kc.TLSPrivateKeyFile)
+			if err != nil {
+				return nil, err
+			}
+			config.Certificates = append(config.Certificates, certificate)
 		}
 	}
 	tlsOptions := &server.TLSOptions{
-		Config: &tls.Config{
-			// Can't use SSLv3 because of POODLE and BEAST
-			// Can't use TLSv1.0 because of POODLE and BEAST using CBC cipher
-			// Can't use TLSv1.1 because of RC4 cipher usage
-			MinVersion: tls.VersionTLS12,
-		},
+		Config:   config,
 		CertFile: kc.TLSCertFile,
 		KeyFile:  kc.TLSPrivateKeyFile,
 	}
