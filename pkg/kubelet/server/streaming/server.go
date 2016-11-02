@@ -45,12 +45,8 @@ type Server interface {
 	GetAttach(req *runtimeapi.AttachRequest, tty bool) (*runtimeapi.AttachResponse, error)
 	GetPortForward(*runtimeapi.PortForwardRequest) (*runtimeapi.PortForwardResponse, error)
 
-	// Start the server.
-	// addr is the address to serve on (address:port) stayUp indicates whether the server should
-	// listen until Stop() is called, or automatically stop after all expected connections are
-	// closed. Calling Get{Exec,Attach,PortForward} increments the expected connection count.
-	// Function does not return until the server is stopped.
-	Start(stayUp bool) error
+	// Start the server. Function does not return until the server is stopped.
+	Start() error
 	// Stop the server, and terminate any open connections.
 	Stop() error
 }
@@ -158,12 +154,7 @@ func (s *server) GetPortForward(req *runtimeapi.PortForwardRequest) (*runtimeapi
 	}, nil
 }
 
-func (s *server) Start(stayUp bool) error {
-	if !stayUp {
-		// TODO(timstclair): Implement this.
-		return errors.New("stayUp=false is not yet implemented")
-	}
-
+func (s *server) Start() error {
 	server := &http.Server{
 		Addr:      s.config.Addr,
 		Handler:   s.handler,
