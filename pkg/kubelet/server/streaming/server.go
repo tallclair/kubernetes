@@ -19,10 +19,10 @@ package streaming
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	restful "github.com/emicklei/go-restful"
@@ -39,7 +39,7 @@ import (
 type Server interface {
 	http.Handler
 
-	// Get the serving URL for the requests. Server must be started before these are called.
+	// Get the serving URL for the requests.
 	// Requests must not be nil. Responses may be nil iff an error is returned.
 	GetExec(*runtimeapi.ExecRequest) (*runtimeapi.ExecResponse, error)
 	GetAttach(req *runtimeapi.AttachRequest, tty bool) (*runtimeapi.AttachResponse, error)
@@ -62,6 +62,9 @@ type Runtime interface {
 type Config struct {
 	// The host:port address the server will listen on.
 	Addr string
+	// The optional path prefix to include in the base URL. If the server will be started (with a call
+	// to Start), this should be "".
+	PathPrefix string
 
 	// How long to leave idle connections open for.
 	StreamIdleTimeout time.Duration
@@ -198,7 +201,7 @@ func (s *server) buildURL(method, id string, opts streamOpts) string {
 	loc := url.URL{
 		Scheme: "http",
 		Host:   s.config.Addr,
-		Path:   fmt.Sprintf("/%s/%s", method, id),
+		Path:   path.Join(s.config.PathPrefix, method, id),
 	}
 	if s.config.TLSConfig != nil {
 		loc.Scheme = "https"

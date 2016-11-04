@@ -225,12 +225,14 @@ func newServerTest() *serverTestFramework {
 			return true, "", nil
 		},
 	}
+	fw.criServer = 
 	server := NewServer(
 		fw.fakeKubelet,
 		stats.NewResourceAnalyzer(fw.fakeKubelet, time.Minute, &kubecontainertesting.FakeRuntime{}),
 		fw.fakeAuth,
 		true,
-		&kubecontainertesting.Mock{})
+		&kubecontainertesting.Mock{},
+		nil)
 	fw.serverUnderTest = &server
 	fw.testHTTPServer = httptest.NewServer(fw.serverUnderTest)
 	return fw
@@ -1432,6 +1434,10 @@ func TestServeAttachContainer(t *testing.T) {
 	testExecAttach(t, "attach")
 }
 
+func TestServeExecCRI(t *testing.T) {
+	
+}
+
 func TestServePortForwardIdleTimeout(t *testing.T) {
 	fw := newServerTest()
 	defer fw.testHTTPServer.Close()
@@ -1628,4 +1634,43 @@ func TestServePortForward(t *testing.T) {
 
 		<-portForwardFuncDone
 	}
+}
+
+type fakeStreamingRuntime struct{
+	containerID string
+	cmd []string
+	in io.Reader
+	out io.WriteCloser
+	err io.WriteCloser
+	tty bool
+	resize <-chan term.Size
+	podSandboxID string
+	port int32
+	stream io.ReadWriteCloser
+}
+
+func (f *fakeStreamingRuntime) Exec(containerID string, cmd []string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan term.Size) error {
+	f.containerID = containerID
+	f.cmd = cmd
+	f.in = in
+	f.out = out
+	f.err = err
+	f.tty = tty
+	f.resize = resize
+	return nil
+}
+func (f *fakeStreamingRuntime) Attach(containerID string, in io.Reader, out, err io.WriteCloser, resize <-chan term.Size) error {
+	f.containerID = containerID
+	f.in = in
+	f.out = out
+	f.err = err
+	f.resize = resize
+	return nil
+}
+
+func (f *fakeStreamingRuntime) PortForward(podSandboxID string, port int32, stream io.ReadWriteCloser) error {
+	f.podSandboxID = podSandboxID
+	f.port = port
+	f.stream = stream
+	return nil
 }
