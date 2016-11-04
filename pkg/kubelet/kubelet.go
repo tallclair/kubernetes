@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -2027,8 +2027,10 @@ func ParseReservation(kubeReserved, systemReserved utilconfig.ConfigurationMap) 
 // Gets the streaming server configuration to use with in-process CRI shims.
 func getStreamingConfig(kubeCfg *componentconfig.KubeletConfiguration, kubeDeps *KubeletDeps) *streaming.Config {
 	config := &streaming.Config{
-		Addr:                  net.JoinHostPort(kubeCfg.Address, strconv.FormatInt(int64(kubeCfg.Port), 10)),
-		PathPrefix:            "cri",
+		// Use a relative redirect (no scheme or host).
+		BaseURL: &url.URL{
+			Path: "/cri/",
+		},
 		StreamIdleTimeout:     kubeCfg.StreamingConnectionIdleTimeout.Duration,
 		StreamCreationTimeout: streaming.DefaultConfig.StreamCreationTimeout,
 		SupportedProtocols:    streaming.DefaultConfig.SupportedProtocols,

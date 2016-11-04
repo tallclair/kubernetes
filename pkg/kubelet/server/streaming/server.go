@@ -26,8 +26,9 @@ import (
 	"time"
 
 	restful "github.com/emicklei/go-restful"
+	"github.com/golang/glog"
 
-	"k8s.io/client-go/pkg/api"
+	"k8s.io/kubernetes/pkg/api"
 	runtimeapi "k8s.io/kubernetes/pkg/kubelet/api/v1alpha1/runtime"
 	"k8s.io/kubernetes/pkg/kubelet/server/portforward"
 	"k8s.io/kubernetes/pkg/kubelet/server/remotecommand"
@@ -62,9 +63,9 @@ type Runtime interface {
 type Config struct {
 	// The host:port address the server will listen on.
 	Addr string
-	// The optional path prefix to include in the base URL. If the server will be started (with a call
-	// to Start), this should be "".
-	PathPrefix string
+	// The optional base URL for constructing streaming URLs. If empty, the baseURL will be
+	// constructed from the serve address.
+	BaseURL *url.URL
 
 	// How long to leave idle connections open for.
 	StreamIdleTimeout time.Duration
@@ -95,6 +96,16 @@ func NewServer(config Config, runtime Runtime) (Server, error) {
 		runtime: &criAdapter{runtime},
 	}
 
+	if s.config.BaseURL == nil {
+		s.config.BaseURL = &url.URL{
+			Scheme: "http",
+			Host:   s.config.Addr,
+		}
+		if s.config.TLSConfig != nil {
+			s.config.BaseURL.Scheme = "https"
+		}
+	}
+
 	ws := &restful.WebService{}
 	endpoints := []struct {
 		path    string
@@ -104,11 +115,13 @@ func NewServer(config Config, runtime Runtime) (Server, error) {
 		{"/attach/{containerID}", s.serveAttach},
 		{"/portforward/{podSandboxID}", s.servePortForward},
 	}
+	// If serving relative to a base path, set that here.
+	pathPrefix := path.Dir(s.config.BaseURL.Path)
 	for _, e := range endpoints {
 		for _, method := range []string{"GET", "POST"} {
 			ws.Route(ws.
 				Method(method).
-				Path(e.path).
+				Path(path.Join(pathPrefix, e.path)).
 				To(e.handler))
 		}
 	}
@@ -176,6 +189,7 @@ func (s *server) Stop() error {
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("**** Received streaming server request: %v", r)
 	s.handler.ServeHTTP(w, r)
 }
 
@@ -198,13 +212,8 @@ const (
 )
 
 func (s *server) buildURL(method, id string, opts streamOpts) string {
-	loc := url.URL{
-		Scheme: "http",
-		Host:   s.config.Addr,
-		Path:   path.Join(s.config.PathPrefix, method, id),
-	}
-	if s.config.TLSConfig != nil {
-		loc.Scheme = "https"
+	loc := &url.URL{
+		Path: path.Join(method, id),
 	}
 
 	query := url.Values{}
@@ -225,7 +234,7 @@ func (s *server) buildURL(method, id string, opts streamOpts) string {
 	}
 	loc.RawQuery = query.Encode()
 
-	return loc.String()
+	return s.config.BaseURL.ResolveReference(loc).String()
 }
 
 func (s *server) serveExec(req *restful.Request, resp *restful.Response) {

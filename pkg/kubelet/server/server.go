@@ -397,6 +397,7 @@ func (s *Server) InstallDebuggingHandlers(criHandler http.Handler) {
 	s.restfulCont.Add(ws)
 
 	if criHandler != nil {
+		glog.Infof("**** Installed CRI handler")
 		s.restfulCont.Handle("/cri/", criHandler)
 	}
 }
@@ -628,9 +629,11 @@ func (s *Server) getAttach(request *restful.Request, response *restful.Response)
 
 // getExec handles requests to run a command inside a container.
 func (s *Server) getExec(request *restful.Request, response *restful.Response) {
+	glog.Infof("**** Received exec request: %v", request.Request)
 	params := getRequestParams(request)
 	pod, ok := s.host.GetPodByName(params.podNamespace, params.podName)
 	if !ok {
+		glog.Infof("**** pod not found")
 		response.WriteError(http.StatusNotFound, fmt.Errorf("pod does not exist"))
 		return
 	}
@@ -638,14 +641,17 @@ func (s *Server) getExec(request *restful.Request, response *restful.Response) {
 	podFullName := kubecontainer.GetPodFullName(pod)
 	redirect, err := s.host.GetExec(podFullName, params.podUID, params.containerName, params.cmd, params.streamOpts)
 	if err != nil {
+		glog.Infof("**** error getting exec: %v", err)
 		response.WriteError(streaming.HTTPStatus(err), err)
 		return
 	}
 	if redirect != nil {
+		glog.Infof("**** Redirecting to %s", redirect.String())
 		http.Redirect(response.ResponseWriter, request.Request, redirect.String(), http.StatusFound)
 		return
 	}
 
+	glog.Infof("**** direct streaming")
 	remotecommand.ServeExec(response.ResponseWriter,
 		request.Request,
 		s.host,

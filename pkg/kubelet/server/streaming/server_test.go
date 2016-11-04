@@ -70,8 +70,12 @@ func TestGetExec(t *testing.T) {
 
 	const pathPrefix = "cri/shim"
 	prefixServer, err := NewServer(Config{
-		Addr:       testAddr,
-		PathPrefix: pathPrefix,
+		Addr: testAddr,
+		BaseURL: &url.URL{
+			Scheme: "http",
+			Host:   testAddr,
+			Path:   "/" + pathPrefix + "/",
+		},
 	}, nil)
 	assert.NoError(t, err)
 
