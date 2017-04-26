@@ -384,6 +384,8 @@ data:
         </metric>
       </store>
     </match>
+
+    @include /etc/fluent/config-extra.d/*.conf
 metadata:
   name: fluentd-gcp-config
   namespace: kube-system

@@ -56,6 +56,8 @@ spec:
           readOnly: true
         - name: config-volume
           mountPath: /etc/fluent/config.d
+        - name: config-extra
+          mountPath: /etc/fluent/config-extra.d
         # Liveness probe is aimed to help in situarions where fluentd
         # silently hangs for no apparent reasons until manual restart.
         # The idea of this probe is that if fluentd is not queueing or
@@ -107,3 +109,7 @@ spec:
       - name: config-volume
         configMap:
           name: fluentd-gcp-config
+      - name: config-extra
+        configMap:
+          name: fluentd-gcp-config-extra
+          optional: true
