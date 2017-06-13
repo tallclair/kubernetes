@@ -28,7 +28,6 @@ import (
 
 	"reflect"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -107,17 +106,8 @@ func NewEventFromRequest(req *http.Request, level auditinternal.Level, attribs a
 
 // LogRequestObject fills in the request object into an audit event. The passed runtime.Object
 // will be converted to the given gv.
-func LogRequestObject(ae *audit.Event, obj runtime.Object, gv schema.GroupVersion, s runtime.NegotiatedSerializer) {
-	if ae == nil || ae.Level.Less(audit.LevelRequest) {
-		return
-	}
-
-	// TODO(audit): hook into the serializer to avoid double conversion
-	var err error
-	ae.RequestObject, err = encodeObject(obj, gv, s)
-	if err != nil {
-		// TODO(audit): add error slice to audit event struct
-		glog.Warningf("Auditing failed of %v request: %v", reflect.TypeOf(obj).Name(), err)
+func LogRequestObject(ae *audit.Event, obj runtime.Object, gvr schema.GroupVersionResource, subresource string, s runtime.NegotiatedSerializer) {
+	if ae == nil || ae.Level.Less(audit.LevelMetadata) {
 		return
 	}
 
@@ -125,7 +115,7 @@ func LogRequestObject(ae *audit.Event, obj runtime.Object, gv schema.GroupVersio
 	if ae.ObjectRef == nil {
 		ae.ObjectRef = &audit.ObjectReference{}
 	}
-	if acc, ok := obj.(v1.ObjectMetaAccessor); ok {
+	if acc, ok := obj.(metav1.ObjectMetaAccessor); ok {
 		meta := acc.GetObjectMeta()
 		if len(ae.ObjectRef.Namespace) == 0 {
 			ae.ObjectRef.Namespace = meta.GetNamespace()
@@ -139,6 +129,29 @@ func LogRequestObject(ae *audit.Event, obj runtime.Object, gv schema.GroupVersio
 		if len(ae.ObjectRef.ResourceVersion) == 0 {
 			ae.ObjectRef.ResourceVersion = meta.GetResourceVersion()
 		}
+	}
+	// TODO: ObjectRef should include the API group.
+	if gvr.Version != "" {
+		ae.ObjectRef.APIVersion = gvr.Version
+	}
+	if gvr.Resource != "" {
+		ae.ObjectRef.Resource = gvr.Resource
+	}
+	if subresource != "" {
+		ae.ObjectRef.Subresource = subresource
+	}
+
+	if ae.Level.Less(audit.LevelRequest) {
+		return
+	}
+
+	// TODO(audit): hook into the serializer to avoid double conversion
+	var err error
+	ae.RequestObject, err = encodeObject(obj, gvr.GroupVersion(), s)
+	if err != nil {
+		// TODO(audit): add error slice to audit event struct
+		glog.Warningf("Auditing failed of %v request: %v", reflect.TypeOf(obj).Name(), err)
+		return
 	}
 }
 
