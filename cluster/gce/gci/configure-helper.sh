@@ -1288,6 +1288,7 @@ function start-kube-apiserver {
       params+=" --audit-log-path=/var/log/kube-apiserver-audit.log"
       params+=" --audit-log-maxage=0"
       params+=" --audit-log-maxbackup=0"
+      params+=" --audit-log-format=json"
       # Lumberjack doesn't offer any way to disable size-based rotation. It also
       # has an in-memory counter that doesn't notice if you truncate the file.
       # 2000000000 (in MiB) is a large number that fits in 31 bits. If the log
