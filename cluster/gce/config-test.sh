@@ -292,9 +292,6 @@ if [[ -n "${GCE_GLBC_IMAGE:-}" ]]; then
   PROVIDER_VARS="${PROVIDER_VARS:-} GCE_GLBC_IMAGE"
 fi
 
-# Optional: enable the PodSecurityPolicy admission contrller.
-ENABLE_POD_SECURITY_POLICY="${ENABLE_POD_SECURITY_POLICY:-false}"
-
 if [[ -z "${KUBE_ADMISSION_CONTROL:-}" ]]; then
   ADMISSION_CONTROL="Initializers,NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,PodPreset,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,Priority"
   if [[ "${ENABLE_POD_SECURITY_POLICY:-}" == "true" ]]; then

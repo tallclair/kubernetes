@@ -258,9 +258,6 @@ fi
 # Admission Controllers to invoke prior to persisting objects in cluster
 ADMISSION_CONTROL=Initializers,NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,Priority
 
-# Optional: enable the PodSecurityPolicy admission controller.
-ENABLE_POD_SECURITY_POLICY="${ENABLE_POD_SECURITY_POLICY:-false}"
-
 if [[ "${ENABLE_POD_SECURITY_POLICY:-}" == "true" ]]; then
   ADMISSION_CONTROL="${ADMISSION_CONTROL},PodSecurityPolicy"
 fi
