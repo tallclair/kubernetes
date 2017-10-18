@@ -1,4 +1,4 @@
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 # The persistent volume binder creates recycler pods in the default namespace,
 # but the addon manager only creates namespaced objects in the kube-system
 # namespace, so this is a ClusterRoleBinding.
