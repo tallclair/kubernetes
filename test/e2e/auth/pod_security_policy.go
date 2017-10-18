@@ -17,10 +17,15 @@ limitations under the License.
 package auth
 
 import (
+	"fmt"
+
 	"k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/apiserver/pkg/authentication/serviceaccount"
 	clientset "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -31,6 +36,86 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+)
+
+const (
+	permissivePSPTemplate = `
+apiVersion: extensions/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: permissive
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
+spec:
+  privileged: true
+  allowPrivilegeEscalation: true
+  allowedCapabilities:
+  - '*'
+  volumes:
+  - '*'
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  hostIPC: true
+  hostPID: true
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: false
+`
+	restrictivePSPTemplate = `
+apiVersion: extensions/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: restrictive
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+  labels:
+    kubernetes.io/cluster-service: 'true'
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - AUDIT_WRITE
+    - CHOWN
+    - DAC_OVERRIDE
+    - FOWNER
+    - FSETID
+    - KILL
+    - MKNOD
+    - NET_RAW
+    - SETGID
+    - SETUID
+    - SYS_CHROOT
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'persistentVolumeClaim'
+    - 'projected'
+    - 'secret'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: false
+`
 )
 
 var _ = SIGDescribe("PodSecurityPolicy", func() {
@@ -69,9 +154,8 @@ var _ = SIGDescribe("PodSecurityPolicy", func() {
 	})
 
 	It("should enforce the restricted PodSecurityPolicy", func() {
-		By("Binding the restricted policy for the test service account")
-		framework.BindClusterRole(f.ClientSet.RbacV1beta1(), "podsecuritypolicy:restricted:v1", ns,
-			rbacv1beta1.Subject{Kind: rbacv1beta1.ServiceAccountKind, Namespace: ns, Name: "default"})
+		By("Creating & Binding a restricted policy for the test service account")
+		createAndBindPSP(f, restrictivePSPTemplate)
 
 		By("Running a restricted pod")
 		pod, err := c.Core().Pods(ns).Create(restrictedPod(f, "allowed"))
@@ -85,9 +169,8 @@ var _ = SIGDescribe("PodSecurityPolicy", func() {
 	})
 
 	It("should allow pods under the privileged PodSecurityPolicy", func() {
-		By("Binding the privileged policy for the test service account")
-		framework.BindClusterRole(f.ClientSet.RbacV1beta1(), "podsecuritypolicy:privileged", ns,
-			rbacv1beta1.Subject{Kind: rbacv1beta1.ServiceAccountKind, Namespace: ns, Name: "default"})
+		By("Creating & Binding a privileged policy for the test service account")
+		createAndBindPSP(f, permissivePSPTemplate)
 
 		testPrivilegedPods(f, func(pod *v1.Pod) {
 			p, err := c.Core().Pods(ns).Create(pod)
@@ -106,6 +189,7 @@ func testPrivilegedPods(f *framework.Framework, tester func(pod *v1.Pod)) {
 	By("Running a privileged pod", func() {
 		privileged := restrictedPod(f, "privileged")
 		privileged.Spec.Containers[0].SecurityContext.Privileged = boolPtr(true)
+		privileged.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = nil
 		tester(privileged)
 	})
 
@@ -153,7 +237,7 @@ func testPrivilegedPods(f *framework.Framework, tester func(pod *v1.Pod)) {
 
 	By("Running an unconfined Seccomp pod", func() {
 		unconfined := restrictedPod(f, "seccomp")
-		unconfined.Annotations[api.SeccompPodAnnotationKey] = "unconfined"
+		unconfined.Annotations[v1.SeccompPodAnnotationKey] = "unconfined"
 		tester(unconfined)
 	})
 
@@ -162,8 +246,60 @@ func testPrivilegedPods(f *framework.Framework, tester func(pod *v1.Pod)) {
 		sysadmin.Spec.Containers[0].SecurityContext.Capabilities = &v1.Capabilities{
 			Add: []v1.Capability{"CAP_SYS_ADMIN"},
 		}
+		sysadmin.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = nil
 		tester(sysadmin)
 	})
+}
+
+func createAndBindPSP(f *framework.Framework, pspTemplate string) (cleanup func()) {
+	// Create the PodSecurityPolicy object.
+	json, err := utilyaml.ToJSON([]byte(pspTemplate))
+	framework.ExpectNoError(err)
+	psp := &extensionsv1beta1.PodSecurityPolicy{}
+	framework.ExpectNoError(runtime.DecodeInto(api.Codecs.UniversalDecoder(), json, psp))
+	// Add the namespace to the name to ensure uniqueness and tie it to the namespace.
+	ns := f.Namespace.Name
+	name := fmt.Sprintf("%s-%s", ns, psp.Name)
+	psp.Name = name
+	_, err = f.ClientSet.ExtensionsV1beta1().PodSecurityPolicies().Create(psp)
+	framework.ExpectNoError(err, "Failed to create PSP")
+
+	// Create the Role to bind it to the namespace.
+	_, err = f.ClientSet.RbacV1beta1().Roles(ns).Create(&rbacv1beta1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Rules: []rbacv1beta1.PolicyRule{{
+			APIGroups:     []string{"extensions"},
+			Resources:     []string{"podsecuritypolicies"},
+			ResourceNames: []string{name},
+			Verbs:         []string{"use"},
+		}},
+	})
+	framework.ExpectNoError(err, "Failed to create PSP role")
+
+	// Bind the role to the namespace.
+	_, err = f.ClientSet.RbacV1beta1().RoleBindings(ns).Create(&rbacv1beta1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		RoleRef: rbacv1beta1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Role",
+			Name:     name,
+		},
+		Subjects: []rbacv1beta1.Subject{{
+			Kind:      rbacv1beta1.ServiceAccountKind,
+			Namespace: ns,
+			Name:      "default",
+		}},
+	})
+	framework.ExpectNoError(err, "Failed to create PSP rolebinding")
+
+	return func() {
+		// Cleanup non-namespaced PSP object.
+		f.ClientSet.ExtensionsV1beta1().PodSecurityPolicies().Delete(name, &metav1.DeleteOptions{})
+	}
 }
 
 func restrictedPod(f *framework.Framework, name string) *v1.Pod {
@@ -171,7 +307,7 @@ func restrictedPod(f *framework.Framework, name string) *v1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Annotations: map[string]string{
-				api.SeccompPodAnnotationKey:                     "docker/default",
+				v1.SeccompPodAnnotationKey:                      "docker/default",
 				apparmor.ContainerAnnotationKeyPrefix + "pause": apparmor.ProfileRuntimeDefault,
 			},
 		},

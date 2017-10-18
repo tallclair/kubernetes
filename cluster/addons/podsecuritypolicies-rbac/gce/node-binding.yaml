@@ -4,7 +4,9 @@ metadata:
   name: system:podsecuritypolicy:nodes
   namespace: kube-system
   annotations:
-    kubernetes.io/description: 'Allow nodes to create privileged mirror pods.'
+    kubernetes.io/description: 'Allow nodes to create privileged pods. Should
+      be used in combination with the NodeRestriction admission plugin to limit
+      nodes to mirror pods bound to themselves.'
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
     kubernetes.io/cluster-service: 'true'
