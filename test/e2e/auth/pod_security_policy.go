@@ -29,7 +29,7 @@ import (
 	"k8s.io/apiserver/pkg/authentication/serviceaccount"
 	clientset "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
-	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/api/legacyscheme"
 	"k8s.io/kubernetes/pkg/security/apparmor"
 	"k8s.io/kubernetes/test/e2e/common"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -256,7 +256,7 @@ func createAndBindPSP(f *framework.Framework, pspTemplate string) (cleanup func(
 	json, err := utilyaml.ToJSON([]byte(pspTemplate))
 	framework.ExpectNoError(err)
 	psp := &extensionsv1beta1.PodSecurityPolicy{}
-	framework.ExpectNoError(runtime.DecodeInto(api.Codecs.UniversalDecoder(), json, psp))
+	framework.ExpectNoError(runtime.DecodeInto(legacyscheme.Codecs.UniversalDecoder(), json, psp))
 	// Add the namespace to the name to ensure uniqueness and tie it to the namespace.
 	ns := f.Namespace.Name
 	name := fmt.Sprintf("%s-%s", ns, psp.Name)
