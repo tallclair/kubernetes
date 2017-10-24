@@ -24,7 +24,6 @@ spec:
     - pathPrefix: /var/log
     - pathPrefix: /var/lib/docker/containers
     - pathPrefix: /usr/lib64
-    - pathPrefix: /etc/ssl/certs
   hostNetwork: true
   hostIPC: false
   hostPID: false

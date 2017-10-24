@@ -12,6 +12,5 @@ roleRef:
   name: system:podsecuritypolicy:fluentd-gcp
 subjects:
 - kind: ServiceAccount
-  # TODO: fluentd-gcp should run with a custom service account.
-  name: default
+  name: fluentd-gcp
   namespace: kube-system
