@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: system.fluentd-gcp
+  name: gce.fluentd-gcp
   annotations:
     kubernetes.io/description: 'Policy used by the fluentd-gcp addon.'
     # TODO: fluentd-gcp should run with the default seccomp profile

@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: system:podsecuritypolicy:fluentd-gcp
+  name: gce:podsecuritypolicy:fluentd-gcp
   namespace: kube-system
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
@@ -9,7 +9,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: system:podsecuritypolicy:fluentd-gcp
+  name: gce:podsecuritypolicy:fluentd-gcp
 subjects:
 - kind: ServiceAccount
   name: fluentd-gcp

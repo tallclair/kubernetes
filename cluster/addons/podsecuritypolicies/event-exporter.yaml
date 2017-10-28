@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: system.event-exporter
+  name: gce.event-exporter
   annotations:
     kubernetes.io/description: 'Policy used by the event-exporter addon.'
     # TODO: event-exporter should run with the default seccomp profile
