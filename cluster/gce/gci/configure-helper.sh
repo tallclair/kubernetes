@@ -1743,8 +1743,6 @@ function start-kube-addons {
 
   if [[ "${ENABLE_POD_SECURITY_POLICY:-}" == "true" ]]; then
       setup-addon-manifests "addons" "podsecuritypolicies"
-      # Setup the bindings for gce.
-      setup-addon-manifests "addons" "podsecuritypolicies-rbac/gce"
   fi
 
   # Set up manifests of other addons.
