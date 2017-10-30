@@ -93,22 +93,31 @@ func BindClusterRole(c v1beta1rbac.ClusterRoleBindingsGetter, clusterRole, ns st
 
 // BindClusterRoleInNamespace binds the cluster role at the namespace scope
 func BindClusterRoleInNamespace(c v1beta1rbac.RoleBindingsGetter, clusterRole, ns string, subjects ...rbacv1beta1.Subject) {
+	bindInNamespace(c, "ClusterRole", clusterRole, ns, subjects...)
+}
+
+// BindRoleInNamespace binds the role at the namespace scope
+func BindRoleInNamespace(c v1beta1rbac.RoleBindingsGetter, role, ns string, subjects ...rbacv1beta1.Subject) {
+	bindInNamespace(c, "Role", role, ns, subjects...)
+}
+
+func bindInNamespace(c v1beta1rbac.RoleBindingsGetter, roleType, role, ns string, subjects ...rbacv1beta1.Subject) {
 	// Since the namespace names are unique, we can leave this lying around so we don't have to race any caches
 	_, err := c.RoleBindings(ns).Create(&rbacv1beta1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ns + "--" + clusterRole,
+			Name: ns + "--" + role,
 		},
 		RoleRef: rbacv1beta1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     clusterRole,
+			Kind:     roleType,
+			Name:     role,
 		},
 		Subjects: subjects,
 	})
 
 	// if we failed, don't fail the entire test because it may still work. RBAC may simply be disabled.
 	if err != nil {
-		fmt.Printf("Error binding clusterrole/%s into %q for %v\n", clusterRole, ns, subjects)
+		fmt.Printf("Error binding %s/%s into %q for %v\n", roleType, role, ns, subjects)
 	}
 }
 
