@@ -130,6 +130,9 @@ var _ = SIGDescribe("PodSecurityPolicy", func() {
 		if !framework.IsPodSecurityPolicyEnabled(f) {
 			framework.Skipf("PodSecurityPolicy not enabled")
 		}
+		if !framework.IsRBACEnabled(f) {
+			framework.Skipf("RBAC not enabled")
+		}
 		ns = f.Namespace.Name
 
 		By("Creating a kubernetes client that impersonates the default service account")

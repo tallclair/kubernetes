@@ -18,6 +18,7 @@ package framework
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	authorizationv1beta1 "k8s.io/api/authorization/v1beta1"
@@ -109,4 +110,26 @@ func BindClusterRoleInNamespace(c v1beta1rbac.RoleBindingsGetter, clusterRole, n
 	if err != nil {
 		fmt.Printf("Error binding clusterrole/%s into %q for %v\n", clusterRole, ns, subjects)
 	}
+}
+
+var (
+	isRBACEnabledOnce sync.Once
+	isRBACEnabled     bool
+)
+
+func IsRBACEnabled(f *Framework) bool {
+	isRBACEnabledOnce.Do(func() {
+		crs, err := f.ClientSet.RbacV1().ClusterRoles().List(metav1.ListOptions{})
+		if err != nil {
+			Logf("Error listing ClusterRoles; assuming RBAC is disabled: %v", err)
+			isRBACEnabled = false
+		} else if crs == nil || len(crs.Items) == 0 {
+			Logf("No ClusteRoles found; assuming RBAC is disabled.")
+			isRBACEnabled = false
+		} else {
+			Logf("Found ClusterRoles; assuming RBAC is enabled.")
+			isRBACEnabled = true
+		}
+	})
+	return isRBACEnabled
 }
