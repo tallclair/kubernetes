@@ -9,7 +9,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: podsecuritypolicy:privileged
+  name: gce:podsecuritypolicy:privileged
 subjects:
 - kind: ServiceAccount
   name: metadata-proxy

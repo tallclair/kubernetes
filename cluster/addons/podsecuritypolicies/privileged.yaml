@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: privileged
+  name: gce.privileged
   annotations:
     kubernetes.io/description: 'privileged allows full unrestricted access to
       pod features, as if the PodSecurityPolicy controller was not enabled.'

@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: system.persistent-volume-binder
+  name: gce.persistent-volume-binder
   annotations:
     kubernetes.io/description: 'Policy used by the persistent-volume-binder
       (a.k.a. persistentvolume-controller) to run recycler pods.'

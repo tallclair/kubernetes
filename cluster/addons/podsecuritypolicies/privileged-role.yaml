@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: podsecuritypolicy:privileged
+  name: gce:podsecuritypolicy:privileged
   labels:
     kubernetes.io/cluster-service: "true"
     addonmanager.kubernetes.io/mode: Reconcile
@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - extensions
   resourceNames:
-  - privileged
+  - gce.privileged
   resources:
   - podsecuritypolicies
   verbs:

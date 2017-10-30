@@ -4,7 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 # namespace, so this is a ClusterRole.
 kind: ClusterRole
 metadata:
-  name: system:podsecuritypolicy:persistent-volume-binder
+  name: gce:podsecuritypolicy:persistent-volume-binder
   namespace: default
   labels:
     kubernetes.io/cluster-service: "true"
@@ -13,7 +13,7 @@ rules:
 - apiGroups:
   - extensions
   resourceNames:
-  - system.persistent-volume-binder
+  - gce.persistent-volume-binder
   resources:
   - podsecuritypolicies
   verbs:

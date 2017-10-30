@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: system:podsecuritypolicy:nodes
+  name: gce:podsecuritypolicy:nodes
   namespace: kube-system
   annotations:
     kubernetes.io/description: 'Allow nodes to create privileged pods. Should
@@ -13,7 +13,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: podsecuritypolicy:privileged
+  name: gce:podsecuritypolicy:privileged
 subjects:
   - kind: Group
     apiGroup: rbac.authorization.k8s.io

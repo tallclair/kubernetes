@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	PodSecurityPolicyPrivileged     = "privileged"
-	PodSecurityPolicyPrivilegedRole = "podsecuritypolicy:privileged"
+	PodSecurityPolicyPrivileged     = "gce.privileged"
+	PodSecurityPolicyPrivilegedRole = "gce:podsecuritypolicy:privileged"
 )
 
 var (
