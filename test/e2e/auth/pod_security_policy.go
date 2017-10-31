@@ -40,35 +40,6 @@ import (
 )
 
 var (
-	permissivePSPTemplate = &extensionsv1beta1.PodSecurityPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "permissive",
-			Annotations: map[string]string{seccomp.AllowedProfilesAnnotationKey: seccomp.AllowAny},
-		},
-		Spec: extensionsv1beta1.PodSecurityPolicySpec{
-			Privileged:               true,
-			AllowPrivilegeEscalation: boolPtr(true),
-			AllowedCapabilities:      []corev1.Capability{"*"},
-			Volumes:                  []extensionsv1beta1.FSType{extensionsv1beta1.All},
-			HostNetwork:              true,
-			HostPorts:                []extensionsv1beta1.HostPortRange{{Min: 0, Max: 65535}},
-			HostIPC:                  true,
-			HostPID:                  true,
-			RunAsUser: extensionsv1beta1.RunAsUserStrategyOptions{
-				Rule: extensionsv1beta1.RunAsUserStrategyRunAsAny,
-			},
-			SELinux: extensionsv1beta1.SELinuxStrategyOptions{
-				Rule: extensionsv1beta1.SELinuxStrategyRunAsAny,
-			},
-			SupplementalGroups: extensionsv1beta1.SupplementalGroupsStrategyOptions{
-				Rule: extensionsv1beta1.SupplementalGroupsStrategyRunAsAny,
-			},
-			FSGroup: extensionsv1beta1.FSGroupStrategyOptions{
-				Rule: extensionsv1beta1.FSGroupStrategyRunAsAny,
-			},
-			ReadOnlyRootFilesystem: false,
-		},
-	}
 	restrictivePSPTemplate = &extensionsv1beta1.PodSecurityPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "restrictive",
@@ -184,7 +155,7 @@ var _ = SIGDescribe("PodSecurityPolicy", func() {
 		By("Creating & Binding a privileged policy for the test service account")
 		_, cleanup := createAndBindPSP(f, restrictivePSPTemplate)
 		defer cleanup()
-		expectedPSP, cleanup := createAndBindPSP(f, permissivePSPTemplate)
+		expectedPSP, cleanup := createAndBindPSP(f, framework.PrivilegedPSP("permissive"))
 		defer cleanup()
 
 		testPrivilegedPods(f, func(pod *v1.Pod) {
