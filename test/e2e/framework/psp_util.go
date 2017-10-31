@@ -38,19 +38,15 @@ var (
 
 func IsPodSecurityPolicyEnabled(f *Framework) bool {
 	isPSPEnabledOnce.Do(func() {
-		psp, err := f.ClientSet.ExtensionsV1beta1().PodSecurityPolicies().
-			Get(PodSecurityPolicyPrivileged, metav1.GetOptions{})
+		psps, err := f.ClientSet.ExtensionsV1beta1().PodSecurityPolicies().List(metav1.ListOptions{})
 		if err != nil {
-			Logf("Error getting PodSecurityPolicy %s; assuming PodSecurityPolicy is disabled: %v",
-				PodSecurityPolicyPrivileged, err)
+			Logf("Error listing PodSecurityPolicies; assuming PodSecurityPolicy is disabled: %v", err)
 			isPSPEnabled = false
-		} else if psp == nil {
-			Logf("PodSecurityPolicy %s was not found; assuming PodSecurityPolicy is disabled.",
-				PodSecurityPolicyPrivileged)
+		} else if psps == nil || len(psps.Items) == 0 {
+			Logf("No PodSecurityPolicies found; assuming PodSecurityPolicy is disabled.")
 			isPSPEnabled = false
 		} else {
-			Logf("Found PodSecurityPolicy %s; assuming PodSecurityPolicy is enabled.",
-				PodSecurityPolicyPrivileged)
+			Logf("Found PodSecurityPolicies; assuming PodSecurityPolicy is enabled.")
 			isPSPEnabled = true
 		}
 	})
