@@ -25,6 +25,7 @@ import (
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/authentication/serviceaccount"
 	clientset "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -302,6 +303,9 @@ func createAndBindPSP(f *framework.Framework, pspTemplate *extensionsv1beta1.Pod
 		Namespace: ns,
 		Name:      "default",
 	})
+	framework.ExpectNoError(framework.WaitForNamedAuthorizationUpdate(f.ClientSet.AuthorizationV1beta1(),
+		serviceaccount.MakeUsername(ns, "default"), ns, "use", name,
+		schema.GroupResource{Group: "extensions", Resource: "podsecuritypolicies"}, true))
 
 	return psp, func() {
 		// Cleanup non-namespaced PSP object.

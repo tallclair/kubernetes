@@ -39,6 +39,12 @@ const (
 // WaitForAuthorizationUpdate checks if the given user can perform the named verb and action.
 // If policyCachePollTimeout is reached without the expected condition matching, an error is returned
 func WaitForAuthorizationUpdate(c v1beta1authorization.SubjectAccessReviewsGetter, user, namespace, verb string, resource schema.GroupResource, allowed bool) error {
+	return WaitForNamedAuthorizationUpdate(c, user, namespace, verb, "", resource, allowed)
+}
+
+// WaitForAuthorizationUpdate checks if the given user can perform the named verb and action on the named resource.
+// If policyCachePollTimeout is reached without the expected condition matching, an error is returned
+func WaitForNamedAuthorizationUpdate(c v1beta1authorization.SubjectAccessReviewsGetter, user, namespace, verb, resourceName string, resource schema.GroupResource, allowed bool) error {
 	review := &authorizationv1beta1.SubjectAccessReview{
 		Spec: authorizationv1beta1.SubjectAccessReviewSpec{
 			ResourceAttributes: &authorizationv1beta1.ResourceAttributes{
@@ -46,6 +52,7 @@ func WaitForAuthorizationUpdate(c v1beta1authorization.SubjectAccessReviewsGette
 				Verb:      verb,
 				Resource:  resource.Resource,
 				Namespace: namespace,
+				Name:      resourceName,
 			},
 			User: user,
 		},
