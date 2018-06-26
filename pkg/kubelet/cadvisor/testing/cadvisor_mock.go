@@ -17,12 +17,58 @@ limitations under the License.
 package testing
 
 import (
+	"time"
+
 	"github.com/google/cadvisor/events"
 	cadvisorapi "github.com/google/cadvisor/info/v1"
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/kubernetes/pkg/kubelet/cadvisor"
 )
+
+// Arguments used in the default cAdvisor mock.
+const (
+	ContainerID = "ab2cdf"
+)
+
+// Returns a mock cadvisor with the default expectations set.
+func DefaultMock() *Mock {
+	m := &Mock{}
+
+	m.On("Start").Return(nil)
+	m.On("ImagesFsInfo").Return(cadvisorapiv2.FsInfo{}, nil)
+	m.On("RootFsInfo").Return(cadvisorapiv2.FsInfo{}, nil)
+
+	machineInfo := &cadvisorapi.MachineInfo{
+		MachineID:      "123",
+		SystemUUID:     "abc",
+		BootID:         "1b3",
+		NumCores:       2,
+		MemoryCapacity: 10E9, // 10G
+	}
+
+	m.On("MachineInfo").Return(machineInfo, nil)
+	versionInfo := &cadvisorapi.VersionInfo{
+		KernelVersion:      "3.16.0-0.bpo.4-amd64",
+		ContainerOsVersion: "Debian GNU/Linux 7 (wheezy)",
+	}
+	m.On("VersionInfo").Return(versionInfo, nil)
+	maxAge := 0 * time.Second
+	options := cadvisorapiv2.RequestOptions{IdType: cadvisorapiv2.TypeName, Count: 2, Recursive: false, MaxAge: &maxAge}
+	m.On("ContainerInfoV2", "/", options).Return(map[string]cadvisorapiv2.ContainerInfo{}, nil)
+	m.On("ImagesFsInfo").Return(cadvisorapiv2.FsInfo{
+		Usage:     400,
+		Capacity:  3000,
+		Available: 600,
+	}, nil)
+	m.On("RootFsInfo").Return(cadvisorapiv2.FsInfo{
+		Usage:     400,
+		Capacity:  3000,
+		Available: 600,
+	}, nil)
+
+	return m
+}
 
 type Mock struct {
 	mock.Mock

@@ -17,6 +17,8 @@ limitations under the License.
 package testing
 
 import (
+	"fmt"
+
 	"github.com/google/cadvisor/events"
 	cadvisorapi "github.com/google/cadvisor/info/v1"
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
@@ -27,6 +29,14 @@ import (
 type Fake struct {
 	NodeName string
 }
+
+const (
+	NumCores                  = 1
+	MemoryCapacity     uint64 = 4026531840
+	KernelVersion             = "3.16.0-0.bpo.4-amd64"
+	ContainerOsVersion        = "Debian GNU/Linux 7 (wheezy)"
+	DockerVersion             = "1.5.0"
+)
 
 var _ cadvisor.Interface = new(Fake)
 
@@ -47,21 +57,29 @@ func (c *Fake) SubcontainerInfo(name string, req *cadvisorapi.ContainerInfoReque
 }
 
 func (c *Fake) DockerContainer(name string, req *cadvisorapi.ContainerInfoRequest) (cadvisorapi.ContainerInfo, error) {
-	return cadvisorapi.ContainerInfo{}, nil
+	return cadvisorapi.ContainerInfo{
+		ContainerReference: cadvisorapi.ContainerReference{
+			Name: fmt.Sprintf("/docker/%v", name),
+		},
+	}, nil
 }
 
 func (c *Fake) MachineInfo() (*cadvisorapi.MachineInfo, error) {
 	// Simulate a machine with 1 core and 3.75GB of memory.
 	// We set it to non-zero values to make non-zero-capacity machines in Kubemark.
 	return &cadvisorapi.MachineInfo{
-		NumCores:       1,
+		NumCores:       NumCores,
 		InstanceID:     cadvisorapi.InstanceID(c.NodeName),
-		MemoryCapacity: 4026531840,
+		MemoryCapacity: MemoryCapacity,
 	}, nil
 }
 
 func (c *Fake) VersionInfo() (*cadvisorapi.VersionInfo, error) {
-	return new(cadvisorapi.VersionInfo), nil
+	return &cadvisorapi.VersionInfo{
+		KernelVersion:      KernelVersion,
+		ContainerOsVersion: ContainerOsVersion,
+		DockerVersion:      DockerVersion,
+	}, nil
 }
 
 func (c *Fake) ImagesFsInfo() (cadvisorapiv2.FsInfo, error) {
