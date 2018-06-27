@@ -47,6 +47,7 @@ import (
 	core "k8s.io/client-go/testing"
 	fakecloud "k8s.io/kubernetes/pkg/cloudprovider/providers/fake"
 	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
+	cadvisortest "k8s.io/kubernetes/pkg/kubelet/cadvisor/testing"
 	"k8s.io/kubernetes/pkg/kubelet/cm"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/util/sliceutils"
@@ -57,6 +58,23 @@ import (
 const (
 	maxImageTagsForTest = 20
 )
+
+// Default capacity, reserved & allocatable values used in tests.
+var (
+	CPUCapacity       = *resource.NewMilliQuantity(cadvisortest.NumCores*1000, resource.DecimalSI)
+	CPUReserved       = *resource.NewMilliQuantity(200, resource.DecimalSI)
+	CPUAllocatable    resource.Quantity
+	MemoryCapacity    = *resource.NewQuantity(cadvisortest.MemoryCapacity, resource.BinarySI)
+	MemoryReserved    = *resource.NewQuantity(100E6, resource.BinarySI)
+	MemoryAllocatable resource.Quantity
+)
+
+func init() {
+	CPUAllocatable = CPUCapacity.DeepCopy()
+	CPUAllocatable.Sub(CPUReserved)
+	MemoryAllocatable = MemoryCapacity.DeepCopy()
+	MemoryAllocatable.Sub(MemoryReserved)
+}
 
 // generateTestingImageLists generate randomly generated image list and corresponding expectedImageList.
 func generateTestingImageLists(count int, maxImages int) ([]kubecontainer.Image, []v1.ContainerImage) {
@@ -337,13 +355,13 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 			kubelet.containerManager = &localCM{
 				ContainerManager: cm.NewStubContainerManager(),
 				allocatableReservation: v1.ResourceList{
-					v1.ResourceCPU:              *resource.NewMilliQuantity(200, resource.DecimalSI),
-					v1.ResourceMemory:           *resource.NewQuantity(100E6, resource.BinarySI),
+					v1.ResourceCPU:              CPUReserved,
+					v1.ResourceMemory:           MemoryReserved,
 					v1.ResourceEphemeralStorage: *resource.NewQuantity(2000, resource.BinarySI),
 				},
 				capacity: v1.ResourceList{
-					v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-					v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+					v1.ResourceCPU:              CPUCapacity,
+					v1.ResourceMemory:           MemoryCapacity,
 					v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 				},
 			}
@@ -410,14 +428,14 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 						KubeProxyVersion:        version.Get().String(),
 					},
 					Capacity: v1.ResourceList{
-						v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-						v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+						v1.ResourceCPU:              CPUCapacity,
+						v1.ResourceMemory:           MemoryCapacity,
 						v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 						v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 					},
 					Allocatable: v1.ResourceList{
-						v1.ResourceCPU:              *resource.NewMilliQuantity(1800, resource.DecimalSI),
-						v1.ResourceMemory:           *resource.NewQuantity(9900E6, resource.BinarySI),
+						v1.ResourceCPU:              CPUAllocatable,
+						v1.ResourceMemory:           MemoryAllocatable,
 						v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 						v1.ResourceEphemeralStorage: *resource.NewQuantity(3000, resource.BinarySI),
 					},
@@ -463,12 +481,12 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 	kubelet.containerManager = &localCM{
 		ContainerManager: cm.NewStubContainerManager(),
 		allocatableReservation: v1.ResourceList{
-			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
-			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
+			v1.ResourceCPU:    CPUReserved,
+			v1.ResourceMemory: MemoryReserved,
 		},
 		capacity: v1.ResourceList{
-			v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-			v1.ResourceMemory:           *resource.NewQuantity(20E9, resource.BinarySI),
+			v1.ResourceCPU:              CPUCapacity,
+			v1.ResourceMemory:           MemoryCapacity,
 			v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 		},
 	}
@@ -521,13 +539,13 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 				},
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:    *resource.NewMilliQuantity(3000, resource.DecimalSI),
-				v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+				v1.ResourceCPU:    CPUCapacity,
+				v1.ResourceMemory: MemoryCapacity,
 				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Allocatable: v1.ResourceList{
 				v1.ResourceCPU:    *resource.NewMilliQuantity(2800, resource.DecimalSI),
-				v1.ResourceMemory: *resource.NewQuantity(19900E6, resource.BinarySI),
+				v1.ResourceMemory: MemoryAllocatable,
 				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 		},
@@ -593,14 +611,14 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 				KubeProxyVersion:        version.Get().String(),
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:           *resource.NewQuantity(20E9, resource.BinarySI),
+				v1.ResourceCPU:              CPUCapacity,
+				v1.ResourceMemory:           MemoryCapacity,
 				v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 				v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:              *resource.NewMilliQuantity(1800, resource.DecimalSI),
-				v1.ResourceMemory:           *resource.NewQuantity(19900E6, resource.BinarySI),
+				v1.ResourceCPU:              CPUAllocatable,
+				v1.ResourceMemory:           MemoryAllocatable,
 				v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 				v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 			},
@@ -689,12 +707,12 @@ func TestUpdateExistingNodeStatusTimeout(t *testing.T) {
 	kubelet.containerManager = &localCM{
 		ContainerManager: cm.NewStubContainerManager(),
 		allocatableReservation: v1.ResourceList{
-			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
-			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
+			v1.ResourceCPU:    CPUReserved,
+			v1.ResourceMemory: MemoryReserved,
 		},
 		capacity: v1.ResourceList{
-			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
-			v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+			v1.ResourceCPU:    CPUCapacity,
+			v1.ResourceMemory: MemoryCapacity,
 		},
 	}
 
@@ -720,13 +738,13 @@ func TestUpdateNodeStatusWithRuntimeStateError(t *testing.T) {
 	kubelet.containerManager = &localCM{
 		ContainerManager: cm.NewStubContainerManager(),
 		allocatableReservation: v1.ResourceList{
-			v1.ResourceCPU:              *resource.NewMilliQuantity(200, resource.DecimalSI),
-			v1.ResourceMemory:           *resource.NewQuantity(100E6, resource.BinarySI),
+			v1.ResourceCPU:              CPUReserved,
+			v1.ResourceMemory:           MemoryReserved,
 			v1.ResourceEphemeralStorage: *resource.NewQuantity(10E9, resource.BinarySI),
 		},
 		capacity: v1.ResourceList{
-			v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-			v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+			v1.ResourceCPU:              CPUCapacity,
+			v1.ResourceMemory:           MemoryCapacity,
 			v1.ResourceEphemeralStorage: *resource.NewQuantity(20E9, resource.BinarySI),
 		},
 	}
@@ -788,14 +806,14 @@ func TestUpdateNodeStatusWithRuntimeStateError(t *testing.T) {
 				KubeProxyVersion:        version.Get().String(),
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourceCPU:              CPUCapacity,
+				v1.ResourceMemory:           MemoryCapacity,
 				v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 				v1.ResourceEphemeralStorage: *resource.NewQuantity(20E9, resource.BinarySI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:              *resource.NewMilliQuantity(1800, resource.DecimalSI),
-				v1.ResourceMemory:           *resource.NewQuantity(9900E6, resource.BinarySI),
+				v1.ResourceCPU:              CPUAllocatable,
+				v1.ResourceMemory:           MemoryAllocatable,
 				v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 				v1.ResourceEphemeralStorage: *resource.NewQuantity(10E9, resource.BinarySI),
 			},
@@ -1147,11 +1165,12 @@ func TestUpdateNewNodeStatusTooLargeReservation(t *testing.T) {
 		ContainerManager: cm.NewStubContainerManager(),
 		allocatableReservation: v1.ResourceList{
 			v1.ResourceCPU:              *resource.NewMilliQuantity(40000, resource.DecimalSI),
+			v1.ResourceMemory:           MemoryReserved,
 			v1.ResourceEphemeralStorage: *resource.NewQuantity(1000, resource.BinarySI),
 		},
 		capacity: v1.ResourceList{
-			v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-			v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+			v1.ResourceCPU:              CPUCapacity,
+			v1.ResourceMemory:           MemoryCapacity,
 			v1.ResourceEphemeralStorage: *resource.NewQuantity(3000, resource.BinarySI),
 		},
 	}
@@ -1164,14 +1183,14 @@ func TestUpdateNewNodeStatusTooLargeReservation(t *testing.T) {
 		Spec:       v1.NodeSpec{},
 		Status: v1.NodeStatus{
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourceCPU:              CPUCapacity,
+				v1.ResourceMemory:           MemoryCapacity,
 				v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 				v1.ResourceEphemeralStorage: *resource.NewQuantity(3000, resource.BinarySI),
 			},
 			Allocatable: v1.ResourceList{
 				v1.ResourceCPU:              *resource.NewMilliQuantity(0, resource.DecimalSI),
-				v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourceMemory:           MemoryAllocatable,
 				v1.ResourcePods:             *resource.NewQuantity(0, resource.DecimalSI),
 				v1.ResourceEphemeralStorage: *resource.NewQuantity(2000, resource.BinarySI),
 			},
@@ -1400,8 +1419,8 @@ func TestReconcileExtendedResource(t *testing.T) {
 			existingNode: &v1.Node{
 				Status: v1.NodeStatus{
 					Capacity: v1.ResourceList{
-						v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-						v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+						v1.ResourceCPU:              CPUCapacity,
+						v1.ResourceMemory:           MemoryCapacity,
 						v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 					},
 					Allocatable: v1.ResourceList{
@@ -1414,8 +1433,8 @@ func TestReconcileExtendedResource(t *testing.T) {
 			expectedNode: &v1.Node{
 				Status: v1.NodeStatus{
 					Capacity: v1.ResourceList{
-						v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-						v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+						v1.ResourceCPU:              CPUCapacity,
+						v1.ResourceMemory:           MemoryCapacity,
 						v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 					},
 					Allocatable: v1.ResourceList{
@@ -1432,8 +1451,8 @@ func TestReconcileExtendedResource(t *testing.T) {
 			existingNode: &v1.Node{
 				Status: v1.NodeStatus{
 					Capacity: v1.ResourceList{
-						v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-						v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+						v1.ResourceCPU:              CPUCapacity,
+						v1.ResourceMemory:           MemoryCapacity,
 						v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 						extendedResourceName1:       *resource.NewQuantity(int64(2), resource.DecimalSI),
 						extendedResourceName2:       *resource.NewQuantity(int64(10), resource.DecimalSI),
@@ -1450,8 +1469,8 @@ func TestReconcileExtendedResource(t *testing.T) {
 			expectedNode: &v1.Node{
 				Status: v1.NodeStatus{
 					Capacity: v1.ResourceList{
-						v1.ResourceCPU:              *resource.NewMilliQuantity(2000, resource.DecimalSI),
-						v1.ResourceMemory:           *resource.NewQuantity(10E9, resource.BinarySI),
+						v1.ResourceCPU:              CPUCapacity,
+						v1.ResourceMemory:           MemoryCapacity,
 						v1.ResourceEphemeralStorage: *resource.NewQuantity(5000, resource.BinarySI),
 						extendedResourceName1:       *resource.NewQuantity(int64(0), resource.DecimalSI),
 						extendedResourceName2:       *resource.NewQuantity(int64(0), resource.DecimalSI),

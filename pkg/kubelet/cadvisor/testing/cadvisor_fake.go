@@ -31,11 +31,11 @@ type Fake struct {
 }
 
 const (
-	NumCores                  = 1
-	MemoryCapacity     uint64 = 4026531840
-	KernelVersion             = "3.16.0-0.bpo.4-amd64"
-	ContainerOsVersion        = "Debian GNU/Linux 7 (wheezy)"
-	DockerVersion             = "1.5.0"
+	NumCores           = 1
+	MemoryCapacity     = 4026531840
+	KernelVersion      = "3.16.0-0.bpo.4-amd64"
+	ContainerOsVersion = "Debian GNU/Linux 7 (wheezy)"
+	DockerVersion      = "1.5.0"
 )
 
 var _ cadvisor.Interface = new(Fake)
