@@ -23,6 +23,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -79,23 +81,14 @@ func TestDefaultPodSecurityContextNonmutating(t *testing.T) {
 	psp := createPSP()
 
 	provider, err := NewSimpleProvider(psp, "namespace", NewSimpleStrategyFactory())
-	if err != nil {
-		t.Fatalf("unable to create provider %v", err)
-	}
+	require.NoError(t, err, "unable to create provider")
 	err = provider.DefaultPodSecurityContext(pod)
-	if err != nil {
-		t.Fatalf("unable to create psc %v", err)
-	}
+	require.NoError(t, err, "unable to create psc")
 
 	// Creating the provider or the security context should not have mutated the psp or pod
 	// since all the strategies were permissive
-	if !reflect.DeepEqual(createPod(), pod) {
-		diffs := diff.ObjectDiff(createPod(), pod)
-		t.Errorf("pod was mutated by DefaultPodSecurityContext. diff:\n%s", diffs)
-	}
-	if !reflect.DeepEqual(createPSP(), psp) {
-		t.Error("psp was mutated by DefaultPodSecurityContext")
-	}
+	assert.Equal(t, createPod(), pod, "pod was mutated by DefaultPodSecurityContext")
+	assert.Equal(t, createPSP(), psp, "psp was mutated by DefaultPodSecurityContext")
 }
 
 func TestDefaultContainerSecurityContextNonmutating(t *testing.T) {
@@ -408,18 +401,13 @@ func TestValidatePodSecurityContextFailures(t *testing.T) {
 		},
 	}
 	for k, v := range errorCases {
-		provider, err := NewSimpleProvider(v.psp, "namespace", NewSimpleStrategyFactory())
-		if err != nil {
-			t.Fatalf("unable to create provider %v", err)
-		}
-		errs := provider.ValidatePod(v.pod)
-		if len(errs) == 0 {
-			t.Errorf("%s expected validation failure but did not receive errors", k)
-			continue
-		}
-		if !strings.Contains(errs[0].Error(), v.expectedError) {
-			t.Errorf("%s received unexpected error %v", k, errs)
-		}
+		t.Run(k, func(t *testing.T) {
+			provider, err := NewSimpleProvider(v.psp, "namespace", NewSimpleStrategyFactory())
+			require.NoError(t, err, "unable to create provider")
+			errs := provider.ValidatePod(v.pod)
+			require.NotEmpty(t, errs, "expected validation failure but did not receive errors")
+			assert.Contains(t, errs[0].Error(), v.expectedError, "unexpected error")
+		})
 	}
 }
 
