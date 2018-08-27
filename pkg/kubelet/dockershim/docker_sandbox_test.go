@@ -184,7 +184,7 @@ func TestSandboxStatusAfterRestart(t *testing.T) {
 	fClock.SetTime(time.Now())
 	expected.CreatedAt = fClock.Now().UnixNano()
 
-	createConfig, err := ds.makeSandboxDockerConfig(config, defaultSandboxImage)
+	createConfig, err := ds.makeSandboxDockerConfig(config, defaultSandboxImage, "")
 	assert.NoError(t, err)
 
 	createResp, err := ds.client.CreateContainer(*createConfig)

@@ -96,7 +96,7 @@ func (ds *dockerService) RunPodSandbox(ctx context.Context, r *runtimeapi.RunPod
 	}
 
 	// Step 2: Create the sandbox container.
-	createConfig, err := ds.makeSandboxDockerConfig(config, image)
+	createConfig, err := ds.makeSandboxDockerConfig(config, image, r.GetRuntimeHandler())
 	if err != nil {
 		return nil, fmt.Errorf("failed to make sandbox docker config for pod %q: %v", config.Metadata.Name, err)
 	}
@@ -572,7 +572,7 @@ func (ds *dockerService) applySandboxResources(hc *dockercontainer.HostConfig, l
 }
 
 // makeSandboxDockerConfig returns dockertypes.ContainerCreateConfig based on runtimeapi.PodSandboxConfig.
-func (ds *dockerService) makeSandboxDockerConfig(c *runtimeapi.PodSandboxConfig, image string) (*dockertypes.ContainerCreateConfig, error) {
+func (ds *dockerService) makeSandboxDockerConfig(c *runtimeapi.PodSandboxConfig, image, runtimeHandler string) (*dockertypes.ContainerCreateConfig, error) {
 	// Merge annotations and labels because docker supports only labels.
 	labels := makeLabels(c.GetLabels(), c.GetAnnotations())
 	// Apply a label to distinguish sandboxes from regular containers.
@@ -581,7 +581,9 @@ func (ds *dockerService) makeSandboxDockerConfig(c *runtimeapi.PodSandboxConfig,
 	// TODO(random-liu): Deprecate this label once container metrics is directly got from CRI.
 	labels[types.KubernetesContainerNameLabel] = sandboxContainerName
 
-	hc := &dockercontainer.HostConfig{}
+	hc := &dockercontainer.HostConfig{
+		Runtime: runtimeHandler,
+	}
 	createConfig := &dockertypes.ContainerCreateConfig{
 		Name: makeSandboxName(c),
 		Config: &dockercontainer.Config{
