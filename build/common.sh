@@ -94,42 +94,42 @@ kube::build::get_docker_wrapped_binaries() {
   case $1 in
     "amd64")
         local targets=(
-          cloud-controller-manager,busybox
-          kube-apiserver,busybox
-          kube-controller-manager,busybox
-          kube-scheduler,busybox
+          cloud-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-apiserver,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-scheduler,gcr.io/stclair-gcr-pub/log2file:0.1
           kube-proxy,k8s.gcr.io/debian-iptables-amd64:${debian_iptables_version}
         );;
     "arm")
         local targets=(
-          cloud-controller-manager,arm32v7/busybox
-          kube-apiserver,arm32v7/busybox
-          kube-controller-manager,arm32v7/busybox
-          kube-scheduler,arm32v7/busybox
+          cloud-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-apiserver,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-scheduler,gcr.io/stclair-gcr-pub/log2file:0.1
           kube-proxy,k8s.gcr.io/debian-iptables-arm:${debian_iptables_version}
         );;
     "arm64")
         local targets=(
-          cloud-controller-manager,arm64v8/busybox
-          kube-apiserver,arm64v8/busybox
-          kube-controller-manager,arm64v8/busybox
-          kube-scheduler,arm64v8/busybox
+          cloud-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-apiserver,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-scheduler,gcr.io/stclair-gcr-pub/log2file:0.1
           kube-proxy,k8s.gcr.io/debian-iptables-arm64:${debian_iptables_version}
         );;
     "ppc64le")
         local targets=(
-          cloud-controller-manager,ppc64le/busybox
-          kube-apiserver,ppc64le/busybox
-          kube-controller-manager,ppc64le/busybox
-          kube-scheduler,ppc64le/busybox
+          cloud-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-apiserver,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-scheduler,gcr.io/stclair-gcr-pub/log2file:0.1
           kube-proxy,k8s.gcr.io/debian-iptables-ppc64le:${debian_iptables_version}
         );;
     "s390x")
         local targets=(
-          cloud-controller-manager,s390x/busybox
-          kube-apiserver,s390x/busybox
-          kube-controller-manager,s390x/busybox
-          kube-scheduler,s390x/busybox
+          cloud-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-apiserver,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-controller-manager,gcr.io/stclair-gcr-pub/log2file:0.1
+          kube-scheduler,gcr.io/stclair-gcr-pub/log2file:0.1
           kube-proxy,k8s.gcr.io/debian-iptables-s390x:${debian_iptables_version}
         );;
   esac

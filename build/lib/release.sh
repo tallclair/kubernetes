@@ -369,7 +369,7 @@ FROM ${base_image}
 COPY ${binary_name} /usr/local/bin/${binary_name}
 EOF
         # ensure /etc/nsswitch.conf exists so go's resolver respects /etc/hosts
-        if [[ "${base_image}" =~ busybox ]]; then
+        if [[ "${base_image}" =~ (busybox|log2file|scratch) ]]; then
           echo "COPY nsswitch.conf /etc/" >> "${docker_file_path}"
         fi
         "${DOCKER[@]}" build --pull -q -t "${docker_image_tag}" "${docker_build_path}" >/dev/null
