@@ -18,7 +18,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-export KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
+KUBE_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 
 if [[ ! -d "${KUBE_ROOT}/pkg" ]]; then
 	echo "${KUBE_ROOT}/pkg not detected.  This script should be run from a location where the source dirs are available."
@@ -36,7 +36,6 @@ pushd "${KUBE_ROOT}" >/dev/null
 # These are files for the node-api CRDs
 BINDATA_OUTPUT="pkg/apis/node/crd/bindata.go"
 go-bindata -nometadata -o "${BINDATA_OUTPUT}.tmp" -pkg crd \
-	-ignore .jpg -ignore .png -ignore .md -ignore 'BUILD(\.bazel)?' \
   "pkg/apis/node/crd/runtimeclass_crd.yaml"
 
 gofmt -s -w "${BINDATA_OUTPUT}.tmp"
@@ -44,7 +43,7 @@ gofmt -s -w "${BINDATA_OUTPUT}.tmp"
 # Here we compare and overwrite only if different to avoid updating the
 # timestamp and triggering a rebuild. The 'cat' redirect trick to preserve file
 # permissions of the target file.
-if ! cmp -i 0:$(wc -c "hack/boilerplate.go.txt" | cut -d' ' -f1) -s "${BINDATA_OUTPUT}.tmp" "${BINDATA_OUTPUT}" ; then
+if ! cmp -i 0:"$(wc -c 'hack/boilerplate.go.txt' | cut -d' ' -f1)" -s "${BINDATA_OUTPUT}.tmp" "${BINDATA_OUTPUT}" ; then
 	cat "hack/boilerplate.go.txt" "${BINDATA_OUTPUT}.tmp" > "${BINDATA_OUTPUT}"
 fi
 
