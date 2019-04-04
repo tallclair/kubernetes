@@ -67,12 +67,6 @@ type Attributes struct {
 	// Machine Topology
 	// Describes cpu/memory layout and hierarchy.
 	Topology []v1.Node `json:"topology"`
-
-	// Cloud provider the machine belongs to
-	CloudProvider v1.CloudProvider `json:"cloud_provider"`
-
-	// Type of cloud instance (e.g. GCE standard) the machine is.
-	InstanceType v1.InstanceType `json:"instance_type"`
 }
 
 func GetAttributes(mi *v1.MachineInfo, vi *v1.VersionInfo) Attributes {
@@ -91,8 +85,6 @@ func GetAttributes(mi *v1.MachineInfo, vi *v1.VersionInfo) Attributes {
 		DiskMap:            mi.DiskMap,
 		NetworkDevices:     mi.NetworkDevices,
 		Topology:           mi.Topology,
-		CloudProvider:      mi.CloudProvider,
-		InstanceType:       mi.InstanceType,
 	}
 }
 

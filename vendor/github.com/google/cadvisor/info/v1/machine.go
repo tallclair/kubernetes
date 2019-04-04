@@ -190,15 +190,6 @@ type MachineInfo struct {
 	// Machine Topology
 	// Describes cpu/memory layout and hierarchy.
 	Topology []Node `json:"topology"`
-
-	// Cloud provider the machine belongs to.
-	CloudProvider CloudProvider `json:"cloud_provider"`
-
-	// Type of cloud instance (e.g. GCE standard) the machine is.
-	InstanceType InstanceType `json:"instance_type"`
-
-	// ID of cloud instance (e.g. instance-1) given to it by the cloud provider.
-	InstanceID InstanceID `json:"instance_id"`
 }
 
 type VersionInfo struct {
