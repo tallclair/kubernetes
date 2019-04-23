@@ -264,6 +264,15 @@ func ValidateRuntimeClassName(name string, fldPath *field.Path) field.ErrorList 
 	return allErrs
 }
 
+// validateOverhead can be used to check whether the given Overhead is valid.
+func validateOverhead(overhead core.ResourceList, fldPath *field.Path) field.ErrorList {
+	//reuse the ResourceRequirements validation logic
+	resourceReq := core.ResourceRequirements{
+		Limits: overhead,
+	}
+	return ValidateResourceRequirements(&resourceReq, fldPath)
+}
+
 // Validates that given value is not negative.
 func ValidateNonnegativeField(value int64, fldPath *field.Path) field.ErrorList {
 	return apimachineryvalidation.ValidateNonnegativeField(value, fldPath)
@@ -3031,6 +3040,10 @@ func ValidatePodSpec(spec *core.PodSpec, fldPath *field.Path) field.ErrorList {
 
 	if spec.RuntimeClassName != nil {
 		allErrs = append(allErrs, ValidateRuntimeClassName(*spec.RuntimeClassName, fldPath.Child("runtimeClassName"))...)
+	}
+
+	if spec.Overhead != nil && utilfeature.DefaultFeatureGate.Enabled(features.PodOverhead) {
+		allErrs = append(allErrs, validateOverhead(spec.Overhead, fldPath.Child("overhead"))...)
 	}
 
 	return allErrs
