@@ -179,6 +179,7 @@ func SetObjectDefaults_Job(in *v1.Job) {
 			corev1.SetDefaults_SecurityContext(a.SecurityContext)
 		}
 	}
+	corev1.SetDefaults_ResourceList(&in.Spec.Template.Spec.Overhead)
 }
 
 func SetObjectDefaults_JobList(in *v1.JobList) {

@@ -312,6 +312,7 @@ func SetObjectDefaults_Pod(in *v1.Pod) {
 			SetDefaults_SecurityContext(a.SecurityContext)
 		}
 	}
+	SetDefaults_ResourceList(&in.Spec.Overhead)
 }
 
 func SetObjectDefaults_PodList(in *v1.PodList) {
@@ -464,6 +465,7 @@ func SetObjectDefaults_PodTemplate(in *v1.PodTemplate) {
 			SetDefaults_SecurityContext(a.SecurityContext)
 		}
 	}
+	SetDefaults_ResourceList(&in.Template.Spec.Overhead)
 }
 
 func SetObjectDefaults_PodTemplateList(in *v1.PodTemplateList) {
@@ -618,6 +620,7 @@ func SetObjectDefaults_ReplicationController(in *v1.ReplicationController) {
 				SetDefaults_SecurityContext(a.SecurityContext)
 			}
 		}
+		SetDefaults_ResourceList(&in.Spec.Template.Spec.Overhead)
 	}
 }
 
