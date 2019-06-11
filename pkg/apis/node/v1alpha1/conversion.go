@@ -33,9 +33,24 @@ func addConversionFuncs(s *runtime.Scheme) error {
 func Convert_v1alpha1_RuntimeClass_To_node_RuntimeClass(in *v1alpha1.RuntimeClass, out *node.RuntimeClass, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
 	out.Handler = in.Spec.RuntimeHandler
+<<<<<<< HEAD
 	if in.Spec.Scheduling != nil {
 		out.Scheduling = new(node.Scheduling)
 		autoConvert_v1alpha1_Scheduling_To_node_Scheduling(in.Spec.Scheduling, out.Scheduling, s)
+=======
+
+	if in.Spec.Overhead != nil {
+		out.Overhead = &node.Overhead{}
+		if err := Convert_v1alpha1_Overhead_To_node_Overhead(in.Spec.Overhead, out.Overhead, s); err != nil {
+			return err
+		}
+>>>>>>> 29454d2991... Introduce topology into the runtimeClass API
+	}
+	if in.Spec.Scheduling != nil {
+		out.Scheduling = &node.Scheduling{}
+		if err := Convert_v1alpha1_Scheduling_To_node_Scheduling(in.Spec.Scheduling, out.Scheduling, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -43,9 +58,24 @@ func Convert_v1alpha1_RuntimeClass_To_node_RuntimeClass(in *v1alpha1.RuntimeClas
 func Convert_node_RuntimeClass_To_v1alpha1_RuntimeClass(in *node.RuntimeClass, out *v1alpha1.RuntimeClass, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
 	out.Spec.RuntimeHandler = in.Handler
+<<<<<<< HEAD
 	if in.Scheduling != nil {
 		out.Spec.Scheduling = new(v1alpha1.Scheduling)
 		autoConvert_node_Scheduling_To_v1alpha1_Scheduling(in.Scheduling, out.Spec.Scheduling, s)
+=======
+
+	if in.Overhead != nil {
+		out.Spec.Overhead = &v1alpha1.Overhead{}
+		if err := Convert_node_Overhead_To_v1alpha1_Overhead(in.Overhead, out.Spec.Overhead, s); err != nil {
+			return err
+		}
+>>>>>>> 29454d2991... Introduce topology into the runtimeClass API
+	}
+	if in.Scheduling != nil {
+		out.Spec.Scheduling = &v1alpha1.Scheduling{}
+		if err := Convert_node_Scheduling_To_v1alpha1_Scheduling(in.Scheduling, out.Spec.Scheduling, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
