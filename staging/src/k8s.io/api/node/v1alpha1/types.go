@@ -99,6 +99,8 @@ type Scheduling struct {
 	// +optional
 	// +listType=map
 	// +listMapKey=key
+	// +listMapKey=operator
+	// +listMapKey=value
 	// +listMapKey=effect
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,2,rep,name=tolerations"`
 }
