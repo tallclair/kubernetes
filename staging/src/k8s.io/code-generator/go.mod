@@ -11,6 +11,7 @@ require (
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/spf13/pflag v1.0.3
+	golang.org/x/tools v0.0.0-20190621195816-6e04913cbbac // indirect
 	gonum.org/v1/gonum v0.0.0-20190331200053-3d26580ed485
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6
