@@ -256,7 +256,7 @@ func (rm *Manager) CreateRenewCSR(name, outdir string) error {
 	cfg := certToConfig(cert)
 
 	// generates the CSR request and save it
-	csr, key, err := pkiutil.NewCSRAndKey(cfg)
+	csr, key, _ := pkiutil.NewCSRAndKey(cfg)
 	if err := pkiutil.WriteKey(outdir, name, key); err != nil {
 		return errors.Wrapf(err, "failure while saving %s key", name)
 	}

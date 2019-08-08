@@ -341,7 +341,7 @@ func humanReadableBootstrapToken(token *kubeadmapi.BootstrapToken) string {
 	ttl := "<forever>"
 	expires := "<never>"
 	if token.Expires != nil {
-		ttl = duration.ShortHumanDuration(token.Expires.Sub(time.Now()))
+		ttl = duration.ShortHumanDuration(time.Until(token.Expires))
 		expires = token.Expires.Format(time.RFC3339)
 	}
 

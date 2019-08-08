@@ -72,7 +72,7 @@ func TestTar(t *testing.T) {
 				// No error
 			}
 
-			data, err := readAllTar(tc.outpath)
+			data, _ := readAllTar(tc.outpath)
 			if !reflect.DeepEqual(data, tc.expect) {
 				t.Errorf("Expected data %v but got %v", tc.expect, data)
 			}

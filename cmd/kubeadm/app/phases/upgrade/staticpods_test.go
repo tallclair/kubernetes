@@ -861,7 +861,7 @@ func TestRenewCertsByComponent(t *testing.T) {
 					t.Errorf("couldn't load new certificate %q: %v", kubeCert.Name, err)
 					continue
 				}
-				oldSerial, _ := certMaps[kubeCert.Name]
+				oldSerial := certMaps[kubeCert.Name]
 
 				shouldBeRenewed := true
 				if test.certsShouldBeRenewed != nil {
@@ -887,7 +887,7 @@ func TestRenewCertsByComponent(t *testing.T) {
 				if err != nil {
 					t.Fatalf("error reading embedded certs from %s: %v", kubeConfig, err)
 				}
-				oldSerial, _ := certMaps[kubeConfig]
+				oldSerial := certMaps[kubeConfig]
 				if oldSerial.Cmp(newCerts[0].SerialNumber) == 0 {
 					t.Errorf("certifitate %v was not reissued", kubeConfig)
 				}
