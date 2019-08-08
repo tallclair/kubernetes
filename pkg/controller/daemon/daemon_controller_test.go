@@ -231,7 +231,6 @@ type fakePodControl struct {
 	podStore     cache.Store
 	podIDMap     map[string]*v1.Pod
 	expectations controller.ControllerExpectationsInterface
-	dsc          *daemonSetsController
 }
 
 func newFakePodControl() *fakePodControl {

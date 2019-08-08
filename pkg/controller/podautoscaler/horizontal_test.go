@@ -2386,7 +2386,7 @@ func TestConditionFailedUpdateScale(t *testing.T) {
 	tc.runTest(t)
 }
 
-func NoTestBackoffUpscale(t *testing.T) {
+func TestNoBackoffUpscale(t *testing.T) {
 	time := metav1.Time{Time: time.Now()}
 	tc := testCase{
 		minReplicas:             1,

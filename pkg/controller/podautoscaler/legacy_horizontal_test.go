@@ -753,7 +753,7 @@ func TestLegacyScaleDownIgnoresUnreadyPods(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestTolerance(t *testing.T) {
+func TestLegacyTolerance(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         1,
 		maxReplicas:         5,
@@ -767,7 +767,7 @@ func LegacyTestTolerance(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestToleranceCM(t *testing.T) {
+func TestLegacyToleranceCM(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:     1,
 		maxReplicas:     5,
@@ -788,7 +788,7 @@ func LegacyTestToleranceCM(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestMinReplicas(t *testing.T) {
+func TestLegacyMinReplicas(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         2,
 		maxReplicas:         5,
@@ -802,7 +802,7 @@ func LegacyTestMinReplicas(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestZeroReplicas(t *testing.T) {
+func TestLegacyZeroReplicas(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         3,
 		maxReplicas:         5,
@@ -816,7 +816,7 @@ func LegacyTestZeroReplicas(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestTooFewReplicas(t *testing.T) {
+func TestLegacyTooFewReplicas(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         3,
 		maxReplicas:         5,
@@ -830,7 +830,7 @@ func LegacyTestTooFewReplicas(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestTooManyReplicas(t *testing.T) {
+func TestLegacyTooManyReplicas(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         3,
 		maxReplicas:         5,
@@ -844,7 +844,7 @@ func LegacyTestTooManyReplicas(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestMaxReplicas(t *testing.T) {
+func TestLegacyMaxReplicas(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         2,
 		maxReplicas:         5,
@@ -872,7 +872,7 @@ func TestLegacySuperfluousMetrics(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestMissingMetrics(t *testing.T) {
+func TestLegacyMissingMetrics(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         2,
 		maxReplicas:         6,
@@ -886,7 +886,7 @@ func LegacyTestMissingMetrics(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestEmptyMetrics(t *testing.T) {
+func TestLegacyEmptyMetrics(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         2,
 		maxReplicas:         6,
@@ -900,7 +900,7 @@ func LegacyTestEmptyMetrics(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestEmptyCPURequest(t *testing.T) {
+func TestLegacyEmptyCPURequest(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:     1,
 		maxReplicas:     5,
@@ -913,7 +913,7 @@ func LegacyTestEmptyCPURequest(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestEventCreated(t *testing.T) {
+func TestLegacyEventCreated(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         1,
 		maxReplicas:         5,
@@ -928,7 +928,7 @@ func LegacyTestEventCreated(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestEventNotCreated(t *testing.T) {
+func TestLegacyEventNotCreated(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         1,
 		maxReplicas:         5,
@@ -943,7 +943,7 @@ func LegacyTestEventNotCreated(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestMissingReports(t *testing.T) {
+func TestLegacyMissingReports(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         1,
 		maxReplicas:         5,
@@ -957,7 +957,7 @@ func LegacyTestMissingReports(t *testing.T) {
 	tc.runTest(t)
 }
 
-func LegacyTestUpscaleCap(t *testing.T) {
+func TestLegacyUpscaleCap(t *testing.T) {
 	tc := legacyTestCase{
 		minReplicas:         1,
 		maxReplicas:         100,
@@ -974,7 +974,7 @@ func LegacyTestUpscaleCap(t *testing.T) {
 // TestComputedToleranceAlgImplementation is a regression test which
 // back-calculates a minimal percentage for downscaling based on a small percentage
 // increase in pod utilization which is calibrated against the tolerance value.
-func LegacyTestComputedToleranceAlgImplementation(t *testing.T) {
+func TestLegacyComputedToleranceAlgImplementation(t *testing.T) {
 
 	startPods := int32(10)
 	// 150 mCPU per pod.

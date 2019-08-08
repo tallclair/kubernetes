@@ -65,7 +65,6 @@ type GarbageCollector struct {
 	dependencyGraphBuilder *GraphBuilder
 	// GC caches the owners that do not exist according to the API server.
 	absentOwnerCache *UIDCache
-	sharedInformers  controller.InformerFactory
 
 	workerLock sync.RWMutex
 }
