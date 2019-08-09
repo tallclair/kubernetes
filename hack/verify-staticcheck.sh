@@ -26,10 +26,11 @@ kube::golang::verify_go_version
 
 FOCUS="${1:-}"
 
-# TODO: Start verifying more checks!
 # See https://staticcheck.io/docs/checks
 CHECKS=(
-  "U1*" # Detect unused code
+  "all"
+  "-S1*"   # Omit code simplifications for now.
+  "-ST1*"  # Mostly stylistic, redundant w/ golint
 )
 export IFS=','; checks="${CHECKS[*]}"; unset IFS
 
