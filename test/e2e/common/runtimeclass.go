@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -39,9 +39,6 @@ const (
 	// PreconfiguredRuntimeHandler is the name of the runtime handler that is expected to be
 	// preconfigured in the test environment.
 	PreconfiguredRuntimeHandler = "test-handler"
-	// DockerRuntimeHandler is a hardcoded runtime handler that is accepted by dockershim, and
-	// treated equivalently to a nil runtime handler.
-	DockerRuntimeHandler = "docker"
 )
 
 var _ = ginkgo.Describe("[sig-node] RuntimeClass", func() {
@@ -63,10 +60,7 @@ var _ = ginkgo.Describe("[sig-node] RuntimeClass", func() {
 	// This test requires that the PreconfiguredRuntimeHandler has already been set up on nodes.
 	ginkgo.It("should run a Pod requesting a RuntimeClass with a configured handler [NodeFeature:RuntimeHandler]", func() {
 		// The built-in docker runtime does not support configuring runtime handlers.
-		handler := PreconfiguredRuntimeHandler
-		if framework.TestContext.ContainerRuntime == "docker" {
-			handler = DockerRuntimeHandler
-		}
+		handler := framework.GetRuntimeClassHandler("test-handler")
 
 		rcName := createRuntimeClass(f, "preconfigured-handler", handler)
 		pod := createRuntimeClassPod(f, rcName)
