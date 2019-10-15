@@ -58,64 +58,82 @@ var _ = ginkgo.Describe("[sig-node] RuntimeClass", func() {
 		gomega.Expect(apierrs.IsForbidden(err)).To(gomega.BeTrue(), "should be forbidden error")
 	})
 
-	ginkgo.It("should run a Pod requesting a RuntimeClass with scheduling [NodeFeature:RuntimeHandler] [Disruptive] ", func() {
-		nodeName := scheduling.GetNodeThatCanRunPod(f)
-		nodeSelector := map[string]string{
-			"foo":  "bar",
-			"fizz": "buzz",
-		}
-		tolerations := []v1.Toleration{
-			{
-				Key:      "foo",
-				Operator: v1.TolerationOpEqual,
-				Value:    "bar",
-				Effect:   v1.TaintEffectNoSchedule,
-			},
-		}
-		scheduling := &v1beta1.Scheduling{
-			NodeSelector: nodeSelector,
-			Tolerations:  tolerations,
-		}
+	ginkgo.It("should run a Pod requesting a RuntimeClass with NodeSelector & Tolerations [NodeFeature:RuntimeHandler] [Disruptive]", func() {
+		testRuntimeClassScheduling(f, true)
+	})
 
-		ginkgo.By("Trying to apply a label on the found node.")
-		for key, value := range nodeSelector {
-			framework.AddOrUpdateLabelOnNode(f.ClientSet, nodeName, key, value)
-			framework.ExpectNodeHasLabel(f.ClientSet, nodeName, key, value)
-			defer framework.RemoveLabelOffNode(f.ClientSet, nodeName, key)
-		}
+	ginkgo.It("should run a Pod requesting a RuntimeClass with NodeSelector [NodeFeature:RuntimeHandler]", func() {
+		testRuntimeClassScheduling(f, false)
+	})
+})
 
-		ginkgo.By("Trying to apply taint on the found node.")
+func testRuntimeClassScheduling(f *framework.Framework, testTaints bool) {
+	nodeName := scheduling.GetNodeThatCanRunPod(f)
+	scheduling := &v1beta1.Scheduling{}
+
+	scheduling.NodeSelector = map[string]string{
+		"test-runtimeclass-ns":         f.Namespace.Name,
+		"test-runtimeclass-scheduling": fmt.Sprintf("testLabels=%t testTaints=%t", testLabels, testTaints),
+	}
+
+	ginkgo.By("Trying to apply a label on the found node.")
+	for key, value := range scheduling.NodeSelector {
+		framework.AddOrUpdateLabelOnNode(f.ClientSet, nodeName, key, value)
+		framework.ExpectNodeHasLabel(f.ClientSet, nodeName, key, value)
+		defer framework.RemoveLabelOffNode(f.ClientSet, nodeName, key)
+	}
+
+	if testTaints {
 		taint := v1.Taint{
-			Key:    "foo",
-			Value:  "bar",
+			Key:    "test-runtimeclass-ns",
+			Value:  f.Namespace.Name,
 			Effect: v1.TaintEffectNoSchedule,
 		}
+		scheduling.Tolerations = []v1.Toleration{{
+			Key:      taint.Key,
+			Operator: v1.TolerationOpEqual,
+			Value:    taint.Value,
+			Effect:   taint.Effect,
+		}}
+
+		ginkgo.By("Trying to apply taint on the found node.")
 		framework.AddOrUpdateTaintOnNode(f.ClientSet, nodeName, taint)
 		framework.ExpectNodeHasTaint(f.ClientSet, nodeName, &taint)
 		defer framework.RemoveTaintOffNode(f.ClientSet, nodeName, taint)
+	}
 
-		ginkgo.By("Trying to create runtimeclass and pod")
-		runtimeClass := newRuntimeClass(f.Namespace.Name, "non-conflict-runtimeclass")
-		runtimeClass.Scheduling = scheduling
-		rc, err := f.ClientSet.NodeV1beta1().RuntimeClasses().Create(runtimeClass)
-		framework.ExpectNoError(err, "failed to create RuntimeClass resource")
+	ginkgo.By("Trying to create runtimeclass and pod")
+	runtimeClass := newRuntimeClass(f.Namespace.Name, "non-conflict-runtimeclass")
+	runtimeClass.Scheduling = scheduling
+	rc, err := f.ClientSet.NodeV1beta1().RuntimeClasses().Create(runtimeClass)
+	framework.ExpectNoError(err, "failed to create RuntimeClass resource")
 
-		pod := newRuntimeClassPod(rc.GetName())
-		pod.Spec.NodeSelector = map[string]string{
-			"foo": "bar",
-		}
-		pod = f.PodClient().Create(pod)
+	pod := newRuntimeClassPod(rc.GetName())
+	pod.Spec.NodeSelector = map[string]string{
+		"foo": "bar",
+	}
+	pod = f.PodClient().Create(pod)
+	framework.ExpectNoError(e2epod.WaitForPodSuccessInNamespace(f.ClientSet, pod.Name, f.Namespace.Name))
 
-		framework.ExpectNoError(e2epod.WaitForPodNotPending(f.ClientSet, f.Namespace.Name, pod.Name))
+	// check that pod got scheduled on specified node.
+	scheduledPod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Get(pod.Name, metav1.GetOptions{})
+	framework.ExpectNoError(err)
+	framework.ExpectEqual(nodeName, scheduledPod.Spec.NodeName)
 
-		// check that pod got scheduled on specified node.
-		scheduledPod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Get(pod.Name, metav1.GetOptions{})
-		framework.ExpectNoError(err)
-		framework.ExpectEqual(nodeName, scheduledPod.Spec.NodeName)
-		framework.ExpectEqual(nodeSelector, pod.Spec.NodeSelector)
-		gomega.Expect(pod.Spec.Tolerations).To(gomega.ContainElement(tolerations[0]))
-	})
-})
+	expectedLabels := map[string]string{
+		"foo": "bar",
+	}
+	for k, v := range scheduling.NodeSelector {
+		expectedLabels[k] = v
+	}
+	framework.ExpectEqual(expectedLabels, pod.Spec.NodeSelector)
+
+	var expectedTolerations []v1.Toleration
+	if testTaints {
+		expectedTolerations = append(expectedTolerations, scheduling.Tolerations...)
+	}
+	framework.ExpectEqual(expectedTolerations, pod.Spec.Tolerations)
+}
 
 // newRuntimeClass returns a test runtime class.
 func newRuntimeClass(namespace, name string) *v1beta1.RuntimeClass {
