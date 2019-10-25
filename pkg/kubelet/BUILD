@@ -295,6 +295,7 @@ filegroup(
         "//pkg/kubelet/metrics:all-srcs",
         "//pkg/kubelet/mountpod:all-srcs",
         "//pkg/kubelet/network:all-srcs",
+        "//pkg/kubelet/nodeinfo:all-srcs",
         "//pkg/kubelet/nodelease:all-srcs",
         "//pkg/kubelet/nodestatus:all-srcs",
         "//pkg/kubelet/oom:all-srcs",
