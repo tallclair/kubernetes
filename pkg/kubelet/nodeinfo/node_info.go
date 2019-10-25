@@ -17,6 +17,7 @@ limitations under the License.
 package nodeinfo
 
 import (
+	"errors"
 	"fmt"
 	"sync/atomic"
 
@@ -62,12 +63,20 @@ type NodeGetter interface {
 }
 
 // NewProvider instantiates a new node info provider.
-func NewProvider(nodeName string, nodeGetter NodeGetter, initialNodeFn func() (*v1.Node, error)) Provider {
+func NewProvider(nodeName string, nodeGetter NodeGetter) Provider {
 	return &provider{
-		nodeName:      nodeName,
-		nodeGetter:    nodeGetter,
-		initialNodeFn: initialNodeFn,
+		nodeName:   nodeName,
+		nodeGetter: nodeGetter,
 	}
+}
+
+// SetInitialNodeFn sets the function that's used to construct the initial node
+// object.
+// TODO: This function is only necessary because of a circular dependency with
+// the kubelet initialization. Ideally the dependency initialization would be
+// reordered so this can be passed in to NewProvider instead.
+func (p *provider) SetInitialNodeFn(initialNodeFn func() (*v1.Node, error)) {
+	p.initialNodeFn = initialNodeFn
 }
 
 // GetNode implements Provider.
@@ -126,6 +135,10 @@ func (p *provider) getUID() (types.UID, error) {
 }
 
 func (p *provider) getInitialNode() (*v1.Node, error) {
+	if p.initialNodeFn == nil {
+		return nil, errors.New("initialNodeFn is unset")
+	}
+
 	cached := p.initialNode.Load()
 	if cached != nil {
 		return cached.(*v1.Node).DeepCopy(), nil

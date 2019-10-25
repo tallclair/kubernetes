@@ -214,7 +214,7 @@ func (kl *Kubelet) reconcileCMADAnnotationWithExistingNode(node, existingNode *v
 
 // initialNode constructs the initial v1.Node for this Kubelet, incorporating node
 // labels, information from the cloud provider, and Kubelet configuration.
-func (kl *Kubelet) initialNode(ctx context.Context) (*v1.Node, error) {
+func (kl *Kubelet) initialNode() (*v1.Node, error) {
 	node := &v1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: string(kl.nodeName),
@@ -308,6 +308,7 @@ func (kl *Kubelet) initialNode(ctx context.Context) (*v1.Node, error) {
 	}
 
 	if kl.cloud != nil {
+		ctx := context.Background()
 		instances, ok := kl.cloud.Instances()
 		if !ok {
 			return nil, fmt.Errorf("failed to get instances from cloud provider")

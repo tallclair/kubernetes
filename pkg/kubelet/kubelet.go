@@ -79,6 +79,7 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/metrics"
 	"k8s.io/kubernetes/pkg/kubelet/metrics/collectors"
 	"k8s.io/kubernetes/pkg/kubelet/network/dns"
+	"k8s.io/kubernetes/pkg/kubelet/nodeinfo"
 	"k8s.io/kubernetes/pkg/kubelet/nodelease"
 	oomwatcher "k8s.io/kubernetes/pkg/kubelet/oom"
 	"k8s.io/kubernetes/pkg/kubelet/pleg"
@@ -106,7 +107,6 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/util/queue"
 	"k8s.io/kubernetes/pkg/kubelet/util/sliceutils"
 	"k8s.io/kubernetes/pkg/kubelet/volumemanager"
-	"k8s.io/kubernetes/pkg/scheduler/algorithm/predicates"
 	"k8s.io/kubernetes/pkg/security/apparmor"
 	sysctlwhitelist "k8s.io/kubernetes/pkg/security/podsecuritypolicy/sysctl"
 	utilipt "k8s.io/kubernetes/pkg/util/iptables"
@@ -458,17 +458,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		r := cache.NewReflector(nodeLW, &v1.Node{}, nodeIndexer, 0)
 		go r.Run(wait.NeverStop)
 	}
-	nodeInfo := &CachedNodeInfo{NodeLister: corelisters.NewNodeLister(nodeIndexer)}
-
-	// TODO: get the real node object of ourself,
-	// and use the real node name and UID.
-	// TODO: what is namespace for node?
-	nodeRef := &v1.ObjectReference{
-		Kind:      "Node",
-		Name:      string(nodeName),
-		UID:       types.UID(nodeName),
-		Namespace: "",
-	}
+	nodeInfo := nodeinfo.NewProvider(nodeName, corelisters.NewNodeLister(nodeIndexer))
 
 	containerRefManager := kubecontainer.NewRefManager()
 
@@ -504,7 +494,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		registerNode:                            registerNode,
 		registerWithTaints:                      registerWithTaints,
 		registerSchedulable:                     registerSchedulable,
-		dnsConfigurer:                           dns.NewConfigurer(kubeDeps.Recorder, nodeRef, parsedNodeIP, clusterDNS, kubeCfg.ClusterDomain, kubeCfg.ResolverConfig),
+		dnsConfigurer:                           dns.NewConfigurer(kubeDeps.Recorder, nodeInfo, parsedNodeIP, clusterDNS, kubeCfg.ClusterDomain, kubeCfg.ResolverConfig),
 		serviceLister:                           serviceLister,
 		nodeInfo:                                nodeInfo,
 		masterServiceNamespace:                  masterServiceNamespace,
@@ -514,7 +504,6 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		cloud:                                   kubeDeps.Cloud,
 		externalCloudProvider:                   cloudprovider.IsExternal(cloudProvider),
 		providerID:                              providerID,
-		nodeRef:                                 nodeRef,
 		nodeLabels:                              nodeLabels,
 		nodeStatusUpdateFrequency:               kubeCfg.NodeStatusUpdateFrequency.Duration,
 		nodeStatusReportFrequency:               kubeCfg.NodeStatusReportFrequency.Duration,
@@ -545,6 +534,8 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		nodeStatusMaxImages:                     nodeStatusMaxImages,
 	}
 
+	nodeInfo.SetInitialNodeFn(klet.initialNode)
+
 	if klet.cloud != nil {
 		klet.cloudResourceSyncManager = cloudresource.NewSyncManager(klet.cloud, nodeName, klet.nodeStatusUpdateFrequency)
 	}
@@ -557,9 +548,9 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		configMapManager = configmap.NewWatchingConfigMapManager(kubeDeps.KubeClient)
 	case kubeletconfiginternal.TTLCacheChangeDetectionStrategy:
 		secretManager = secret.NewCachingSecretManager(
-			kubeDeps.KubeClient, manager.GetObjectTTLFromNodeFunc(klet.GetNode))
+			kubeDeps.KubeClient, manager.GetObjectTTLFromNodeFunc(nodeInfo.GetNode))
 		configMapManager = configmap.NewCachingConfigMapManager(
-			kubeDeps.KubeClient, manager.GetObjectTTLFromNodeFunc(klet.GetNode))
+			kubeDeps.KubeClient, manager.GetObjectTTLFromNodeFunc(nodeInfo.GetNode))
 	case kubeletconfiginternal.GetChangeDetectionStrategy:
 		secretManager = secret.NewSimpleSecretManager(kubeDeps.KubeClient)
 		configMapManager = configmap.NewSimpleConfigMapManager(kubeDeps.KubeClient)
@@ -739,7 +730,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	klet.containerDeletor = newPodContainerDeletor(klet.containerRuntime, integer.IntMax(containerGCPolicy.MaxPerPodContainer, minDeadContainerInPod))
 
 	// setup imageManager
-	imageManager, err := images.NewImageGCManager(klet.containerRuntime, klet.StatsProvider, kubeDeps.Recorder, nodeRef, imageGCPolicy, crOptions.PodSandboxImage)
+	imageManager, err := images.NewImageGCManager(klet.containerRuntime, klet.StatsProvider, kubeDeps.Recorder, nodeInfo, imageGCPolicy, crOptions.PodSandboxImage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize image manager: %v", err)
 	}
@@ -831,7 +822,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	klet.podKillingCh = make(chan *kubecontainer.PodPair, podKillingChannelCapacity)
 
 	// setup eviction manager
-	evictionManager, evictionAdmitHandler := eviction.NewManager(klet.resourceAnalyzer, evictionConfig, killPodNow(klet.podWorkers, kubeDeps.Recorder), klet.podManager.GetMirrorPodByPod, klet.imageManager, klet.containerGC, kubeDeps.Recorder, nodeRef, klet.clock)
+	evictionManager, evictionAdmitHandler := eviction.NewManager(klet.resourceAnalyzer, evictionConfig, killPodNow(klet.podWorkers, kubeDeps.Recorder), klet.podManager.GetMirrorPodByPod, klet.imageManager, klet.containerGC, kubeDeps.Recorder, nodeInfo, klet.clock)
 
 	klet.evictionManager = evictionManager
 	klet.admitHandlers.AddPodAdmitHandler(evictionAdmitHandler)
@@ -960,7 +951,7 @@ type Kubelet struct {
 	// serviceLister knows how to list services
 	serviceLister serviceLister
 	// nodeInfo knows how to get information about the node for this kubelet.
-	nodeInfo predicates.NodeInfo
+	nodeInfo nodeinfo.Provider
 
 	// a list of node labels to register
 	nodeLabels map[string]string
@@ -1020,8 +1011,6 @@ type Kubelet struct {
 
 	// Indicates that the node initialization happens in an external cloud controller
 	externalCloudProvider bool
-	// Reference to this node.
-	nodeRef *v1.ObjectReference
 
 	// The name of the container runtime
 	containerRuntimeName string
