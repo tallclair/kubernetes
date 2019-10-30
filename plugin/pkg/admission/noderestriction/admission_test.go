@@ -25,6 +25,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -46,19 +47,17 @@ import (
 )
 
 var (
-	trEnabledFeature           = featuregate.NewFeatureGate()
-	trDisabledFeature          = featuregate.NewFeatureGate()
-	leaseEnabledFeature        = featuregate.NewFeatureGate()
-	leaseDisabledFeature       = featuregate.NewFeatureGate()
-	csiNodeInfoEnabledFeature  = featuregate.NewFeatureGate()
-	csiNodeInfoDisabledFeature = featuregate.NewFeatureGate()
+	trEnabledFeature                        = featuregate.NewFeatureGate()
+	leaseEnabledFeature                     = featuregate.NewFeatureGate()
+	leaseDisabledFeature                    = featuregate.NewFeatureGate()
+	csiNodeInfoEnabledFeature               = featuregate.NewFeatureGate()
+	csiNodeInfoDisabledFeature              = featuregate.NewFeatureGate()
+	mirrorPodNodeRestrictionEnabledFeature  = featuregate.NewFeatureGate()
+	mirrorPodNodeRestrictionDisabledFeature = featuregate.NewFeatureGate()
 )
 
 func init() {
 	if err := trEnabledFeature.Add(map[featuregate.Feature]featuregate.FeatureSpec{features.TokenRequest: {Default: true}}); err != nil {
-		panic(err)
-	}
-	if err := trDisabledFeature.Add(map[featuregate.Feature]featuregate.FeatureSpec{features.TokenRequest: {Default: false}}); err != nil {
 		panic(err)
 	}
 	if err := leaseEnabledFeature.Add(map[featuregate.Feature]featuregate.FeatureSpec{features.NodeLease: {Default: true}}); err != nil {
@@ -71,6 +70,12 @@ func init() {
 		panic(err)
 	}
 	if err := csiNodeInfoDisabledFeature.Add(map[featuregate.Feature]featuregate.FeatureSpec{features.CSINodeInfo: {Default: false}}); err != nil {
+		panic(err)
+	}
+	if err := mirrorPodNodeRestrictionEnabledFeature.Add(map[featuregate.Feature]featuregate.FeatureSpec{features.MirrorPodNodeRestriction: {Default: true}}); err != nil {
+		panic(err)
+	}
+	if err := mirrorPodNodeRestrictionDisabledFeature.Add(map[featuregate.Feature]featuregate.FeatureSpec{features.MirrorPodNodeRestriction: {Default: false}}); err != nil {
 		panic(err)
 	}
 }
@@ -89,6 +94,18 @@ func makeTestPod(namespace, name, node string, mirror bool) (*api.Pod, *corev1.P
 	if mirror {
 		corePod.Annotations = map[string]string{api.MirrorPodAnnotationKey: "true"}
 		v1Pod.Annotations = map[string]string{api.MirrorPodAnnotationKey: "true"}
+
+		// Insert a valid owner reference by default.
+		controller := true
+		owner := metav1.OwnerReference{
+			APIVersion: "v1",
+			Kind:       "Node",
+			Name:       node,
+			UID:        "node-uid-12345",
+			Controller: &controller,
+		}
+		corePod.OwnerReferences = []metav1.OwnerReference{owner}
+		v1Pod.OwnerReferences = []metav1.OwnerReference{owner}
 	}
 	return corePod, v1Pod
 }
@@ -281,7 +298,8 @@ func Test_nodePlugin_Admit(t *testing.T) {
 
 		leaseResource = coordination.Resource("leases").WithVersion("v1beta1")
 		leaseKind     = coordination.Kind("Lease").WithVersion("v1beta1")
-		lease         = &coordination.Lease{
+
+		lease = &coordination.Lease{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "mynode",
 				Namespace: api.NamespaceNodeLease,
@@ -361,6 +379,21 @@ func Test_nodePlugin_Admit(t *testing.T) {
 		}
 		aLabeledPod  = withLabels(coremypod, labelsA)
 		abLabeledPod = withLabels(coremypod, labelsAB)
+
+		whitelistedLabels = map[string]string{
+			"valid-a": "value",
+			"valid-c": "value",
+		}
+		unwhitelistedLabels = map[string]string{
+			"valid-a": "value",
+			"valid-c": "value",
+			"invalid": "value",
+		}
+		whitelistedUnlabeledPod, _   = makeTestPod("whitelisted", "pod", "mynode", true)
+		whitelistedValidLabeledPod   = withLabels(whitelistedUnlabeledPod, whitelistedLabels)
+		whitelistedInvalidLabeledPod = withLabels(whitelistedUnlabeledPod, unwhitelistedLabels)
+		unwhitelistedUnlabeledPod, _ = makeTestPod("unwhitelisted", "pod", "mynode", true)
+		unwhitelistedLabeledPod      = withLabels(unwhitelistedUnlabeledPod, whitelistedLabels)
 	)
 
 	existingPodsIndex.Add(v1mymirrorpod)
@@ -381,6 +414,40 @@ func Test_nodePlugin_Admit(t *testing.T) {
 
 	pvcpod, _ := makeTestPod("ns", "mypvcpod", "mynode", true)
 	pvcpod.Spec.Volumes = []api.Volume{{VolumeSource: api.VolumeSource{PersistentVolumeClaim: &api.PersistentVolumeClaimVolumeSource{ClaimName: "foo"}}}}
+
+	orphanedPod, _ := makeTestPod("ns", "annie", "mynode", true)
+	orphanedPod.OwnerReferences = nil
+
+	invalidOwnerPod, _ := makeTestPod("ns", "alice", "mynode", true)
+	controller := true
+	invalidOwnerPod.OwnerReferences[0] = metav1.OwnerReference{
+		APIVersion: "apps/v1",
+		Kind:       "ReplicaSet",
+		Name:       "foo",
+		UID:        "foo-uid-12345",
+		Controller: &controller,
+	}
+
+	uncontrolledPod, _ := makeTestPod("ns", "billy", "mynode", true)
+	uncontrolledPod.OwnerReferences[0].Controller = nil
+
+	whitelistedNS := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "whitelisted",
+			Annotations: map[string]string{
+				v1.MirrorPodLabelWhitelistAnnotationKey: "valid-a,valid-b,valid-c",
+			},
+		},
+	}
+	unwhitelistedNS := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "unwhitelisted",
+		},
+	}
+	nsIndex := cache.NewIndexer(cache.MetaNamespaceKeyFunc, nil)
+	nsIndex.Add(whitelistedNS)
+	nsIndex.Add(unwhitelistedNS)
+	nsGetter := corev1lister.NewNamespaceLister(nsIndex)
 
 	tests := []struct {
 		name       string
@@ -449,6 +516,18 @@ func Test_nodePlugin_Admit(t *testing.T) {
 			podsGetter: existingPods,
 			attributes: admission.NewAttributesRecord(unnamedEviction, nil, evictionKind, coremymirrorpod.Namespace, coremymirrorpod.Name, podResource, "eviction", admission.Create, &metav1.CreateOptions{}, false, mynode),
 			err:        "",
+		},
+		{
+			name:       "forbid creating a mirror pod with a non-node owner",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(invalidOwnerPod, mynode),
+			err:        "can only create pods with an owner reference set to itself",
+		},
+		{
+			name:       "forbid creating a mirror pod with a non-controller owner",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(uncontrolledPod, mynode),
+			err:        "can only create pods with a controller owner reference set to itself",
 		},
 
 		// Mirror pods bound to another node
@@ -1251,6 +1330,57 @@ func Test_nodePlugin_Admit(t *testing.T) {
 			features:   csiNodeInfoEnabledFeature,
 			err:        "",
 		},
+
+		// MirrorPodNodeRestriction feature
+		{
+			name:       "[MirrorPodNodeRestriction] allow create of unlabeled mirror pod in whitelisted ns",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(whitelistedUnlabeledPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "",
+		},
+		{
+			name:       "[MirrorPodNodeRestriction] allow create of whitelist-labeled mirror pod",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(whitelistedValidLabeledPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "",
+		},
+		{
+			name:       "[MirrorPodNodeRestriction] forbid create of unwhitelisted-labeled mirror pod",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(whitelistedInvalidLabeledPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "cannot label pods with",
+		},
+		{
+			name:       "[MirrorPodNodeRestriction] allow create of unlabeled mirror pod in unwhitelisted ns",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(unwhitelistedUnlabeledPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "",
+		},
+		{
+			name:       "[MirrorPodNodeRestriction] forbid create of labeled mirror pod in unwhitelisted ns",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(unwhitelistedLabeledPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "cannot label pods with",
+		},
+		{
+			name:       "[MirrorPodNodeRestriction] forbid creating a mirror pod without an owner",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(orphanedPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "can only create pods with an owner reference set to itself",
+		},
+		{
+			name:       "[-MirrorPodNodeRestriction] allow creating a mirror pod without an owner",
+			podsGetter: noExistingPods,
+			attributes: createPodAttributes(orphanedPod, mynode),
+			features:   mirrorPodNodeRestrictionEnabledFeature,
+			err:        "can only create pods with an owner reference set to itself",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1259,6 +1389,7 @@ func Test_nodePlugin_Admit(t *testing.T) {
 				c.features = tt.features
 			}
 			c.podsGetter = tt.podsGetter
+			c.nsGetter = nsGetter
 			err := c.Admit(context.TODO(), tt.attributes, nil)
 			if (err == nil) != (len(tt.err) == 0) {
 				t.Errorf("nodePlugin.Admit() error = %v, expected %v", err, tt.err)
@@ -1346,4 +1477,10 @@ func Test_getModifiedLabels(t *testing.T) {
 			}
 		})
 	}
+}
+
+func createPodAttributes(pod *api.Pod, user user.Info) admission.Attributes {
+	podResource := api.Resource("pods").WithVersion("v1")
+	podKind := api.Kind("Pod").WithVersion("v1")
+	return admission.NewAttributesRecord(pod, nil, podKind, pod.Namespace, pod.Name, podResource, "", admission.Create, &metav1.CreateOptions{}, false, user)
 }

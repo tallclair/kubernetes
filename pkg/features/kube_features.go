@@ -499,6 +499,13 @@ const (
 	//
 	// Enable all logic related to the PodDisruptionBudget API object in policy
 	PodDisruptionBudget featuregate.Feature = "PodDisruptionBudget"
+
+	// owner: @tallclair
+	// alpha: v1.17
+	//
+	// Enables additional restrictions on mirror pods for labels & owner references.
+	// http://git.k8s.io/enhancements/keps/sig-auth/20190916-noderestriction-pods.md
+	MirrorPodNodeRestriction featuregate.Feature = "MirrorPodNodeRestriction"
 )
 
 func init() {
@@ -580,6 +587,7 @@ var defaultKubernetesFeatureGates = map[featuregate.Feature]featuregate.FeatureS
 	StartupProbe:                                   {Default: false, PreRelease: featuregate.Alpha},
 	AllowInsecureBackendProxy:                      {Default: true, PreRelease: featuregate.Beta},
 	PodDisruptionBudget:                            {Default: true, PreRelease: featuregate.Beta},
+	MirrorPodNodeRestriction:                       {Default: false, PreRelease: featuregate.Alpha},
 
 	// inherited features from generic apiserver, relisted here to get a conflict if it is changed
 	// unintentionally on either side:

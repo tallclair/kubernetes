@@ -72,6 +72,7 @@ type Plugin struct {
 	*admission.Handler
 	nodeIdentifier nodeidentifier.NodeIdentifier
 	podsGetter     corev1lister.PodLister
+	nsGetter       corev1lister.NamespaceLister
 	// allows overriding for testing
 	features featuregate.FeatureGate
 }
@@ -84,6 +85,7 @@ var (
 // SetExternalKubeInformerFactory registers an informer factory into Plugin
 func (p *Plugin) SetExternalKubeInformerFactory(f informers.SharedInformerFactory) {
 	p.podsGetter = f.Core().V1().Pods().Lister()
+	p.nsGetter = f.Core().V1().Namespaces().Lister()
 }
 
 // ValidateInitialization validates the Plugin was initialized properly
@@ -93,6 +95,11 @@ func (p *Plugin) ValidateInitialization() error {
 	}
 	if p.podsGetter == nil {
 		return fmt.Errorf("%s requires a pod getter", PluginName)
+	}
+	if p.features.Enabled(features.MirrorPodNodeRestriction) {
+		if p.nsGetter == nil {
+			return fmt.Errorf("%s requires a namespace getter", PluginName)
+		}
 	}
 	return nil
 }
@@ -172,43 +179,7 @@ func (p *Plugin) Admit(ctx context.Context, a admission.Attributes, o admission.
 func (p *Plugin) admitPod(nodeName string, a admission.Attributes) error {
 	switch a.GetOperation() {
 	case admission.Create:
-		// require a pod object
-		pod, ok := a.GetObject().(*api.Pod)
-		if !ok {
-			return admission.NewForbidden(a, fmt.Errorf("unexpected type %T", a.GetObject()))
-		}
-
-		// only allow nodes to create mirror pods
-		if _, isMirrorPod := pod.Annotations[api.MirrorPodAnnotationKey]; !isMirrorPod {
-			return admission.NewForbidden(a, fmt.Errorf("pod does not have %q annotation, node %q can only create mirror pods", api.MirrorPodAnnotationKey, nodeName))
-		}
-
-		// only allow nodes to create a pod bound to itself
-		if pod.Spec.NodeName != nodeName {
-			return admission.NewForbidden(a, fmt.Errorf("node %q can only create pods with spec.nodeName set to itself", nodeName))
-		}
-
-		// don't allow a node to create a pod that references any other API objects
-		if pod.Spec.ServiceAccountName != "" {
-			return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference a service account", nodeName))
-		}
-		hasSecrets := false
-		podutil.VisitPodSecretNames(pod, func(name string) (shouldContinue bool) { hasSecrets = true; return false })
-		if hasSecrets {
-			return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference secrets", nodeName))
-		}
-		hasConfigMaps := false
-		podutil.VisitPodConfigmapNames(pod, func(name string) (shouldContinue bool) { hasConfigMaps = true; return false })
-		if hasConfigMaps {
-			return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference configmaps", nodeName))
-		}
-		for _, v := range pod.Spec.Volumes {
-			if v.PersistentVolumeClaim != nil {
-				return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference persistentvolumeclaims", nodeName))
-			}
-		}
-
-		return nil
+		return p.admitPodCreate(nodeName, a)
 
 	case admission.Delete:
 		// get the existing pod
@@ -228,6 +199,80 @@ func (p *Plugin) admitPod(nodeName string, a admission.Attributes) error {
 	default:
 		return admission.NewForbidden(a, fmt.Errorf("unexpected operation %q, node %q can only create and delete mirror pods", a.GetOperation(), nodeName))
 	}
+}
+
+func (p *Plugin) admitPodCreate(nodeName string, a admission.Attributes) error {
+	// require a pod object
+	pod, ok := a.GetObject().(*api.Pod)
+	if !ok {
+		return admission.NewForbidden(a, fmt.Errorf("unexpected type %T", a.GetObject()))
+	}
+
+	// only allow nodes to create mirror pods
+	if _, isMirrorPod := pod.Annotations[api.MirrorPodAnnotationKey]; !isMirrorPod {
+		return admission.NewForbidden(a, fmt.Errorf("pod does not have %q annotation, node %q can only create mirror pods", api.MirrorPodAnnotationKey, nodeName))
+	}
+
+	// only allow nodes to create a pod bound to itself
+	if pod.Spec.NodeName != nodeName {
+		return admission.NewForbidden(a, fmt.Errorf("node %q can only create pods with spec.nodeName set to itself", nodeName))
+	}
+	if len(pod.OwnerReferences) > 0 {
+		if len(pod.OwnerReferences) > 1 {
+			return admission.NewForbidden(a, fmt.Errorf("node %q can only create pods with a single owner reference set to itself", nodeName))
+		}
+		owner := pod.OwnerReferences[0]
+		if owner.APIVersion != v1.SchemeGroupVersion.String() ||
+			owner.Kind != "Node" ||
+			owner.Name != nodeName {
+			return admission.NewForbidden(a, fmt.Errorf("node %q can only create pods with an owner reference set to itself", nodeName))
+		}
+		if owner.Controller == nil || !*owner.Controller {
+			return admission.NewForbidden(a, fmt.Errorf("node %q can only create pods with a controller owner reference set to itself", nodeName))
+		}
+	}
+
+	// don't allow a node to create a pod that references any other API objects
+	if pod.Spec.ServiceAccountName != "" {
+		return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference a service account", nodeName))
+	}
+	hasSecrets := false
+	podutil.VisitPodSecretNames(pod, func(name string) (shouldContinue bool) { hasSecrets = true; return false })
+	if hasSecrets {
+		return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference secrets", nodeName))
+	}
+	hasConfigMaps := false
+	podutil.VisitPodConfigmapNames(pod, func(name string) (shouldContinue bool) { hasConfigMaps = true; return false })
+	if hasConfigMaps {
+		return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference configmaps", nodeName))
+	}
+	for _, v := range pod.Spec.Volumes {
+		if v.PersistentVolumeClaim != nil {
+			return admission.NewForbidden(a, fmt.Errorf("node %q can not create pods that reference persistentvolumeclaims", nodeName))
+		}
+	}
+
+	if p.features.Enabled(features.MirrorPodNodeRestriction) {
+		// With the feature enabled, the owner reference is required.
+		if len(pod.OwnerReferences) == 0 {
+			return admission.NewForbidden(a, fmt.Errorf("node %q can only create pods with an owner reference set to itself", nodeName))
+		}
+
+		// Mirror pod labels must be whitelisted by the namespace.
+		if len(pod.Labels) > 0 {
+			whitelist, err := p.allowedMirrorPodLabels(a)
+			if err != nil {
+				return err
+			}
+			for key := range pod.Labels {
+				if !whitelist.Has(key) {
+					return admission.NewForbidden(a, fmt.Errorf("node %q cannot label pods with %q in namespace %q", nodeName, key, a.GetNamespace()))
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // admitPodStatus allows to update the status of a pod if it is
@@ -566,4 +611,19 @@ func (p *Plugin) admitCSINode(nodeName string, a admission.Attributes) error {
 	}
 
 	return nil
+}
+
+func (p *Plugin) allowedMirrorPodLabels(a admission.Attributes) (sets.String, error) {
+	ns, err := p.nsGetter.Get(a.GetNamespace())
+	if errors.IsNotFound(err) {
+		return nil, err
+	}
+	if err != nil {
+		return nil, admission.NewForbidden(a, err)
+	}
+
+	if whitelist, ok := ns.Annotations[v1.MirrorPodLabelWhitelistAnnotationKey]; ok {
+		return sets.NewString(strings.Split(whitelist, ",")...), nil
+	}
+	return nil, nil
 }

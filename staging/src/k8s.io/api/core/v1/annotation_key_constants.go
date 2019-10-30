@@ -103,4 +103,12 @@ const (
 	// This annotation is used by the Attach Detach Controller to determine whether to use the in-tree or
 	// CSI Backend for a volume plugin on a specific node.
 	MigratedPluginsAnnotationKey = "storage.alpha.kubernetes.io/migrated-plugins"
+
+	// MirrorPodLabelWhitelistAnnotationKey is the annotation key, set on namespace objects, that is
+	// a comma-separated list of whitelisted set of label keys that nodes can self-set on mirror pods.
+	// This annotation is set on the mirror pod's namespace, and takes values of the form "key1,key2,..."
+	// Restriction to the whitelist requires the NodeRestriction admission controller and the
+	// MirrorPodNodeRestriction feature.
+	// See http://git.k8s.io/enhancements/keps/sig-auth/20190916-noderestriction-pods.md
+	MirrorPodLabelWhitelistAnnotationKey = "node.kubernetes.io/mirror.allowed-label-keys"
 )
