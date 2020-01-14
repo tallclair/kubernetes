@@ -73,7 +73,7 @@ func testRuntimeClassScheduling(f *framework.Framework, testTaints bool) {
 
 	scheduling.NodeSelector = map[string]string{
 		"test-runtimeclass-ns":         f.Namespace.Name,
-		"test-runtimeclass-scheduling": fmt.Sprintf("testLabels=%t testTaints=%t", testLabels, testTaints),
+		"test-runtimeclass-scheduling": fmt.Sprintf("testTaints=%t", testTaints),
 	}
 
 	ginkgo.By("Trying to apply a label on the found node.")
