@@ -40,7 +40,7 @@ import (
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/kubelet/metrics/collectors"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -227,6 +227,7 @@ func NewServer(
 		restfulCont:                &filteringContainer{Container: restful.NewContainer()},
 		redirectContainerStreaming: redirectContainerStreaming,
 	}
+	server.InstallMetricsFilter()
 	if auth != nil {
 		server.InstallAuthFilter()
 	}
@@ -274,6 +275,37 @@ func (s *Server) InstallAuthFilter() {
 			resp.WriteErrorString(http.StatusForbidden, msg)
 			return
 		}
+
+		// Continue
+		chain.ProcessFilter(req, resp)
+	})
+}
+
+// InstallMetricsFilter installs the filter for recording serving metrics.
+func (s *Server) InstallMetricsFilter() {
+	s.restfulCont.Filter(func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+
+		// monitor http requests
+		var serverType string
+		if s.auth == nil {
+			serverType = "readonly"
+		} else {
+			serverType = "readwrite"
+		}
+
+		method, path := req.Request.Method, req.SelectedRoutePath()
+
+		// Long running request had a bug in it's implementation and was not providing accurate values.
+		// It is redundant with the path, and will be removed in a future version.
+		longRunning := ""
+
+		servermetrics.HTTPRequests.WithLabelValues(method, path, serverType, longRunning).Inc()
+
+		servermetrics.HTTPInflightRequests.WithLabelValues(method, path, serverType, longRunning).Inc()
+		defer servermetrics.HTTPInflightRequests.WithLabelValues(method, path, serverType, longRunning).Dec()
+
+		startTime := time.Now()
+		defer servermetrics.HTTPRequestsDuration.WithLabelValues(method, path, serverType, longRunning).Observe(servermetrics.SinceInSeconds(startTime))
 
 		// Continue
 		chain.ProcessFilter(req, resp)
@@ -851,26 +883,6 @@ var statusesNoTracePred = httplog.StatusIsNot(
 // ServeHTTP responds to HTTP requests on the Kubelet.
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	handler := httplog.WithLogging(s.restfulCont, statusesNoTracePred)
-
-	// monitor http requests
-	var serverType string
-	if s.auth == nil {
-		serverType = "readonly"
-	} else {
-		serverType = "readwrite"
-	}
-
-	method, path := req.Method, trimURLPath(req.URL.Path)
-
-	longRunning := strconv.FormatBool(isLongRunningRequest(path))
-
-	servermetrics.HTTPRequests.WithLabelValues(method, path, serverType, longRunning).Inc()
-
-	servermetrics.HTTPInflightRequests.WithLabelValues(method, path, serverType, longRunning).Inc()
-	defer servermetrics.HTTPInflightRequests.WithLabelValues(method, path, serverType, longRunning).Dec()
-
-	startTime := time.Now()
-	defer servermetrics.HTTPRequestsDuration.WithLabelValues(method, path, serverType, longRunning).Observe(servermetrics.SinceInSeconds(startTime))
 
 	handler.ServeHTTP(w, req)
 }
