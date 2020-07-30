@@ -103,3 +103,8 @@ func getAPIServerClientURL() string {
 func getAPIServerHealthCheckURL() string {
 	return apiserverHealthCheckURL
 }
+
+func generateTokens() error {
+	clientToken := make([]byte, 0, 32)
+
+}
