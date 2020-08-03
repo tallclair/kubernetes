@@ -18,11 +18,13 @@ package services
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 
 	"k8s.io/apiserver/pkg/storage/storagebackend"
 	apiserver "k8s.io/kubernetes/cmd/kube-apiserver/app"
 	"k8s.io/kubernetes/cmd/kube-apiserver/app/options"
+	"k8s.io/kubernetes/test/e2e/framework"
 )
 
 const (
@@ -56,6 +58,10 @@ func (a *APIServer) Start() error {
 	o.SecureServing.BindAddress = net.ParseIP("127.0.0.1")
 	o.ServiceClusterIPRanges = ipnet.String()
 	o.AllowPrivileged = true
+	if err := generateTokenFile(); err != nil {
+		return fmt.Errorf("failed to generate token file: %v", err)
+	}
+	o.Authentication.TokenFile.TokenFile = tokenFilePath
 	o.Admission.GenericAdmission.DisablePlugins = []string{"ServiceAccount", "TaintNodesByCondition"}
 	errCh := make(chan error)
 	go func() {
@@ -104,7 +110,7 @@ func getAPIServerHealthCheckURL() string {
 	return apiserverHealthCheckURL
 }
 
-func generateTokens() error {
-	clientToken := make([]byte, 0, 32)
-
+func generateTokenFile() error {
+	tokenFile := fmt.Sprintf("%s,client,uid:client\n", framework.TestContext.BearerToken)
+	return ioutil.WriteFile(tokenFilePath, []byte(tokenFile), 0644)
 }

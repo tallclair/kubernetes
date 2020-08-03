@@ -64,6 +64,9 @@ func NewE2EServices(monitorParent bool) *E2EServices {
 // standard kubelet launcher)
 func (e *E2EServices) Start() error {
 	var err error
+	if e.services, err = e.startInternalServices(); err != nil {
+		return fmt.Errorf("failed to start internal services: %v", err)
+	}
 	if !framework.TestContext.NodeConformance {
 		// Start kubelet
 		e.kubelet, err = e.startKubelet()
@@ -71,8 +74,7 @@ func (e *E2EServices) Start() error {
 			return fmt.Errorf("failed to start kubelet: %v", err)
 		}
 	}
-	e.services, err = e.startInternalServices()
-	return err
+	return nil
 }
 
 // Stop stops the e2e services.

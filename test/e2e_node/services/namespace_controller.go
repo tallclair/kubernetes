@@ -19,12 +19,13 @@ package services
 import (
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/metadata"
 	restclient "k8s.io/client-go/rest"
 	namespacecontroller "k8s.io/kubernetes/pkg/controller/namespace"
+	"k8s.io/kubernetes/test/e2e/framework"
 )
 
 const (
@@ -50,6 +51,8 @@ func NewNamespaceController(host string) *NamespaceController {
 // Start starts the namespace controller.
 func (n *NamespaceController) Start() error {
 	config := restclient.AddUserAgent(&restclient.Config{Host: n.host}, ncName)
+	config.BearerToken = framework.TestContext.BearerToken
+	config.TLSClientConfig.Insecure = true
 
 	// the namespace cleanup controller is very chatty.  It makes lots of discovery calls and then it makes lots of delete calls.
 	config.QPS = 50

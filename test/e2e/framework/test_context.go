@@ -36,7 +36,8 @@ import (
 )
 
 const (
-	defaultHost = "https://127.0.0.1:6443"
+	defaultHost        = "https://127.0.0.1:6443"
+	defaultBearerToken = "insecure-token"
 
 	// DefaultNumNodes is the number of nodes. If not specified, then number of nodes is auto-detected
 	DefaultNumNodes = -1
@@ -77,6 +78,7 @@ type TestContextType struct {
 	KubeVolumeDir      string
 	CertDir            string
 	Host               string
+	BearerToken        string
 	// TODO: Deprecating this over time... instead just use gobindata_util.go , see #23987.
 	RepoRoot                string
 	DockershimCheckpointDir string
@@ -287,6 +289,7 @@ func RegisterCommonFlags(flags *flag.FlagSet) {
 	flags.IntVar(&TestContext.AllowedNotReadyNodes, "allowed-not-ready-nodes", 0, "If non-zero, framework will allow for that many non-ready nodes when checking for all ready nodes.")
 
 	flags.StringVar(&TestContext.Host, "host", "", fmt.Sprintf("The host, or apiserver, to connect to. Will default to %s if this argument and --kubeconfig are not set", defaultHost))
+	flags.StringVar(&TestContext.BearerToken, "bearer-token", "", fmt.Sprintf("The bearer token to authenticate with. Will default to %s if this argument and --kubeconfig are not set", defaultBearerToken))
 	flags.StringVar(&TestContext.ReportPrefix, "report-prefix", "", "Optional prefix for JUnit XML reports. Default is empty, which doesn't prepend anything to the default name.")
 	flags.StringVar(&TestContext.ReportDir, "report-dir", "", "Path to the directory where the JUnit XML reports should be saved. Default is empty, which doesn't generate these reports.")
 	flags.Var(cliflag.NewMapStringBool(&TestContext.FeatureGates), "feature-gates", "A set of key=value pairs that describe feature gates for alpha/experimental features.")

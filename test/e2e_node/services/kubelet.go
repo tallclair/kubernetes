@@ -355,11 +355,13 @@ func createPodDirectory() (string, error) {
 }
 
 // createKubeconfig creates a kubeconfig file at the fully qualified `path`. The parent dirs must exist.
-func createKubeconfig(path string) error {
+func createKubeconfig(path, token string) error {
 	kubeconfig := []byte(`apiVersion: v1
 kind: Config
 users:
 - name: kubelet
+  user:
+    token: ` + token + `
 clusters:
 - cluster:
     server: ` + getAPIServerClientURL() + `
@@ -413,7 +415,7 @@ func createKubeconfigCWD() (string, error) {
 		return "", err
 	}
 
-	if err = createKubeconfig(kubeconfigPath); err != nil {
+	if err = createKubeconfig(kubeconfigPath, framework.TestContext.BearerToken); err != nil {
 		return "", err
 	}
 	return kubeconfigPath, nil

@@ -26,13 +26,20 @@ import (
 	"time"
 
 	"k8s.io/klog/v2"
+	"k8s.io/kubernetes/test/e2e/framework"
 )
 
 // terminationSignals are signals that cause the program to exit in the
 // supported platforms (linux, darwin, windows).
 var terminationSignals = []os.Signal{syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}
 
-var insecureHTTPClient = &http.Client{}
+var (
+	insecureHTTPClient = &http.Client{}
+)
+
+const (
+	tokenFilePath = "known_tokens.csv"
+)
 
 func init() {
 	insecureTransport := http.DefaultTransport.(*http.Transport).Clone()
@@ -91,9 +98,14 @@ func readinessCheck(name string, urls []string, errCh <-chan error) error {
 }
 
 // Perform a health check. Anything other than a 200-response is treated as a failure.
-// Skip verification of server certs.
+// Only returns non-recoverable errors.
 func healthCheck(url string) bool {
-	resp, err := insecureHTTPClient.Head(url)
+	req, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return false
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", framework.TestContext.BearerToken))
+	resp, err := insecureHTTPClient.Do(req)
 	// return err == nil && resp.StatusCode == http.StatusOK
 	if err == nil && resp.StatusCode == http.StatusOK { // FIXME
 		return true
