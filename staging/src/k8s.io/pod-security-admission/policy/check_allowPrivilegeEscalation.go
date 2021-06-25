@@ -26,25 +26,29 @@ import (
 )
 
 func init() {
-	registerCheck(
+	registerCheck(api.LevelRestricted, AllowPrivilegeEscalationCheck)
+}
+
+func AllowPrivilegeEscalationCheck() VersionedCheck {
+	return VersionedCheck{
+		ID:   "allowPrivilegeEscalation",
 		checkSpec{
-			id:   "allowPrivilegeEscalation",
 			name: "Privilege Escalation",
 			containerFields: []string{
 				`securityContext.allowPrivilegeEscalation`,
 			},
 		},
-		api.LevelRestricted,
-		map[string]Check{
+		VersionedChecks: map[api.Version]Check{
 			// Field added in 1.8:
 			// https://github.com/kubernetes/kubernetes/blob/v1.8.0/staging/src/k8s.io/api/core/v1/types.go#L4797-L4804
-			"v1.8": &check{
+			api.MajorMinorVersion(1, 8): &check{
 				doc: doc{
 					description: allowPrivilegeEscalation_description_1_8,
 				},
 				checkPod: allowPrivilegeEscalation_1_8,
 			},
-		})
+		}
+	}
 }
 
 const (

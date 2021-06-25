@@ -26,9 +26,13 @@ import (
 )
 
 func init() {
-	registerCheck(
+	registerCheck(api.LevelRestricted, RunAsNonRootCheck)
+}
+
+func RunAsNonRootCheck() VersionedCheck {
+	return VersionedCheck{
+		ID:   "runAsNonRoot",
 		checkSpec{
-			id:   "runAsNonRoot",
 			name: "Running as Non-root",
 			podFields: []string{
 				`securityContext.runAsNonRoot`,
@@ -37,15 +41,15 @@ func init() {
 				`securityContext.runAsNonRoot`,
 			},
 		},
-		api.LevelRestricted,
-		map[string]Check{
-			"v1.0": &check{
+		VersionedChecks: map[api.Version]Check{
+			api.MajorMinorVersion(1, 0): &check{
 				doc: doc{
 					description: runAsNonRoot_description_1_0,
 				},
 				checkPod: runAsNonRoot_1_0,
 			},
-		})
+		}
+	}
 }
 
 const (

@@ -328,42 +328,25 @@ func (a *Admission) CheckPod(ctx context.Context, podMetadata *metav1.ObjectMeta
 
 	response := allowedResponse()
 	if enforce {
-		if result, err := a.evaluateLevelAndVersion(podMetadata, podSpec, policy.Enforce); err != nil {
-			klog.ErrorS(err, "Enforce evaluation failed", "namespace", namespace.Name, "pod", podMetadata.Name, "profile", policy.Enforce.String())
-			response = internalErrorResponse(err.Error())
-		} else if !result.Allowed {
+		result := policy.AggregateCheckResults(a.Registry.CheckPod(policy.Enforce, &pod.ObjectMeta, &pod.Spec))
+		if !result.Allowed {
 			response = forbiddenResponse(result.ForbiddenDetail())
 		}
 	}
 
 	// TODO: reuse previous evaluation if audit level+version is the same as enforce level+version
-	if result, err := a.evaluateLevelAndVersion(podMetadata, podSpec, policy.Audit); err != nil {
-		klog.ErrorS(err, "Audit evaluation failed", "namespace", namespace.Name, "pod", podMetadata.Name, "profile", policy.Audit.String())
-		auditAnnotations["audit-error"] = err.Error()
-	} else if !result.Allowed {
+	if result := policy.AggregateCheckResults(a.Registry.CheckPod(policy.Audit, &pod.ObjectMeta, &pod.Spec)); !result.Allowed {
 		auditAnnotations["audit"] = result.ForbiddenDetail()
 	}
 
 	// TODO: reuse previous evaluation if warn level+version is the same as audit or enforce level+version
-	if result, err := a.evaluateLevelAndVersion(podMetadata, podSpec, policy.Warn); err != nil {
-		klog.ErrorS(err, "Warn evaluation failed", "namespace", namespace.Name, "pod", podMetadata.Name, "profile", policy.Warn.String())
-	} else if !result.Allowed {
+	if result := policy.AggregateCheckResults(a.Registry.CheckPod(policy.Warn, &pod.ObjectMeta, &pod.Spec)); !result.Allowed {
 		// TODO: Craft a better user-facing warning message
 		response.Warnings = append(response.Warnings, fmt.Sprintf("Pod violates PodSecurity profile %s: %s", policy.Warn.String(), result.ForbiddenDetail()))
 	}
 
 	response.AuditAnnotations = auditAnnotations
 	return response
-}
-
-func (a *Admission) evaluateLevelAndVersion(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec, lv api.LevelVersion) (policy.AggregateCheckResult, error) {
-	// TODO: optimize so we don't have to construct/return a list here three times per request
-	checks, err := a.Registry.ChecksForLevelAndVersion(lv.Level, lv.Version)
-	if err != nil {
-		return policy.AggregateCheckResult{}, fmt.Errorf("failed to get checks: %v", err)
-	}
-
-	return policy.AggregateCheckPod(checks, podMetadata, podSpec), nil
 }
 
 func (a *Admission) CheckPodsInNamespace(ctx context.Context, namespace string, enforce api.LevelVersion) []string {
@@ -397,7 +380,7 @@ func (a *Admission) CheckPodsInNamespace(ctx context.Context, namespace string, 
 	}
 
 	for i, pod := range pods {
-		r := policy.AggregateCheckPod(checks, &pod.ObjectMeta, &pod.Spec)
+		r := policy.AggregateCheckResults(a.Registry.CheckPod(enforce, &pod.ObjectMeta, &pod.Spec))
 		if !r.Allowed {
 			// TODO: consider aggregating results (e.g. multiple pods failed for the same reasons)
 			warnings = append(warnings, fmt.Sprintf("%s: %s", pod.Name, r.ForbiddenReason()))

@@ -24,9 +24,18 @@ import (
 )
 
 type Check interface {
-	ID() string
 	// CheckPod determines if the pod is allowed.
 	CheckPod(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) CheckResult
+}
+
+type VersionedCheck struct { // FIXME: naming
+	// The ID used to register this check. A policy will only evaluate one check per unique ID.
+	ID string
+	// VersionedChecks is a mapping of the first version the check logic is valid for, to the checker implementing that logic.
+	VersionedChecks map[api.Version]Checker
+
+	// FIXME - do we care if this gets compiled in to production?
+	checkSpec // Internal for documentation & test generation.
 }
 
 // CheckResult contains the result of checking a pod and indicates whether the pod is allowed,
@@ -121,16 +130,15 @@ func (a *AggregateCheckResult) ForbiddenDetail() string {
 
 // AggregateCheckPod runs all the checks and aggregates the forbidden results into a single CheckResult.
 // The aggregated reason is a comma-separated
-func AggregateCheckPod(checks []Check, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) AggregateCheckResult {
+func AggregateCheckResults(results []CheckResult) AggregateCheckResult {
 	var (
 		reasons []string
 		details []string
 	)
-	for _, check := range checks {
-		r := check.CheckPod(podMetadata, podSpec)
-		if !r.Allowed {
-			reasons = append(reasons, r.ForbiddenReason)
-			details = append(details, r.ForbiddenDetail)
+	for _, result := range results {
+		if !result.Allowed {
+			reasons = append(reasons, result.ForbiddenReason)
+			details = append(details, result.ForbiddenDetail)
 		}
 	}
 	return AggregateCheckResult{

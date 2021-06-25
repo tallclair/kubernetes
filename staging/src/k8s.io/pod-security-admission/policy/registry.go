@@ -25,14 +25,9 @@ import (
 )
 
 // Registry holds the Checks that are used to validate a policy.
-type Registry interface {
-	// ChecksForIDAndVersion fetches the check with the given ID that should be evaluated for the version.
-	// An error is returned if no checks are registered with the given ID, or the given version is
-	// older than the first version of the check.
-	CheckForIDAndVersion(id string, version api.Version) (Check, error)
-	// ChecksForLevelAndVersion fetches all the checks that should be evaluated for the given level
-	// and version.
-	ChecksForLevelAndVersion(level api.Level, version api.Version) ([]Check, error)
+type Registry interface { // FIXME: Consider renaming this with the new interface?
+	// CheckPod checks the given pod against all the checks registered for the given level & version.
+	CheckPod(lv LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult
 }
 
 // CheckRegistry provides a default implementation of a Registry.
@@ -46,11 +41,22 @@ type versionedCheck struct {
 	Check
 }
 
-func NewCheckRegistry() *CheckRegistry {
-	return &CheckRegistry{
+func NewCheckRegistry(baselineChecks, restrictedChecks []VersionedCheck) (*CheckRegistry, error) {
+	r := &CheckRegistry{
 		baselineChecks:   map[string][]versionedCheck{},
 		restrictedChecks: map[string][]versionedCheck{},
 	}
+	for _, check := range baselineChecks {
+		if err := r.AddCheck(api.LevelBaseline, check); err != nil {
+			return nil, err
+		}
+	}
+	for _, check := range restrictedChecks {
+		if err := r.AddCheck(api.LevelRestricted, check); err != nil {
+			return nil, err
+		}
+	}
+	return r
 }
 
 func (r *CheckRegistry) CheckForIDAndVersion(id string, version api.Version) (Check, error) {
@@ -106,7 +112,9 @@ func (r *CheckRegistry) ChecksForLevelAndVersion(level api.Level, version api.Ve
 // Check, where the version represents the first version that the associated check should be used.
 // All checks must answer the same ID. If the id is already registered, an error is returned.
 // Checks can only be added for baseline and restricted levels.
-func (r *CheckRegistry) AddCheck(level api.Level, checks map[string]Check) error {
+func (r *CheckRegistry) AddCheck(level api.Level, check VersionedCheck) error {
+
+	// FIXME: update this logic
 	id := ""
 	versionedChecks := make([]versionedCheck, 0, len(checks))
 	for v, check := range checks {
@@ -153,27 +161,41 @@ func (r *CheckRegistry) AddCheck(level api.Level, checks map[string]Check) error
 	return nil
 }
 
-func CheckForIDAndVersion(id string, version api.Version) (Check, error) {
-	return defaultRegistry.CheckForIDAndVersion(id, version)
-}
-func ChecksForLevelAndVersion(level api.Level, version api.Version) ([]Check, error) {
-	return defaultRegistry.ChecksForLevelAndVersion(level, version)
-}
-func DefaultRegistry() Registry {
-	return defaultRegistry
-}
+var (
+	defaultBaselineChecks, defaultRestrictedChecks []func()VersionedCheck
+)
 
-var defaultRegistry = NewCheckRegistry()
-
-func registerCheck(spec checkSpec, level api.Level, checks map[string]Check) {
-	for _, v := range checks {
-		c := v.(*check)
-		c.id = spec.id
-		c.name = spec.name
+func DefaultChecks() (baseline, restricted []VersionedCheck) {
+	var baseline, restricted []VersionedCheck
+	for _, fn := range defaultBaselineChecks{
+		baseline = append(baseline, fn())
 	}
+	for _, fn := range defaultRestrictedChecks{
+		restricted = append(restricted, fn())
+	}
+	return baseline, restricted
+}
 
-	if err := defaultRegistry.AddCheck(level, checks); err != nil {
-		panic(err)
+func DefaultRegistry() Registry {
+	baselineChecks, restrictedChecks := policy.DefaultChecks()
+	registry, err := policy.NewCheckRegistry(baselineChecks, restrictedChecks)
+	if err != nil {
+		panic(err) // FIXME: should this just return the error instead?
+	}
+	return registry
+}
+
+func registerCheck(level api.Level, checkFn func()VersionedCheck) {
+	// FIXME: verify that check.ID is not already registered.
+	switch level {
+	case api.LevelBaseline:
+		defaultBaselineChecks = append(defaultBaselineChecks, checkFn)
+	case api.LevelRestricted:
+		defaultRestrictedChecks = append(defaultRestrictedChecks, checkFn)
+	case api.LevelPrivileged:
+		panic("Cannot register checks for the privileged level.")
+	default:
+		panic(fmt.Sprintf("Unknown level %s", level))
 	}
 }
 

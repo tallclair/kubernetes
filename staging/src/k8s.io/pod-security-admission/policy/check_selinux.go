@@ -27,9 +27,13 @@ import (
 )
 
 func init() {
-	registerCheck(
+	registerCheck(api.LevelBaseline, SELinuxCheck)
+}
+
+func SELinuxCheck() VersionedCheck {
+	return VersionedCheck{
+		ID: "selinux",
 		checkSpec{
-			id:   "selinux",
 			name: "SELinux",
 			podFields: []string{
 				`spec.securityContext.seLinuxOptions.type`,
@@ -42,15 +46,15 @@ func init() {
 				`securityContext.seLinuxOptions.role`,
 			},
 		},
-		api.LevelBaseline,
-		map[string]Check{
-			"v1.0": &check{
+		VersionedChecks: map[api.Version]Check{
+			api.MajorMinorVersion(1, 0): &check{
 				doc: doc{
 					description: selinux_description_1_0,
 				},
 				checkPod: checkSelinux_1_0,
 			},
-		})
+		}
+	}
 }
 
 const (
