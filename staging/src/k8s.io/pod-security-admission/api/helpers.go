@@ -39,7 +39,7 @@ func (v *Version) String() string {
 }
 
 // Older returns true if this version v is older than the other.
-func (v *Version) Older(other *Version) bool {
+func (v *Version) Older(other Version) bool {
 	if v.latest { // Latest is always consider newer, even than future versions.
 		return false
 	}
@@ -161,7 +161,7 @@ func PolicyToEvaluate(labels map[string]string, defaults Policy) (Policy, error)
 		p.Warn.Level, err = LevelToEvaluate(level)
 		errs = appendErr(errs, err, "Warn.Level")
 		if err != nil {
-			p.Audit.Level = LevelPrivileged // Fail open for warn.
+			p.Warn.Level = LevelPrivileged // Fail open for warn.
 		}
 	}
 	if version, ok := labels[WarnVersionLabel]; ok {
