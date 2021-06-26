@@ -22,6 +22,15 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+/*
+TODO: include field paths in reflect-based unit test
+
+containerFields: []string{
+	`securityContext.allowPrivilegeEscalation`,
+},
+
+*/
+
 func init() {
 	fixtureData_1_8 := fixtureGenerator{
 		generatePass: func(p *corev1.Pod) []*corev1.Pod {

@@ -25,40 +25,37 @@ import (
 	"k8s.io/pod-security-admission/api"
 )
 
-func init() {
-	registerCheck(
-		checkSpec{
-			id:   "allowPrivilegeEscalation",
-			name: "Privilege Escalation",
-			containerFields: []string{
-				`securityContext.allowPrivilegeEscalation`,
-			},
-		},
-		api.LevelRestricted,
-		map[string]Check{
-			// Field added in 1.8:
-			// https://github.com/kubernetes/kubernetes/blob/v1.8.0/staging/src/k8s.io/api/core/v1/types.go#L4797-L4804
-			"v1.8": &check{
-				doc: doc{
-					description: allowPrivilegeEscalation_description_1_8,
-				},
-				checkPod: allowPrivilegeEscalation_1_8,
-			},
-		})
-}
-
-const (
-	allowPrivilegeEscalation_description_1_8 = `
+/*
 Privilege escalation (such as via set-user-ID or set-group-ID file mode) should not be allowed.
 
 **Restricted Fields:**
 
 spec.containers[*].securityContext.allowPrivilegeEscalation
 spec.initContainers[*].securityContext.allowPrivilegeEscalation
-	
+
 **Allowed Values:** false
-`
-)
+*/
+
+func init() {
+	addCheck(CheckAllowPrivilegeEscalation)
+}
+
+// CheckAllowPrivilegeEscalation returns a restricted level check
+// that requires allowPrivilegeEscalation=false in 1.8+
+func CheckAllowPrivilegeEscalation() LevelCheck {
+	return LevelCheck{
+		ID:    "allowPrivilegeEscalation",
+		Level: api.LevelRestricted,
+		Versions: []VersionedCheck{
+			{
+				// Field added in 1.8:
+				// https://github.com/kubernetes/kubernetes/blob/v1.8.0/staging/src/k8s.io/api/core/v1/types.go#L4797-L4804
+				MinimumVersion: "v1.8",
+				CheckPod:       allowPrivilegeEscalation_1_8,
+			},
+		},
+	}
+}
 
 func allowPrivilegeEscalation_1_8(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) CheckResult {
 	var forbiddenPaths []string
