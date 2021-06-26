@@ -36,42 +36,42 @@ func ToPolicy(defaults PodSecurityDefaults) (policyapi.Policy, error) {
 	if len(defaults.Enforce) == 0 {
 		errs = appendErr(errs, requiredErr, "Enforce.Level")
 	} else {
-		p.Enforce.Level, err = policyapi.LevelToEvaluate(defaults.Enforce)
+		p.Enforce.Level, err = policyapi.ParseLevel(defaults.Enforce)
 		errs = appendErr(errs, err, "Enforce.Level")
 	}
 
 	if len(defaults.EnforceVersion) == 0 {
 		errs = appendErr(errs, requiredErr, "Enforce.Version")
 	} else {
-		p.Enforce.Version, err = policyapi.VersionToEvaluate(defaults.EnforceVersion)
+		p.Enforce.Version, err = policyapi.ParseVersion(defaults.EnforceVersion)
 		errs = appendErr(errs, err, "Enforce.Version")
 	}
 
 	if len(defaults.Audit) == 0 {
 		errs = appendErr(errs, requiredErr, "Audit.Level")
 	} else {
-		p.Audit.Level, err = policyapi.LevelToEvaluate(defaults.Audit)
+		p.Audit.Level, err = policyapi.ParseLevel(defaults.Audit)
 		errs = appendErr(errs, err, "Audit.Level")
 	}
 
 	if len(defaults.AuditVersion) == 0 {
 		errs = appendErr(errs, requiredErr, "Audit.Version")
 	} else {
-		p.Audit.Version, err = policyapi.VersionToEvaluate(defaults.AuditVersion)
+		p.Audit.Version, err = policyapi.ParseVersion(defaults.AuditVersion)
 		errs = appendErr(errs, err, "Audit.Version")
 	}
 
 	if len(defaults.Warn) == 0 {
 		errs = appendErr(errs, requiredErr, "Warn.Level")
 	} else {
-		p.Warn.Level, err = policyapi.LevelToEvaluate(defaults.Warn)
+		p.Warn.Level, err = policyapi.ParseLevel(defaults.Warn)
 		errs = appendErr(errs, err, "Warn.Level")
 	}
 
 	if len(defaults.WarnVersion) == 0 {
 		errs = appendErr(errs, requiredErr, "Warn.Version")
 	} else {
-		p.Warn.Version, err = policyapi.VersionToEvaluate(defaults.WarnVersion)
+		p.Warn.Version, err = policyapi.ParseVersion(defaults.WarnVersion)
 		errs = appendErr(errs, err, "Warn.Version")
 	}
 

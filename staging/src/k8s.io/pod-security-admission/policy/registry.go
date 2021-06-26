@@ -89,7 +89,7 @@ func validateChecks(checks []LevelCheck) error {
 			if c.MinimumVersion == "" {
 				return fmt.Errorf("check %s: undefined version found", check.ID)
 			}
-			v, err := api.VersionToEvaluate(c.MinimumVersion)
+			v, err := api.ParseVersion(c.MinimumVersion)
 			if err != nil {
 				return fmt.Errorf("check %s: invalid version %s: %v", check.ID, c.MinimumVersion, err)
 			}
@@ -108,7 +108,7 @@ func validateChecks(checks []LevelCheck) error {
 func populate(r *checkRegistry, validChecks []LevelCheck) {
 	// Find the max(MinimumVersion) across all checks.
 	for _, c := range validChecks {
-		lastVersion, _ := api.VersionToEvaluate(c.Versions[len(c.Versions)-1].MinimumVersion)
+		lastVersion, _ := api.ParseVersion(c.Versions[len(c.Versions)-1].MinimumVersion)
 		if r.maxVersion.Older(lastVersion) {
 			r.maxVersion = lastVersion
 		}
@@ -127,14 +127,14 @@ func inflateVersions(check LevelCheck, versions map[api.Version][]Check, maxVers
 	for i, c := range check.Versions {
 		var nextVersion api.Version
 		if i+1 < len(check.Versions) {
-			nextVersion, _ = api.VersionToEvaluate(check.Versions[i+1].MinimumVersion)
+			nextVersion, _ = api.ParseVersion(check.Versions[i+1].MinimumVersion)
 		} else {
 			// Assumes only 1 Major version.
 			nextVersion = api.MajorMinorVersion(1, maxVersion.Minor()+1)
 		}
 		// Iterate over all versions from the minimum of the current check, to the minimum of the
 		// next check, or the maxVersion++.
-		minimumVersion, _ := api.VersionToEvaluate(c.MinimumVersion)
+		minimumVersion, _ := api.ParseVersion(c.MinimumVersion)
 		for v := minimumVersion; v.Older(nextVersion); v = api.MajorMinorVersion(1, v.Minor()+1) {
 			versions[v] = append(versions[v], check.Versions[i].CheckPod)
 		}

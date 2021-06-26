@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestVersionToEvaluate(t *testing.T) {
+func TestParseVersion(t *testing.T) {
 	successes := map[string]Version{
 		"latest":   LatestVersion(),
 		"v1.0":     MajorMinorVersion(1, 0),
@@ -33,7 +33,7 @@ func TestVersionToEvaluate(t *testing.T) {
 	}
 	for v, expected := range successes {
 		t.Run(v, func(t *testing.T) {
-			actual, err := VersionToEvaluate(v)
+			actual, err := ParseVersion(v)
 			require.NoError(t, err)
 			assert.Equal(t, expected, actual)
 		})
@@ -48,7 +48,7 @@ func TestVersionToEvaluate(t *testing.T) {
 	}
 	for _, v := range failures {
 		t.Run(v, func(t *testing.T) {
-			_, err := VersionToEvaluate(v)
+			_, err := ParseVersion(v)
 			assert.Error(t, err)
 		})
 	}

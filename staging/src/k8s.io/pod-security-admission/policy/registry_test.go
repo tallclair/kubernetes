@@ -95,7 +95,7 @@ func generateCheck(id string, level api.Level, versions []string) LevelCheck {
 }
 
 func versionOrPanic(v string) api.Version {
-	ver, err := api.VersionToEvaluate(v)
+	ver, err := api.ParseVersion(v)
 	if err != nil {
 		panic(err)
 	}

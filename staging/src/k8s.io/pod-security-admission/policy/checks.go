@@ -41,7 +41,7 @@ type LevelCheck struct {
 type VersionedCheck struct {
 	// MinimumVersion is the first policy version this check applies to.
 	// If unset, this check is not yet assigned to a policy version.
-	// If set, must be parseable by VersionToEvaluate() and not be "latest".
+	// If set, must be parseable by ParseVersion() and not be "latest".
 	MinimumVersion string
 	// CheckPod determines if the pod is allowed.
 	CheckPod Check

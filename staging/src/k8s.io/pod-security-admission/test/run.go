@@ -66,7 +66,7 @@ func toJSON(pod *corev1.Pod) string {
 func checksForLevelAndVersion(checks []policy.LevelCheck, level api.Level, version api.Version) ([]string, error) {
 	retval := []string{}
 	for _, check := range checks {
-		checkVersion, err := api.VersionToEvaluate(check.Versions[0].MinimumVersion)
+		checkVersion, err := api.ParseVersion(check.Versions[0].MinimumVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +84,7 @@ func maxMinorVersionToTest(checks []policy.LevelCheck) (int, error) {
 	// this can be incremented to the current version whenever is convenient.
 	maxTestMinor := 22
 	for _, check := range checks {
-		lastCheckVersion, err := api.VersionToEvaluate(check.Versions[len(check.Versions)-1].MinimumVersion)
+		lastCheckVersion, err := api.ParseVersion(check.Versions[len(check.Versions)-1].MinimumVersion)
 		if err != nil {
 			return 0, err
 		}
