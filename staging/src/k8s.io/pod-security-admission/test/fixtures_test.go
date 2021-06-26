@@ -44,6 +44,8 @@ const updateEnvVar = "UPDATE_POD_SECURITY_FIXTURE_DATA"
 func TestFixtures(t *testing.T) {
 	expectedFiles := sets.NewString("testdata/README.md")
 
+	defaultChecks := policy.DefaultChecks()
+
 	for _, level := range []api.Level{api.LevelBaseline, api.LevelRestricted} {
 		// TODO: derive from registered levels
 		for version := 0; version <= 22; version++ {
@@ -58,24 +60,24 @@ func TestFixtures(t *testing.T) {
 			expectedFiles.Insert(testFixtureFile(t, passDir, "base", validPod))
 
 			// render check-specific fixtures
-			checks, err := policy.ChecksForLevelAndVersion(level, api.MajorMinorVersion(1, version))
+			checkIDs, err := checksForLevelAndVersion(defaultChecks, level, api.MajorMinorVersion(1, version))
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(checks) == 0 {
+			if len(checkIDs) == 0 {
 				t.Fatal(fmt.Errorf("no checks registered for %s/1.%d", level, version))
 			}
-			for _, check := range checks {
-				checkData, err := getFixtures(fixtureKey{level: level, version: api.MajorMinorVersion(1, version), check: check.ID()})
+			for _, checkID := range checkIDs {
+				checkData, err := getFixtures(fixtureKey{level: level, version: api.MajorMinorVersion(1, version), check: checkID})
 				if err != nil {
 					t.Fatal(err)
 				}
 
 				for i, pod := range checkData.pass {
-					expectedFiles.Insert(testFixtureFile(t, passDir, fmt.Sprintf("%s%d", strings.ToLower(check.ID()), i), pod))
+					expectedFiles.Insert(testFixtureFile(t, passDir, fmt.Sprintf("%s%d", strings.ToLower(checkID), i), pod))
 				}
 				for i, pod := range checkData.fail {
-					expectedFiles.Insert(testFixtureFile(t, failDir, fmt.Sprintf("%s%d", strings.ToLower(check.ID()), i), pod))
+					expectedFiles.Insert(testFixtureFile(t, failDir, fmt.Sprintf("%s%d", strings.ToLower(checkID), i), pod))
 				}
 			}
 		}

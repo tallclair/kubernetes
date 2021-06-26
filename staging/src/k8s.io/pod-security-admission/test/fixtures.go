@@ -87,6 +87,9 @@ type fixtureKey struct {
 
 // fixtureGenerator holds generators for valid and invalid fixtures.
 type fixtureGenerator struct {
+	// expectErrorSubstring is a substring to expect in the error message for failed pods.
+	// if empty, the check ID is used.
+	expectErrorSubstring string
 	// generatePass transforms a minimum valid pod into one or more valid pods.
 	// pods do not need to populate metadata.name.
 	generatePass func(*corev1.Pod) []*corev1.Pod
@@ -97,8 +100,9 @@ type fixtureGenerator struct {
 
 // fixtureData holds valid and invalid pod fixtures.
 type fixtureData struct {
-	pass []*corev1.Pod
-	fail []*corev1.Pod
+	expectErrorSubstring string
+	pass                 []*corev1.Pod
+	fail                 []*corev1.Pod
 }
 
 // registerFixtureGenerator adds a generator for the given level/version/check.
@@ -114,6 +118,16 @@ func registerFixtureGenerator(key fixtureKey, generator fixtureGenerator) {
 		panic(fmt.Errorf("adding %#v: must specify generatePass/generateFail", key))
 	}
 	fixtureGenerators[key] = generator
+
+	if key.level == api.LevelBaseline {
+		// also register to restricted
+		restrictedKey := key
+		restrictedKey.level = api.LevelRestricted
+		if _, exists := fixtureGenerators[restrictedKey]; exists {
+			panic(fmt.Errorf("fixture generator already registered for restricted version of key %#v", key))
+		}
+		fixtureGenerators[restrictedKey] = generator
+	}
 }
 
 // getFixtures returns the fixture data for the specified level/version/check.
@@ -132,8 +146,12 @@ func getFixtures(key fixtureKey) (fixtureData, error) {
 	for {
 		if generator, exists := fixtureGenerators[key]; exists {
 			data := fixtureData{
-				pass: generator.generatePass(validPodForLevel.DeepCopy()),
-				fail: generator.generateFail(validPodForLevel.DeepCopy()),
+				expectErrorSubstring: generator.expectErrorSubstring,
+				pass:                 generator.generatePass(validPodForLevel.DeepCopy()),
+				fail:                 generator.generateFail(validPodForLevel.DeepCopy()),
+			}
+			if len(data.expectErrorSubstring) == 0 {
+				data.expectErrorSubstring = key.check
 			}
 			if len(data.pass) == 0 || len(data.fail) == 0 {
 				return fixtureData{}, fmt.Errorf("generatePass/generateFail for %#v must return at least one pod each", key)
@@ -159,8 +177,15 @@ func checkKey(key fixtureKey) error {
 	if key.check == "" {
 		return fmt.Errorf("invalid key, check must not be empty")
 	}
-	if _, err := policy.CheckForIDAndVersion(key.check, key.version); err != nil {
-		return fmt.Errorf("invalid key %#v, check does not exist at this version: %v", key, err)
+	found := false
+	for _, check := range policy.DefaultChecks() {
+		if check.ID == key.check {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("invalid key %#v, check does not exist at version", key)
 	}
 	return nil
 }
