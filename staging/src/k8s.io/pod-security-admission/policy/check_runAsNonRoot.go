@@ -25,31 +25,7 @@ import (
 	"k8s.io/pod-security-admission/api"
 )
 
-func init() {
-	registerCheck(
-		checkSpec{
-			id:   "runAsNonRoot",
-			name: "Running as Non-root",
-			podFields: []string{
-				`securityContext.runAsNonRoot`,
-			},
-			containerFields: []string{
-				`securityContext.runAsNonRoot`,
-			},
-		},
-		api.LevelRestricted,
-		map[string]Check{
-			"v1.0": &check{
-				doc: doc{
-					description: runAsNonRoot_description_1_0,
-				},
-				checkPod: runAsNonRoot_1_0,
-			},
-		})
-}
-
-const (
-	runAsNonRoot_description_1_0 = `
+/*
 Containers must be required to run as non-root users.
 
 **Restricted Fields:**
@@ -59,8 +35,26 @@ spec.containers[*].securityContext.runAsNonRoot
 spec.initContainers[*].securityContext.runAsNonRoot
 
 **Allowed Values:** true
-`
-)
+*/
+
+func init() {
+	addCheck(CheckRunAsNonRoot)
+}
+
+// CheckRunAsNonRoot returns a restricted level check
+// that requires runAsNonRoot=true in 1.0+
+func CheckRunAsNonRoot() LevelCheck {
+	return LevelCheck{
+		ID:    "runAsNonRoot",
+		Level: api.LevelRestricted,
+		Versions: []VersionedCheck{
+			{
+				MinimumVersion: "v1.0",
+				CheckPod:       runAsNonRoot_1_0,
+			},
+		},
+	}
+}
 
 func runAsNonRoot_1_0(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) CheckResult {
 	var forbiddenPaths []string

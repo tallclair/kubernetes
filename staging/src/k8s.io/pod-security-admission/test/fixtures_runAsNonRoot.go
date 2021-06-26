@@ -22,6 +22,18 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+/*
+TODO: include field paths in reflect-based unit test
+
+podFields: []string{
+	`securityContext.runAsNonRoot`,
+},
+containerFields: []string{
+	`securityContext.runAsNonRoot`,
+},
+
+*/
+
 func init() {
 
 	fixtureData_1_0 := fixtureGenerator{
