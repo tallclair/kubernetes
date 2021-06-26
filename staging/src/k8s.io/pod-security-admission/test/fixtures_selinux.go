@@ -21,8 +21,24 @@ import (
 	"k8s.io/pod-security-admission/api"
 )
 
+/*
+TODO: include field paths in reflect-based unit test
+
+podFields: []string{
+	`spec.securityContext.seLinuxOptions.type`,
+	`spec.securityContext.seLinuxOptions.user`,
+	`spec.securityContext.seLinuxOptions.role`,
+},
+containerFields: []string{
+	`securityContext.seLinuxOptions.type`,
+	`securityContext.seLinuxOptions.user`,
+	`securityContext.seLinuxOptions.role`,
+},
+*/
+
 func init() {
 	fixtureData_1_0 := fixtureGenerator{
+		expectErrorSubstring: "seLinuxOptions",
 		generatePass: func(p *corev1.Pod) []*corev1.Pod {
 			p = ensureSELinuxOptions(p)
 			return []*corev1.Pod{
@@ -77,10 +93,6 @@ func init() {
 
 	registerFixtureGenerator(
 		fixtureKey{level: api.LevelBaseline, version: api.MajorMinorVersion(1, 0), check: "selinux"},
-		fixtureData_1_0,
-	)
-	registerFixtureGenerator(
-		fixtureKey{level: api.LevelRestricted, version: api.MajorMinorVersion(1, 0), check: "selinux"},
 		fixtureData_1_0,
 	)
 }

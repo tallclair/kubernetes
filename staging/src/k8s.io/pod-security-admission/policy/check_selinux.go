@@ -26,35 +26,7 @@ import (
 	"k8s.io/pod-security-admission/api"
 )
 
-func init() {
-	registerCheck(
-		checkSpec{
-			id:   "selinux",
-			name: "SELinux",
-			podFields: []string{
-				`spec.securityContext.seLinuxOptions.type`,
-				`spec.securityContext.seLinuxOptions.user`,
-				`spec.securityContext.seLinuxOptions.role`,
-			},
-			containerFields: []string{
-				`securityContext.seLinuxOptions.type`,
-				`securityContext.seLinuxOptions.user`,
-				`securityContext.seLinuxOptions.role`,
-			},
-		},
-		api.LevelBaseline,
-		map[string]Check{
-			"v1.0": &check{
-				doc: doc{
-					description: selinux_description_1_0,
-				},
-				checkPod: checkSelinux_1_0,
-			},
-		})
-}
-
-const (
-	selinux_description_1_0 = `
+/*
 Setting the SELinux type is restricted, and setting a custom SELinux user or role option is forbidden.
 
 **Restricted Fields:**
@@ -77,8 +49,26 @@ spec.containers[*].securityContext.seLinuxOptions.role
 spec.initContainers[*].securityContext.seLinuxOptions.role
 
 **Allowed Values:** undefined/empty
-`
-)
+*/
+
+func init() {
+	addCheck(CheckSELinux)
+}
+
+// CheckSELinux returns a baseline level check
+// that limits seLinuxOptions type, user, and role values in 1.0+
+func CheckSELinux() LevelCheck {
+	return LevelCheck{
+		ID:    "selinux",
+		Level: api.LevelBaseline,
+		Versions: []VersionedCheck{
+			{
+				MinimumVersion: "v1.0",
+				CheckPod:       checkSelinux_1_0,
+			},
+		},
+	}
+}
 
 var (
 	selinux_allowed_types_1_0 = sets.NewString("", "container_t", "container_init_t", "container_kvm_t")
@@ -112,7 +102,7 @@ func checkSelinux_1_0(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) C
 	if len(forbiddenDetails) > 0 {
 		return CheckResult{
 			Allowed:         false,
-			ForbiddenReason: "seLinuxOptions",
+			ForbiddenReason: "forbidden seLinuxOptions",
 			ForbiddenDetail: strings.Join(forbiddenDetails, ", "),
 		}
 	}
