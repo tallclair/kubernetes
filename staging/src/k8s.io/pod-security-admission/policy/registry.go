@@ -24,13 +24,13 @@ import (
 	"k8s.io/pod-security-admission/api"
 )
 
-// Registry holds the Checks that are used to validate a policy.
-type Registry interface {
-	// CheckPod checks the given pod against all the checks registered for the given level & version.
-	CheckPod(lv api.LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult
+// Evaluator holds the Checks that are used to validate a policy.
+type Evaluator interface {
+	// EvaluatePod evaluates the pod against the policy for the given level & version.
+	EvaluatePod(lv api.LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult
 }
 
-// checkRegistry provides a default implementation of a Registry.
+// checkRegistry provides a default implementation of an Evaluator.
 type checkRegistry struct {
 	// The checks are a map of check_ID -> sorted slice of versioned checks, newest first
 	baselineChecks, restrictedChecks map[api.Version][]CheckPodFn
@@ -39,7 +39,13 @@ type checkRegistry struct {
 	maxVersion api.Version
 }
 
-func NewCheckRegistry(checks []Check) (Registry, error) {
+// NewEvaluator constructs a new Evaluator instance from the list of checks. If the provided checks are invalid,
+// an error is returned. A valid list of checks must meet the following requirements:
+// 1. Check.ID is unique in the list
+// 2. Check.Level must be either Baseline or Restricted
+// 3. Checks must have a non-empty set of versions, sorted in a strictly increasing order
+// 4. Check.Versions cannot include 'latest'
+func NewEvaluator(checks []Check) (Evaluator, error) {
 	if err := validateChecks(checks); err != nil {
 		return nil, err
 	}
@@ -51,7 +57,7 @@ func NewCheckRegistry(checks []Check) (Registry, error) {
 	return r, nil
 }
 
-func (r *checkRegistry) CheckPod(lv api.LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult {
+func (r *checkRegistry) EvaluatePod(lv api.LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult {
 	if lv.Level == api.LevelPrivileged {
 		return nil
 	}
@@ -92,6 +98,9 @@ func validateChecks(checks []Check) error {
 			v, err := api.ParseVersion(c.MinimumVersion)
 			if err != nil {
 				return fmt.Errorf("check %s: invalid version %s: %v", check.ID, c.MinimumVersion, err)
+			}
+			if v.Latest() {
+				return fmt.Errorf("check %s: version cannot be 'latest'", check.ID)
 			}
 			if maxVersion == v {
 				return fmt.Errorf("check %s: duplicate version %s", check.ID, c.MinimumVersion)

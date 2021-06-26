@@ -51,7 +51,7 @@ type Admission struct {
 	Configuration *admissionapi.PodSecurityConfiguration
 
 	// Getting policy checks per level/version
-	Registry policy.Registry
+	Evaluator policy.Evaluator
 
 	// Metrics
 	Metrics metrics.EvaluationRecorder
@@ -177,8 +177,8 @@ func (a *Admission) ValidateConfiguration() error {
 	if a.PodSpecExtractor == nil {
 		return fmt.Errorf("PodSpecExtractor required")
 	}
-	if a.Registry == nil {
-		return fmt.Errorf("Registry required")
+	if a.Evaluator == nil {
+		return fmt.Errorf("Evaluator required")
 	}
 	if a.NamespaceGetter == nil {
 		return fmt.Errorf("NamespaceGetter required")
@@ -248,7 +248,7 @@ func (a *Admission) ValidateNamespace(ctx context.Context, attrs admission.Attri
 	}
 
 	response := allowedResponse()
-	response.Warnings = a.CheckPodsInNamespace(ctx, namespace.Name, policy.Enforce)
+	response.Warnings = a.EvaluatePodsInNamespace(ctx, namespace.Name, policy.Enforce)
 
 	return response
 }
@@ -280,7 +280,7 @@ func (a *Admission) ValidatePod(ctx context.Context, attrs admission.Attributes)
 			enforce = false
 		}
 	}
-	return a.CheckPod(ctx, &pod.ObjectMeta, &pod.Spec, enforce)
+	return a.EvaluatePod(ctx, &pod.ObjectMeta, &pod.Spec, enforce)
 }
 
 func (a *Admission) ValidatePodController(ctx context.Context, attrs admission.Attributes) admissionv1.AdmissionResponse {
@@ -302,12 +302,12 @@ func (a *Admission) ValidatePodController(ctx context.Context, attrs admission.A
 		// if a controller with an optional pod spec does not contain a pod spec, skip validation
 		return allowedResponse()
 	}
-	return a.CheckPod(ctx, podMetadata, podSpec, false)
+	return a.EvaluatePod(ctx, podMetadata, podSpec, false)
 }
 
-// CheckPod looks up the policy for the pods namespace, and checks it against the given pod(-like) object.
+// EvaluatePod looks up the policy for the pods namespace, and checks it against the given pod(-like) object.
 // The enforce policy is only checked if enforce=true.
-func (a *Admission) CheckPod(ctx context.Context, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec, enforce bool) admissionv1.AdmissionResponse {
+func (a *Admission) EvaluatePod(ctx context.Context, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec, enforce bool) admissionv1.AdmissionResponse {
 	// short-circuit on exempt runtimeclass
 	if a.exemptRuntimeClass(podSpec.RuntimeClassName) {
 		return allowedResponse()
@@ -328,18 +328,18 @@ func (a *Admission) CheckPod(ctx context.Context, podMetadata *metav1.ObjectMeta
 
 	response := allowedResponse()
 	if enforce {
-		if result := policy.AggregateCheckResults(a.Registry.CheckPod(nsPolicy.Enforce, podMetadata, podSpec)); !result.Allowed {
+		if result := policy.AggregateCheckResults(a.Evaluator.EvaluatePod(nsPolicy.Enforce, podMetadata, podSpec)); !result.Allowed {
 			response = forbiddenResponse(result.ForbiddenDetail())
 		}
 	}
 
 	// TODO: reuse previous evaluation if audit level+version is the same as enforce level+version
-	if result := policy.AggregateCheckResults(a.Registry.CheckPod(nsPolicy.Audit, podMetadata, podSpec)); !result.Allowed {
+	if result := policy.AggregateCheckResults(a.Evaluator.EvaluatePod(nsPolicy.Audit, podMetadata, podSpec)); !result.Allowed {
 		auditAnnotations["audit"] = result.ForbiddenDetail()
 	}
 
 	// TODO: reuse previous evaluation if warn level+version is the same as audit or enforce level+version
-	if result := policy.AggregateCheckResults(a.Registry.CheckPod(nsPolicy.Warn, podMetadata, podSpec)); !result.Allowed {
+	if result := policy.AggregateCheckResults(a.Evaluator.EvaluatePod(nsPolicy.Warn, podMetadata, podSpec)); !result.Allowed {
 		// TODO: Craft a better user-facing warning message
 		response.Warnings = append(response.Warnings, fmt.Sprintf("Pod violates PodSecurity profile %s: %s", nsPolicy.Warn.String(), result.ForbiddenDetail()))
 	}
@@ -348,7 +348,7 @@ func (a *Admission) CheckPod(ctx context.Context, podMetadata *metav1.ObjectMeta
 	return response
 }
 
-func (a *Admission) CheckPodsInNamespace(ctx context.Context, namespace string, enforce api.LevelVersion) []string {
+func (a *Admission) EvaluatePodsInNamespace(ctx context.Context, namespace string, enforce api.LevelVersion) []string {
 	timeout := namespacePodCheckTimeout
 	if deadline, ok := ctx.Deadline(); ok {
 		timeRemaining := time.Duration(0.9 * float64(time.Until(deadline))) // Leave a little time to respond.
@@ -373,7 +373,7 @@ func (a *Admission) CheckPodsInNamespace(ctx context.Context, namespace string, 
 	}
 
 	for i, pod := range pods {
-		r := policy.AggregateCheckResults(a.Registry.CheckPod(enforce, &pod.ObjectMeta, &pod.Spec))
+		r := policy.AggregateCheckResults(a.Evaluator.EvaluatePod(enforce, &pod.ObjectMeta, &pod.Spec))
 		if !r.Allowed {
 			// TODO: consider aggregating results (e.g. multiple pods failed for the same reasons)
 			warnings = append(warnings, fmt.Sprintf("%s: %s", pod.Name, r.ForbiddenReason()))

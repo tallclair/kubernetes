@@ -61,7 +61,7 @@ func toJSON(pod *corev1.Pod) string {
 }
 
 // checksForLevelAndVersion returns the set of check IDs that apply when evaluating the given level and version.
-// checks are assumed to be well-formed and valid to pass to policy.NewCheckRegistry().
+// checks are assumed to be well-formed and valid to pass to policy.NewEvaluator().
 // level must be api.LevelRestricted or api.LevelBaseline
 func checksForLevelAndVersion(checks []policy.Check, level api.Level, version api.Version) ([]string, error) {
 	retval := []string{}
@@ -78,7 +78,7 @@ func checksForLevelAndVersion(checks []policy.Check, level api.Level, version ap
 }
 
 // maxMinorVersionToTest returns the maximum minor version to exercise for a given set of checks.
-// checks are assumed to be well-formed and valid to pass to policy.NewCheckRegistry().
+// checks are assumed to be well-formed and valid to pass to policy.NewEvaluator().
 func maxMinorVersionToTest(checks []policy.Check) (int, error) {
 	// start with the release under development (1.22 at time of writing).
 	// this can be incremented to the current version whenever is convenient.
@@ -110,7 +110,7 @@ func Run(t *testing.T, opts Options) {
 	if len(opts.Checks) == 0 {
 		opts.Checks = policy.DefaultChecks()
 	}
-	_, err := policy.NewCheckRegistry(opts.Checks)
+	_, err := policy.NewEvaluator(opts.Checks)
 	if err != nil {
 		t.Fatalf("invalid checks: %v", err)
 	}

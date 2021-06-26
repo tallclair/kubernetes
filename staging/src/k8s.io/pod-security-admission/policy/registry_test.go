@@ -37,7 +37,7 @@ func TestCheckRegistry(t *testing.T) {
 		generateCheck("f", api.LevelRestricted, []string{"v1.12", "v1.16", "v1.21"}),
 	}
 
-	reg, err := NewCheckRegistry(checks)
+	reg, err := NewEvaluator(checks)
 	require.NoError(t, err)
 
 	levelCases := []struct {
@@ -63,7 +63,7 @@ func TestCheckRegistry(t *testing.T) {
 	}
 	for _, test := range levelCases {
 		t.Run(fmt.Sprintf("%s:%s", test.level, test.version), func(t *testing.T) {
-			results := reg.CheckPod(api.LevelVersion{test.level, versionOrPanic(test.version)}, nil, nil)
+			results := reg.EvaluatePod(api.LevelVersion{test.level, versionOrPanic(test.version)}, nil, nil)
 
 			// Set extract the ForbiddenReasons from the results.
 			var actualReasons []string

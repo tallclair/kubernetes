@@ -88,7 +88,7 @@ func newPlugin(reader io.Reader) (*Plugin, error) {
 		return nil, err
 	}
 
-	registry, err := policy.NewCheckRegistry(policy.DefaultChecks())
+	evaluator, err := policy.NewEvaluator(policy.DefaultChecks())
 	if err != nil {
 		return nil, fmt.Errorf("could not create PodSecurityRegistry: %w", err)
 	}
@@ -97,7 +97,7 @@ func newPlugin(reader io.Reader) (*Plugin, error) {
 		Handler: admission.NewHandler(admission.Create, admission.Update),
 		delegate: &podsecurityadmission.Admission{
 			Configuration:    config,
-			Registry:         registry,
+			Evaluator:        evaluator,
 			Metrics:          nil, // TODO: wire to default prometheus metrics
 			PodSpecExtractor: podsecurityadmission.DefaultPodSpecExtractor{},
 		},
