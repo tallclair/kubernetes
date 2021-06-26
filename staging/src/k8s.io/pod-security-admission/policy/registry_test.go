@@ -22,52 +22,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/pod-security-admission/api"
 )
 
-func TestCheckRegistry_empty(t *testing.T) {
-	reg := NewCheckRegistry()
-
-	_, err := reg.CheckForIDAndVersion("noexist", api.LatestVersion())
-	assert.Error(t, err, "nonexistant ID")
-
-	_, err = reg.ChecksForLevelAndVersion("foo-bar", api.LatestVersion())
-	assert.Error(t, err, "invalid level")
-
-	emptyCases := []struct {
-		level   api.Level
-		version string
-	}{
-		{api.LevelPrivileged, "latest"},
-		{api.LevelPrivileged, "v1.0"},
-		{api.LevelBaseline, "latest"},
-		{api.LevelBaseline, "v1.10"},
-		{api.LevelRestricted, "latest"},
-		{api.LevelRestricted, "v1.20"},
-	}
-	for _, test := range emptyCases {
-		checks, err := reg.ChecksForLevelAndVersion(test.level, versionOrPanic(test.version))
-		assert.Emptyf(t, checks, "%s:%s", test.level, test.version)
-		assert.NoError(t, err, "%s:%s", test.level, test.version)
-	}
-}
-
 func TestCheckRegistry(t *testing.T) {
-	reg := NewCheckRegistry()
+	checks := []LevelCheck{
+		generateCheck("a", api.LevelBaseline, []string{"v1.0"}),
+		generateCheck("b", api.LevelBaseline, []string{"v1.10"}),
+		generateCheck("c", api.LevelBaseline, []string{"v1.0", "v1.5", "v1.10"}),
+		generateCheck("d", api.LevelBaseline, []string{"v1.11", "v1.15", "v1.20"}),
+		generateCheck("e", api.LevelRestricted, []string{"v1.0"}),
+		generateCheck("f", api.LevelRestricted, []string{"v1.12", "v1.16", "v1.21"}),
+	}
 
-	reg.AddCheck(api.LevelBaseline, checksForIDAndVersions("a", []string{"v1.0"}))
-	reg.AddCheck(api.LevelBaseline, checksForIDAndVersions("b", []string{"v1.10"}))
-	reg.AddCheck(api.LevelBaseline, checksForIDAndVersions("c", []string{"v1.0", "v1.5", "v1.10"}))
-	reg.AddCheck(api.LevelBaseline, checksForIDAndVersions("d", []string{"v1.11", "v1.15", "v1.20"}))
+	reg, err := NewCheckRegistry(checks)
+	require.NoError(t, err)
 
-	reg.AddCheck(api.LevelRestricted, checksForIDAndVersions("e", []string{"v1.0"}))
-	reg.AddCheck(api.LevelRestricted, checksForIDAndVersions("f", []string{"v1.12", "v1.16", "v1.21"}))
-
-	// Test ChecksForLevelAndVersion
 	levelCases := []struct {
-		level    api.Level
-		version  string
-		expected []string
+		level           api.Level
+		version         string
+		expectedReasons []string
 	}{
 		{api.LevelPrivileged, "v1.0", nil},
 		{api.LevelPrivileged, "latest", nil},
@@ -86,55 +62,36 @@ func TestCheckRegistry(t *testing.T) {
 		{api.LevelRestricted, "v1.10000", []string{"a:v1.0", "b:v1.10", "c:v1.10", "d:v1.20", "e:v1.0", "f:v1.21"}},
 	}
 	for _, test := range levelCases {
-		t.Run(fmt.Sprintf("ChecksForLevelAndVersion(%s,%s)", test.level, test.version), func(t *testing.T) {
-			checks, err := reg.ChecksForLevelAndVersion(test.level, versionOrPanic(test.version))
-			require.NoError(t, err)
+		t.Run(fmt.Sprintf("%s:%s", test.level, test.version), func(t *testing.T) {
+			results := reg.CheckPod(api.LevelVersion{test.level, versionOrPanic(test.version)}, nil, nil)
 
-			// Set up checks returned in {id:version} format
-			var actual []string
-			for _, c := range checks {
-				cc := c.(versionedCheck)
-				actual = append(actual, fmt.Sprintf("%s:%s", cc.ID(), cc.firstVersion.String()))
+			// Set extract the ForbiddenReasons from the results.
+			var actualReasons []string
+			for _, result := range results {
+				actualReasons = append(actualReasons, result.ForbiddenReason)
 			}
-			assert.ElementsMatch(t, test.expected, actual)
+			assert.ElementsMatch(t, test.expectedReasons, actualReasons)
 		})
 	}
-
-	// Test CheckForIDAndVersion
-	idCases := []struct {
-		id, version, expected string
-	}{
-		{"foo", "latest", ""},
-		{"d", "v1.10", ""},
-		{"d", "v1.11", "v1.11"},
-		{"d", "v1.12", "v1.11"},
-		{"d", "v1.14", "v1.11"},
-		{"d", "v1.15", "v1.15"},
-		{"d", "latest", "v1.20"},
-		{"e", "latest", "v1.0"},
-	}
-	for _, test := range idCases {
-		t.Run(fmt.Sprintf("CheckForIDAndVersion(%s,%s)", test.id, test.version), func(t *testing.T) {
-			c, err := reg.CheckForIDAndVersion(test.id, versionOrPanic(test.version))
-			if test.expected != "" {
-				require.NoError(t, err)
-				cc := c.(versionedCheck)
-				assert.Equal(t, test.id, cc.ID())
-				assert.Equal(t, test.expected, cc.firstVersion.String())
-			} else {
-				assert.Error(t, err)
-			}
-		})
-	}
-
 }
 
-func checksForIDAndVersions(id string, versions []string) map[string]Check {
-	checks := map[string]Check{}
-	for _, v := range versions {
-		checks[v] = &check{id: id}
+func generateCheck(id string, level api.Level, versions []string) LevelCheck {
+	c := LevelCheck{
+		ID:    id,
+		Level: level,
 	}
-	return checks
+	for _, ver := range versions {
+		v := ver // Copy ver so it can be used in the CheckPod closure.
+		c.Versions = append(c.Versions, VersionedCheck{
+			MinimumVersion: v,
+			CheckPod: func(_ *metav1.ObjectMeta, _ *corev1.PodSpec) CheckResult {
+				return CheckResult{
+					ForbiddenReason: fmt.Sprintf("%s:%s", id, v),
+				}
+			},
+		})
+	}
+	return c
 }
 
 func versionOrPanic(v string) api.Version {

@@ -21,13 +21,33 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/pod-security-admission/api"
 )
 
-type Check interface {
-	ID() string
-	// CheckPod determines if the pod is allowed.
-	CheckPod(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) CheckResult
+type LevelCheck struct {
+	// ID is the unique ID of the check.
+	ID string
+	// Level is the policy level this check belongs to.
+	// Must be Baseline or Restricted.
+	// Baseline checks are evaluated for baseline and restricted namespaces.
+	// Restricted checks are only evaluated for restricted namespaces.
+	Level api.Level
+	// Versions contains one or more revisions of the check that apply to different versions.
+	// If the check is not yet assigned to a version, this must be a single-item list with a MinimumVersion of "".
+	// Otherwise, MinimumVersion of items must represent strictly increasing versions.
+	Versions []VersionedCheck
 }
+
+type VersionedCheck struct {
+	// MinimumVersion is the first policy version this check applies to.
+	// If unset, this check is not yet assigned to a policy version.
+	// If set, must be parseable by VersionToEvaluate() and not be "latest".
+	MinimumVersion string
+	// CheckPod determines if the pod is allowed.
+	CheckPod Check
+}
+
+type Check func(*metav1.ObjectMeta, *corev1.PodSpec) CheckResult
 
 // CheckResult contains the result of checking a pod and indicates whether the pod is allowed,
 // and if not, why it was forbidden.
@@ -40,46 +60,20 @@ type Check interface {
 type CheckResult struct {
 	// Allowed indicates if the check allowed the pod.
 	Allowed bool
-	// ForbiddenReason should only be set if Allowed is false.
+	// ForbiddenReason must be set if Allowed is false.
 	// ForbiddenReason should be as succinct as possible and is always output.
+	// Examples:
+	// - "host ports"
+	// - "privileged containers"
+	// - "non-default capabilities"
 	ForbiddenReason string
-	// ForbiddenDetail should only be set if Allowed is false.
+	// ForbiddenDetail should only be set if Allowed is false, and is optional.
 	// ForbiddenDetail can include specific values that were disallowed and is used when checking an individual object.
+	// Examples:
+	// - list specific invalid host ports: "8080, 9090"
+	// - list specific invalid containers: "container1, container2"
+	// - list specific non-default capabilities: "CAP_NET_RAW"
 	ForbiddenDetail string
-}
-
-// CheckDocumentation is used to generate documentation for checks.
-type CheckDocumentation interface {
-	// Name returns a short human-readable string, used for the left column of the docs
-	Name() string
-	// Description returns markdown, used for the body of docs
-	Description() string
-	// Delta describes changes since the previous version of this check.
-	// Optional, should be empty if there was no previous version of this check
-	Delta() string
-}
-
-type doc struct {
-	name        string
-	description string
-	delta       string
-}
-
-func (d doc) Name() string        { return d.name }
-func (d doc) Description() string { return d.description }
-func (d doc) Delta() string       { return d.delta }
-
-type check struct {
-	id string
-	doc
-	checkPod func(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) CheckResult
-}
-
-func (c *check) CheckPod(podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) CheckResult {
-	return c.checkPod(podMetadata, podSpec)
-}
-func (c *check) ID() string {
-	return c.id
 }
 
 // AggergateCheckResult holds the aggregate result of running CheckPod across multiple checks.
@@ -119,18 +113,24 @@ func (a *AggregateCheckResult) ForbiddenDetail() string {
 	return b.String()
 }
 
+// UnknownForbiddenReason is used as the placeholder forbidden reason for checks that incorrectly disallow without providing a reason.
+const UnknownForbiddenReason = "unknown forbidden reason"
+
 // AggregateCheckPod runs all the checks and aggregates the forbidden results into a single CheckResult.
 // The aggregated reason is a comma-separated
-func AggregateCheckPod(checks []Check, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) AggregateCheckResult {
+func AggregateCheckResults(results []CheckResult) AggregateCheckResult {
 	var (
 		reasons []string
 		details []string
 	)
-	for _, check := range checks {
-		r := check.CheckPod(podMetadata, podSpec)
-		if !r.Allowed {
-			reasons = append(reasons, r.ForbiddenReason)
-			details = append(details, r.ForbiddenDetail)
+	for _, result := range results {
+		if !result.Allowed {
+			if len(result.ForbiddenReason) == 0 {
+				reasons = append(reasons, UnknownForbiddenReason)
+			} else {
+				reasons = append(reasons, result.ForbiddenReason)
+			}
+			details = append(details, result.ForbiddenDetail)
 		}
 	}
 	return AggregateCheckResult{
@@ -138,4 +138,41 @@ func AggregateCheckPod(checks []Check, podMetadata *metav1.ObjectMeta, podSpec *
 		ForbiddenReasons: reasons,
 		ForbiddenDetails: details,
 	}
+}
+
+var (
+	defaultChecks      []func() LevelCheck
+	experimentalChecks []func() LevelCheck
+)
+
+func addCheck(f func() LevelCheck) {
+	// add to experimental or versioned list
+	c := f()
+	if len(c.Versions) == 1 && c.Versions[0].MinimumVersion == "" {
+		experimentalChecks = append(experimentalChecks, f)
+	} else {
+		defaultChecks = append(defaultChecks, f)
+	}
+}
+
+// DefaultChecks returns checks that are expected to be enabled by default.
+// The results are mutually exclusive with ExperimentalChecks.
+// It returns a new copy of checks on each invocation and is expected to be called once at setup time.
+func DefaultChecks() []LevelCheck {
+	retval := make([]LevelCheck, 0, len(defaultChecks))
+	for _, f := range defaultChecks {
+		retval = append(retval, f())
+	}
+	return retval
+}
+
+// ExperimentalChecks returns checks that have not yet been assigned to policy versions.
+// The results are mutually exclusive with DefaultChecks.
+// It returns a new copy of checks on each invocation and is expected to be called once at setup time.
+func ExperimentalChecks() []LevelCheck {
+	retval := make([]LevelCheck, 0, len(experimentalChecks))
+	for _, f := range experimentalChecks {
+		retval = append(retval, f())
+	}
+	return retval
 }

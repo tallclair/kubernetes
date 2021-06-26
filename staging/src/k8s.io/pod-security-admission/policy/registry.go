@@ -17,169 +17,126 @@ limitations under the License.
 package policy
 
 import (
-	"errors"
 	"fmt"
-	"sort"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/pod-security-admission/api"
 )
 
 // Registry holds the Checks that are used to validate a policy.
 type Registry interface {
-	// ChecksForIDAndVersion fetches the check with the given ID that should be evaluated for the version.
-	// An error is returned if no checks are registered with the given ID, or the given version is
-	// older than the first version of the check.
-	CheckForIDAndVersion(id string, version api.Version) (Check, error)
-	// ChecksForLevelAndVersion fetches all the checks that should be evaluated for the given level
-	// and version.
-	ChecksForLevelAndVersion(level api.Level, version api.Version) ([]Check, error)
+	// CheckPod checks the given pod against all the checks registered for the given level & version.
+	CheckPod(lv api.LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult
 }
 
-// CheckRegistry provides a default implementation of a Registry.
-type CheckRegistry struct {
+// checkRegistry provides a default implementation of a Registry.
+type checkRegistry struct {
 	// The checks are a map of check_ID -> sorted slice of versioned checks, newest first
-	baselineChecks, restrictedChecks map[string][]versionedCheck
+	baselineChecks, restrictedChecks map[api.Version][]Check
+	// maxVersion is the maximum version that is cached, guaranteed to be at least
+	// the max MinimumVersion of all registered checks.
+	maxVersion api.Version
 }
 
-type versionedCheck struct {
-	firstVersion api.Version
-	Check
-}
-
-func NewCheckRegistry() *CheckRegistry {
-	return &CheckRegistry{
-		baselineChecks:   map[string][]versionedCheck{},
-		restrictedChecks: map[string][]versionedCheck{},
+func NewCheckRegistry(checks []LevelCheck) (Registry, error) {
+	if err := validateChecks(checks); err != nil {
+		return nil, err
 	}
+	r := &checkRegistry{
+		baselineChecks:   map[api.Version][]Check{},
+		restrictedChecks: map[api.Version][]Check{},
+	}
+	populate(r, checks)
+	return r, nil
 }
 
-func (r *CheckRegistry) CheckForIDAndVersion(id string, version api.Version) (Check, error) {
-	checks, ok := r.baselineChecks[id]
-	if !ok {
-		checks, ok = r.restrictedChecks[id]
-		if !ok {
-			return nil, fmt.Errorf("check %s not found", id)
-		}
+func (r *checkRegistry) CheckPod(lv api.LevelVersion, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec) []CheckResult {
+	if lv.Level == api.LevelPrivileged {
+		return nil
 	}
+	if r.maxVersion.Older(lv.Version) {
+		lv.Version = r.maxVersion
+	}
+	results := []CheckResult{}
+	for _, check := range r.baselineChecks[lv.Version] {
+		results = append(results, check(podMetadata, podSpec))
+	}
+	if lv.Level == api.LevelBaseline {
+		return results
+	}
+	for _, check := range r.restrictedChecks[lv.Version] {
+		results = append(results, check(podMetadata, podSpec))
+	}
+	return results
+}
+
+func validateChecks(checks []LevelCheck) error {
+	ids := map[string]bool{}
 	for _, check := range checks {
-		if !version.Older(&check.firstVersion) {
-			return check, nil
+		if ids[check.ID] {
+			return fmt.Errorf("multiple checks registered for ID %s", check.ID)
 		}
-	}
-	firstVersion := checks[len(checks)-1].firstVersion
-	return nil, fmt.Errorf("version %s is older than the first version %s of check %s", version.String(), firstVersion.String(), id)
-}
-
-func (r *CheckRegistry) ChecksForLevelAndVersion(level api.Level, version api.Version) ([]Check, error) {
-	if level == api.LevelPrivileged {
-		return nil, nil
-	} else if !level.Valid() {
-		return nil, fmt.Errorf("invalid level %s", level)
-	}
-	var checks []Check
-
-	// baseline checks are included for both the baseline & restricted levels
-	for _, versionedChecks := range r.baselineChecks {
-		for _, check := range versionedChecks {
-			if !version.Older(&check.firstVersion) {
-				checks = append(checks, check)
-				break
+		ids[check.ID] = true
+		if check.Level != api.LevelBaseline && check.Level != api.LevelRestricted {
+			return fmt.Errorf("check %s: invalid level %s", check.ID, check.Level)
+		}
+		if len(check.Versions) == 0 {
+			return fmt.Errorf("check %s: empty", check.ID)
+		}
+		maxVersion := api.Version{}
+		for _, c := range check.Versions {
+			if c.MinimumVersion == "" {
+				return fmt.Errorf("check %s: undefined version found", check.ID)
 			}
-		}
-	}
-	if level == api.LevelBaseline {
-		return checks, nil
-	}
-
-	for _, versionedChecks := range r.restrictedChecks {
-		for _, check := range versionedChecks {
-			if !version.Older(&check.firstVersion) {
-				checks = append(checks, check)
-				break
+			v, err := api.VersionToEvaluate(c.MinimumVersion)
+			if err != nil {
+				return fmt.Errorf("check %s: invalid version %s: %v", check.ID, c.MinimumVersion, err)
 			}
+			if maxVersion == v {
+				return fmt.Errorf("check %s: duplicate version %s", check.ID, c.MinimumVersion)
+			}
+			if !maxVersion.Older(v) {
+				return fmt.Errorf("check %s: versions must be strictly increasing", check.ID)
+			}
+			maxVersion = v
 		}
 	}
-	return checks, nil
-}
-
-// AddCheck registers a Check at the given level. The checks are represented as a map of version ->
-// Check, where the version represents the first version that the associated check should be used.
-// All checks must answer the same ID. If the id is already registered, an error is returned.
-// Checks can only be added for baseline and restricted levels.
-func (r *CheckRegistry) AddCheck(level api.Level, checks map[string]Check) error {
-	id := ""
-	versionedChecks := make([]versionedCheck, 0, len(checks))
-	for v, check := range checks {
-		if check.ID() == "" {
-			return fmt.Errorf("missing ID for check version %s", v)
-		}
-		if id == "" {
-			id = check.ID()
-		} else if id != check.ID() {
-			return fmt.Errorf("check ID mismatch: %s != %s (%s)", id, check.ID(), v)
-		}
-		version, err := api.VersionToEvaluate(v)
-		if err != nil {
-			return fmt.Errorf("failed to parse version %s: %w", v, err)
-		} else if version.Latest() {
-			return errors.New("cannot register add a check for the 'latest' version")
-		}
-		versionedChecks = append(versionedChecks, versionedCheck{version, check})
-	}
-
-	if _, ok := r.restrictedChecks[id]; ok {
-		return fmt.Errorf("check %s already registered as under restricted", id)
-	}
-	if _, ok := r.baselineChecks[id]; ok {
-		return fmt.Errorf("check %s already registered as under baseline", id)
-	}
-
-	sort.Slice(versionedChecks, func(i, j int) bool {
-		// Newest checks first
-		return !versionedChecks[i].firstVersion.Older(&versionedChecks[j].firstVersion)
-	})
-
-	switch level {
-	case api.LevelRestricted:
-		r.restrictedChecks[id] = versionedChecks
-	case api.LevelBaseline:
-		r.baselineChecks[id] = versionedChecks
-	case api.LevelPrivileged:
-		return errors.New("cannot register checks for the privileged level")
-	default:
-		return fmt.Errorf("unknown level: %s", level)
-	}
-
 	return nil
 }
 
-func CheckForIDAndVersion(id string, version api.Version) (Check, error) {
-	return defaultRegistry.CheckForIDAndVersion(id, version)
-}
-func ChecksForLevelAndVersion(level api.Level, version api.Version) ([]Check, error) {
-	return defaultRegistry.ChecksForLevelAndVersion(level, version)
-}
-func DefaultRegistry() Registry {
-	return defaultRegistry
-}
-
-var defaultRegistry = NewCheckRegistry()
-
-func registerCheck(spec checkSpec, level api.Level, checks map[string]Check) {
-	for _, v := range checks {
-		c := v.(*check)
-		c.id = spec.id
-		c.name = spec.name
+func populate(r *checkRegistry, validChecks []LevelCheck) {
+	// Find the max(MinimumVersion) across all checks.
+	for _, c := range validChecks {
+		lastVersion, _ := api.VersionToEvaluate(c.Versions[len(c.Versions)-1].MinimumVersion)
+		if r.maxVersion.Older(lastVersion) {
+			r.maxVersion = lastVersion
+		}
 	}
 
-	if err := defaultRegistry.AddCheck(level, checks); err != nil {
-		panic(err)
+	for _, c := range validChecks {
+		if c.Level == api.LevelRestricted {
+			inflateVersions(c, r.restrictedChecks, r.maxVersion)
+		} else {
+			inflateVersions(c, r.baselineChecks, r.maxVersion)
+		}
 	}
 }
 
-type checkSpec struct {
-	id              string
-	name            string
-	podFields       []string
-	containerFields []string
+func inflateVersions(check LevelCheck, versions map[api.Version][]Check, maxVersion api.Version) {
+	for i, c := range check.Versions {
+		var nextVersion api.Version
+		if i+1 < len(check.Versions) {
+			nextVersion, _ = api.VersionToEvaluate(check.Versions[i+1].MinimumVersion)
+		} else {
+			// Assumes only 1 Major version.
+			nextVersion = api.MajorMinorVersion(1, maxVersion.Minor()+1)
+		}
+		// Iterate over all versions from the minimum of the current check, to the minimum of the
+		// next check, or the maxVersion++.
+		minimumVersion, _ := api.VersionToEvaluate(c.MinimumVersion)
+		for v := minimumVersion; v.Older(nextVersion); v = api.MajorMinorVersion(1, v.Minor()+1) {
+			versions[v] = append(versions[v], check.Versions[i].CheckPod)
+		}
+	}
 }
