@@ -63,7 +63,7 @@ func CheckSELinux() Check {
 		Level: api.LevelBaseline,
 		Versions: []VersionedCheck{
 			{
-				MinimumVersion: "v1.0",
+				MinimumVersion: api.MajorMinorVersion(1, 0),
 				CheckPod:       checkSelinux_1_0,
 			},
 		},

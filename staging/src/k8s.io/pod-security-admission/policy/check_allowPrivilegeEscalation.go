@@ -50,7 +50,7 @@ func CheckAllowPrivilegeEscalation() Check {
 			{
 				// Field added in 1.8:
 				// https://github.com/kubernetes/kubernetes/blob/v1.8.0/staging/src/k8s.io/api/core/v1/types.go#L4797-L4804
-				MinimumVersion: "v1.8",
+				MinimumVersion: api.MajorMinorVersion(1, 8),
 				CheckPod:       allowPrivilegeEscalation_1_8,
 			},
 		},

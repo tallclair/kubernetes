@@ -81,7 +81,7 @@ func generateCheck(id string, level api.Level, versions []string) Check {
 		Level: level,
 	}
 	for _, ver := range versions {
-		v := ver // Copy ver so it can be used in the CheckPod closure.
+		v := versionOrPanic(ver) // Copy ver so it can be used in the CheckPod closure.
 		c.Versions = append(c.Versions, VersionedCheck{
 			MinimumVersion: v,
 			CheckPod: func(_ *metav1.ObjectMeta, _ *corev1.PodSpec) CheckResult {

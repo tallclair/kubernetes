@@ -49,7 +49,7 @@ func CheckRunAsNonRoot() Check {
 		Level: api.LevelRestricted,
 		Versions: []VersionedCheck{
 			{
-				MinimumVersion: "v1.0",
+				MinimumVersion: api.MajorMinorVersion(1, 0),
 				CheckPod:       runAsNonRoot_1_0,
 			},
 		},

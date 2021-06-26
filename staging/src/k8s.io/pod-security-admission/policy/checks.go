@@ -41,8 +41,8 @@ type Check struct {
 type VersionedCheck struct {
 	// MinimumVersion is the first policy version this check applies to.
 	// If unset, this check is not yet assigned to a policy version.
-	// If set, must be parseable by ParseVersion() and not be "latest".
-	MinimumVersion string
+	// If set, must not be "latest".
+	MinimumVersion api.Version
 	// CheckPod determines if the pod is allowed.
 	CheckPod CheckPodFn
 }
@@ -148,7 +148,7 @@ var (
 func addCheck(f func() Check) {
 	// add to experimental or versioned list
 	c := f()
-	if len(c.Versions) == 1 && c.Versions[0].MinimumVersion == "" {
+	if len(c.Versions) == 1 && c.Versions[0].MinimumVersion == (api.Version{}) {
 		experimentalChecks = append(experimentalChecks, f)
 	} else {
 		defaultChecks = append(defaultChecks, f)

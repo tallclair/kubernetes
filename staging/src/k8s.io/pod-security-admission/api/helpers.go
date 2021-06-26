@@ -31,7 +31,7 @@ type Version struct {
 	latest bool
 }
 
-func (v *Version) String() string {
+func (v Version) String() string {
 	if v.latest {
 		return "latest"
 	}
@@ -117,8 +117,8 @@ type LevelVersion struct {
 	Version
 }
 
-func (lv *LevelVersion) String() string {
-	return fmt.Sprintf("%s:%s", lv.Level, lv.Version.String())
+func (lv LevelVersion) String() string {
+	return fmt.Sprintf("%s:%s", lv.Level, lv.Version)
 }
 
 type Policy struct {

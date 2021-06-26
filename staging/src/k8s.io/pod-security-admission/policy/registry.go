@@ -92,23 +92,19 @@ func validateChecks(checks []Check) error {
 		}
 		maxVersion := api.Version{}
 		for _, c := range check.Versions {
-			if c.MinimumVersion == "" {
+			if c.MinimumVersion == (api.Version{}) {
 				return fmt.Errorf("check %s: undefined version found", check.ID)
 			}
-			v, err := api.ParseVersion(c.MinimumVersion)
-			if err != nil {
-				return fmt.Errorf("check %s: invalid version %s: %v", check.ID, c.MinimumVersion, err)
-			}
-			if v.Latest() {
+			if c.MinimumVersion.Latest() {
 				return fmt.Errorf("check %s: version cannot be 'latest'", check.ID)
 			}
-			if maxVersion == v {
+			if maxVersion == c.MinimumVersion {
 				return fmt.Errorf("check %s: duplicate version %s", check.ID, c.MinimumVersion)
 			}
-			if !maxVersion.Older(v) {
+			if !maxVersion.Older(c.MinimumVersion) {
 				return fmt.Errorf("check %s: versions must be strictly increasing", check.ID)
 			}
-			maxVersion = v
+			maxVersion = c.MinimumVersion
 		}
 	}
 	return nil
@@ -117,7 +113,7 @@ func validateChecks(checks []Check) error {
 func populate(r *checkRegistry, validChecks []Check) {
 	// Find the max(MinimumVersion) across all checks.
 	for _, c := range validChecks {
-		lastVersion, _ := api.ParseVersion(c.Versions[len(c.Versions)-1].MinimumVersion)
+		lastVersion := c.Versions[len(c.Versions)-1].MinimumVersion
 		if r.maxVersion.Older(lastVersion) {
 			r.maxVersion = lastVersion
 		}
@@ -136,15 +132,14 @@ func inflateVersions(check Check, versions map[api.Version][]CheckPodFn, maxVers
 	for i, c := range check.Versions {
 		var nextVersion api.Version
 		if i+1 < len(check.Versions) {
-			nextVersion, _ = api.ParseVersion(check.Versions[i+1].MinimumVersion)
+			nextVersion = check.Versions[i+1].MinimumVersion
 		} else {
 			// Assumes only 1 Major version.
 			nextVersion = api.MajorMinorVersion(1, maxVersion.Minor()+1)
 		}
 		// Iterate over all versions from the minimum of the current check, to the minimum of the
 		// next check, or the maxVersion++.
-		minimumVersion, _ := api.ParseVersion(c.MinimumVersion)
-		for v := minimumVersion; v.Older(nextVersion); v = api.MajorMinorVersion(1, v.Minor()+1) {
+		for v := c.MinimumVersion; v.Older(nextVersion); v = api.MajorMinorVersion(1, v.Minor()+1) {
 			versions[v] = append(versions[v], check.Versions[i].CheckPod)
 		}
 	}
