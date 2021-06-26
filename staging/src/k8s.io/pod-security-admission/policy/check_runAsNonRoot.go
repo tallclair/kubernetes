@@ -43,8 +43,8 @@ func init() {
 
 // CheckRunAsNonRoot returns a restricted level check
 // that requires runAsNonRoot=true in 1.0+
-func CheckRunAsNonRoot() LevelCheck {
-	return LevelCheck{
+func CheckRunAsNonRoot() Check {
+	return Check{
 		ID:    "runAsNonRoot",
 		Level: api.LevelRestricted,
 		Versions: []VersionedCheck{

@@ -42,8 +42,8 @@ func init() {
 
 // CheckAllowPrivilegeEscalation returns a restricted level check
 // that requires allowPrivilegeEscalation=false in 1.8+
-func CheckAllowPrivilegeEscalation() LevelCheck {
-	return LevelCheck{
+func CheckAllowPrivilegeEscalation() Check {
+	return Check{
 		ID:    "allowPrivilegeEscalation",
 		Level: api.LevelRestricted,
 		Versions: []VersionedCheck{

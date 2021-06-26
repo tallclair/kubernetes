@@ -45,7 +45,7 @@ type Options struct {
 
 	// These are the check ids/starting versions to exercise.
 	// If unset, policy.DefaultChecks() are used.
-	Checks []policy.LevelCheck
+	Checks []policy.Check
 
 	// ExemptClient is an optional client interface to exercise behavior of an exempt client.
 	ExemptClient kubernetes.Interface
@@ -63,7 +63,7 @@ func toJSON(pod *corev1.Pod) string {
 // checksForLevelAndVersion returns the set of check IDs that apply when evaluating the given level and version.
 // checks are assumed to be well-formed and valid to pass to policy.NewCheckRegistry().
 // level must be api.LevelRestricted or api.LevelBaseline
-func checksForLevelAndVersion(checks []policy.LevelCheck, level api.Level, version api.Version) ([]string, error) {
+func checksForLevelAndVersion(checks []policy.Check, level api.Level, version api.Version) ([]string, error) {
 	retval := []string{}
 	for _, check := range checks {
 		checkVersion, err := api.ParseVersion(check.Versions[0].MinimumVersion)
@@ -79,7 +79,7 @@ func checksForLevelAndVersion(checks []policy.LevelCheck, level api.Level, versi
 
 // maxMinorVersionToTest returns the maximum minor version to exercise for a given set of checks.
 // checks are assumed to be well-formed and valid to pass to policy.NewCheckRegistry().
-func maxMinorVersionToTest(checks []policy.LevelCheck) (int, error) {
+func maxMinorVersionToTest(checks []policy.Check) (int, error) {
 	// start with the release under development (1.22 at time of writing).
 	// this can be incremented to the current version whenever is convenient.
 	maxTestMinor := 22

@@ -24,7 +24,7 @@ import (
 	"k8s.io/pod-security-admission/api"
 )
 
-type LevelCheck struct {
+type Check struct {
 	// ID is the unique ID of the check.
 	ID string
 	// Level is the policy level this check belongs to.
@@ -44,10 +44,10 @@ type VersionedCheck struct {
 	// If set, must be parseable by ParseVersion() and not be "latest".
 	MinimumVersion string
 	// CheckPod determines if the pod is allowed.
-	CheckPod Check
+	CheckPod CheckPodFn
 }
 
-type Check func(*metav1.ObjectMeta, *corev1.PodSpec) CheckResult
+type CheckPodFn func(*metav1.ObjectMeta, *corev1.PodSpec) CheckResult
 
 // CheckResult contains the result of checking a pod and indicates whether the pod is allowed,
 // and if not, why it was forbidden.
@@ -141,11 +141,11 @@ func AggregateCheckResults(results []CheckResult) AggregateCheckResult {
 }
 
 var (
-	defaultChecks      []func() LevelCheck
-	experimentalChecks []func() LevelCheck
+	defaultChecks      []func() Check
+	experimentalChecks []func() Check
 )
 
-func addCheck(f func() LevelCheck) {
+func addCheck(f func() Check) {
 	// add to experimental or versioned list
 	c := f()
 	if len(c.Versions) == 1 && c.Versions[0].MinimumVersion == "" {
@@ -158,8 +158,8 @@ func addCheck(f func() LevelCheck) {
 // DefaultChecks returns checks that are expected to be enabled by default.
 // The results are mutually exclusive with ExperimentalChecks.
 // It returns a new copy of checks on each invocation and is expected to be called once at setup time.
-func DefaultChecks() []LevelCheck {
-	retval := make([]LevelCheck, 0, len(defaultChecks))
+func DefaultChecks() []Check {
+	retval := make([]Check, 0, len(defaultChecks))
 	for _, f := range defaultChecks {
 		retval = append(retval, f())
 	}
@@ -169,8 +169,8 @@ func DefaultChecks() []LevelCheck {
 // ExperimentalChecks returns checks that have not yet been assigned to policy versions.
 // The results are mutually exclusive with DefaultChecks.
 // It returns a new copy of checks on each invocation and is expected to be called once at setup time.
-func ExperimentalChecks() []LevelCheck {
-	retval := make([]LevelCheck, 0, len(experimentalChecks))
+func ExperimentalChecks() []Check {
+	retval := make([]Check, 0, len(experimentalChecks))
 	for _, f := range experimentalChecks {
 		retval = append(retval, f())
 	}

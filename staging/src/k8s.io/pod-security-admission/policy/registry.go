@@ -33,19 +33,19 @@ type Registry interface {
 // checkRegistry provides a default implementation of a Registry.
 type checkRegistry struct {
 	// The checks are a map of check_ID -> sorted slice of versioned checks, newest first
-	baselineChecks, restrictedChecks map[api.Version][]Check
+	baselineChecks, restrictedChecks map[api.Version][]CheckPodFn
 	// maxVersion is the maximum version that is cached, guaranteed to be at least
 	// the max MinimumVersion of all registered checks.
 	maxVersion api.Version
 }
 
-func NewCheckRegistry(checks []LevelCheck) (Registry, error) {
+func NewCheckRegistry(checks []Check) (Registry, error) {
 	if err := validateChecks(checks); err != nil {
 		return nil, err
 	}
 	r := &checkRegistry{
-		baselineChecks:   map[api.Version][]Check{},
-		restrictedChecks: map[api.Version][]Check{},
+		baselineChecks:   map[api.Version][]CheckPodFn{},
+		restrictedChecks: map[api.Version][]CheckPodFn{},
 	}
 	populate(r, checks)
 	return r, nil
@@ -71,7 +71,7 @@ func (r *checkRegistry) CheckPod(lv api.LevelVersion, podMetadata *metav1.Object
 	return results
 }
 
-func validateChecks(checks []LevelCheck) error {
+func validateChecks(checks []Check) error {
 	ids := map[string]bool{}
 	for _, check := range checks {
 		if ids[check.ID] {
@@ -105,7 +105,7 @@ func validateChecks(checks []LevelCheck) error {
 	return nil
 }
 
-func populate(r *checkRegistry, validChecks []LevelCheck) {
+func populate(r *checkRegistry, validChecks []Check) {
 	// Find the max(MinimumVersion) across all checks.
 	for _, c := range validChecks {
 		lastVersion, _ := api.ParseVersion(c.Versions[len(c.Versions)-1].MinimumVersion)
@@ -123,7 +123,7 @@ func populate(r *checkRegistry, validChecks []LevelCheck) {
 	}
 }
 
-func inflateVersions(check LevelCheck, versions map[api.Version][]Check, maxVersion api.Version) {
+func inflateVersions(check Check, versions map[api.Version][]CheckPodFn, maxVersion api.Version) {
 	for i, c := range check.Versions {
 		var nextVersion api.Version
 		if i+1 < len(check.Versions) {

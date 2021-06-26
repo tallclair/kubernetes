@@ -57,8 +57,8 @@ func init() {
 
 // CheckSELinux returns a baseline level check
 // that limits seLinuxOptions type, user, and role values in 1.0+
-func CheckSELinux() LevelCheck {
-	return LevelCheck{
+func CheckSELinux() Check {
+	return Check{
 		ID:    "selinux",
 		Level: api.LevelBaseline,
 		Versions: []VersionedCheck{

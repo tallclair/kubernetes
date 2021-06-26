@@ -28,7 +28,7 @@ import (
 )
 
 func TestCheckRegistry(t *testing.T) {
-	checks := []LevelCheck{
+	checks := []Check{
 		generateCheck("a", api.LevelBaseline, []string{"v1.0"}),
 		generateCheck("b", api.LevelBaseline, []string{"v1.10"}),
 		generateCheck("c", api.LevelBaseline, []string{"v1.0", "v1.5", "v1.10"}),
@@ -75,8 +75,8 @@ func TestCheckRegistry(t *testing.T) {
 	}
 }
 
-func generateCheck(id string, level api.Level, versions []string) LevelCheck {
-	c := LevelCheck{
+func generateCheck(id string, level api.Level, versions []string) Check {
+	c := Check{
 		ID:    id,
 		Level: level,
 	}
