@@ -670,6 +670,9 @@ func (r *FakeRecorder) RecordEvaluation(decision metrics.Decision, policy api.Le
 	r.evaluations = append(r.evaluations, EvaluationRecord{attrs.GetName(), decision, policy, evalMode})
 }
 
+func (r *FakeRecorder) RecordExemption(api.Attributes)   {}
+func (r *FakeRecorder) RecordError(bool, api.Attributes) {}
+
 // ExpectEvaluation asserts that the evaluation was recorded, and clears the record.
 func (r *FakeRecorder) ExpectEvaluations(t *testing.T, expected []EvaluationRecord) {
 	t.Helper()

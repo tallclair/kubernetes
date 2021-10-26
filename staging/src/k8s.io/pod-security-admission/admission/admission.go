@@ -309,6 +309,7 @@ func (a *Admission) ValidatePod(ctx context.Context, attrs api.Attributes) *admi
 	}
 	// short-circuit on exempt namespaces and users
 	if a.exemptNamespace(attrs.GetNamespace()) || a.exemptUser(attrs.GetUserName()) {
+		a.Metrics.RecordExemption(attrs)
 		return sharedAllowedResponse()
 	}
 
@@ -316,32 +317,38 @@ func (a *Admission) ValidatePod(ctx context.Context, attrs api.Attributes) *admi
 	namespace, err := a.NamespaceGetter.GetNamespace(ctx, attrs.GetNamespace())
 	if err != nil {
 		klog.ErrorS(err, "failed to fetch pod namespace", "namespace", attrs.GetNamespace())
+		a.Metrics.RecordError(true, attrs)
 		return internalErrorResponse(fmt.Sprintf("failed to lookup namespace %s", attrs.GetNamespace()))
 	}
 	nsPolicy, nsPolicyErr := a.PolicyToEvaluate(namespace.Labels)
 	if nsPolicyErr == nil && nsPolicy.Enforce.Level == api.LevelPrivileged && nsPolicy.Warn.Level == api.LevelPrivileged && nsPolicy.Audit.Level == api.LevelPrivileged {
+		a.Metrics.RecordEvaluation(metrics.DecisionAllow, nsPolicy.Enforce, metrics.ModeEnforce, attrs)
 		return sharedAllowedResponse()
 	}
 
 	obj, err := attrs.GetObject()
 	if err != nil {
 		klog.ErrorS(err, "failed to decode object")
+		a.Metrics.RecordError(true, attrs)
 		return badRequestResponse("failed to decode object")
 	}
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
 		klog.InfoS("failed to assert pod type", "type", reflect.TypeOf(obj))
+		a.Metrics.RecordError(true, attrs)
 		return badRequestResponse("failed to decode pod")
 	}
 	if attrs.GetOperation() == admissionv1.Update {
 		oldObj, err := attrs.GetOldObject()
 		if err != nil {
 			klog.ErrorS(err, "failed to decode old object")
+			a.Metrics.RecordError(true, attrs)
 			return badRequestResponse("failed to decode old object")
 		}
 		oldPod, ok := oldObj.(*corev1.Pod)
 		if !ok {
 			klog.InfoS("failed to assert old pod type", "type", reflect.TypeOf(oldObj))
+			a.Metrics.RecordError(true, attrs)
 			return badRequestResponse("failed to decode old pod")
 		}
 		if !isSignificantPodUpdate(pod, oldPod) {
@@ -349,6 +356,10 @@ func (a *Admission) ValidatePod(ctx context.Context, attrs api.Attributes) *admi
 			return sharedAllowedResponse()
 		}
 	}
+	// FIXME ///
+	a.Metrics.RecordExemption(attrs)
+	a.Metrics.RecordError(false, attrs)
+	////////////
 	return a.EvaluatePod(ctx, nsPolicy, nsPolicyErr, &pod.ObjectMeta, &pod.Spec, attrs, true)
 }
 
@@ -361,6 +372,7 @@ func (a *Admission) ValidatePodController(ctx context.Context, attrs api.Attribu
 	}
 	// short-circuit on exempt namespaces and users
 	if a.exemptNamespace(attrs.GetNamespace()) || a.exemptUser(attrs.GetUserName()) {
+		a.Metrics.RecordExemption(attrs)
 		return sharedAllowedResponse()
 	}
 
@@ -368,6 +380,7 @@ func (a *Admission) ValidatePodController(ctx context.Context, attrs api.Attribu
 	namespace, err := a.NamespaceGetter.GetNamespace(ctx, attrs.GetNamespace())
 	if err != nil {
 		klog.ErrorS(err, "failed to fetch pod namespace", "namespace", attrs.GetNamespace())
+		a.Metrics.RecordError(true, attrs)
 		return internalErrorResponse(fmt.Sprintf("failed to lookup namespace %s", attrs.GetNamespace()))
 	}
 	nsPolicy, nsPolicyErr := a.PolicyToEvaluate(namespace.Labels)
@@ -378,11 +391,13 @@ func (a *Admission) ValidatePodController(ctx context.Context, attrs api.Attribu
 	obj, err := attrs.GetObject()
 	if err != nil {
 		klog.ErrorS(err, "failed to decode object")
+		a.Metrics.RecordError(true, attrs)
 		return badRequestResponse("failed to decode object")
 	}
 	podMetadata, podSpec, err := a.PodSpecExtractor.ExtractPodSpec(obj)
 	if err != nil {
 		klog.ErrorS(err, "failed to extract pod spec")
+		a.Metrics.RecordError(true, attrs)
 		return badRequestResponse("failed to extract pod template")
 	}
 	if podMetadata == nil && podSpec == nil {
@@ -398,6 +413,7 @@ func (a *Admission) ValidatePodController(ctx context.Context, attrs api.Attribu
 func (a *Admission) EvaluatePod(ctx context.Context, nsPolicy api.Policy, nsPolicyErr error, podMetadata *metav1.ObjectMeta, podSpec *corev1.PodSpec, attrs api.Attributes, enforce bool) *admissionv1.AdmissionResponse {
 	// short-circuit on exempt runtimeclass
 	if a.exemptRuntimeClass(podSpec.RuntimeClassName) {
+		a.Metrics.RecordExemption(attrs)
 		return sharedAllowedResponse()
 	}
 
@@ -405,6 +421,7 @@ func (a *Admission) EvaluatePod(ctx context.Context, nsPolicy api.Policy, nsPoli
 	if nsPolicyErr != nil {
 		klog.V(2).InfoS("failed to parse PodSecurity namespace labels", "err", nsPolicyErr)
 		auditAnnotations["error"] = fmt.Sprintf("Failed to parse policy: %v", nsPolicyErr)
+		a.Metrics.RecordError(false, attrs)
 	}
 
 	if klog.V(5).Enabled() {

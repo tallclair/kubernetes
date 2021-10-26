@@ -340,6 +340,14 @@ func validateMetrics(t *testing.T, rawMetrics []byte) {
 
 	if err := testutil.ValidateMetrics(metrics, "pod_security_evaluations_total",
 		"decision", "policy_level", "policy_version", "mode", "request_operation", "resource", "subresource"); err != nil {
-		t.Fatalf("Metric validation failed: %v", err)
+		t.Errorf("Metric validation failed: %v", err)
+	}
+	if err := testutil.ValidateMetrics(metrics, "pod_security_exemptions_total",
+		"request_operation", "resource", "subresource"); err != nil {
+		t.Errorf("Metric validation failed: %v", err)
+	}
+	if err := testutil.ValidateMetrics(metrics, "pod_security_errors_total",
+		"request_operation", "resource", "subresource"); err != nil {
+		t.Errorf("Metric validation failed: %v", err)
 	}
 }
