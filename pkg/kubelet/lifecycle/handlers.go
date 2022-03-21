@@ -29,6 +29,7 @@ import (
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	kubetypes "k8s.io/kubernetes/pkg/kubelet/types"
 	"k8s.io/kubernetes/pkg/kubelet/util/format"
+	httpprobe "k8s.io/kubernetes/pkg/probe/http"
 	"k8s.io/kubernetes/pkg/security/apparmor"
 	utilio "k8s.io/utils/io"
 )
@@ -107,17 +108,28 @@ func resolvePort(portReference intstr.IntOrString, container *v1.Container) (int
 
 func (hr *handlerRunner) runHTTPHandler(pod *v1.Pod, container *v1.Container, handler *v1.LifecycleHandler) (string, error) {
 	host := handler.HTTPGet.Host
-	if len(host) == 0 {
-		status, err := hr.containerManager.GetPodStatus(pod.UID, pod.Name, pod.Namespace)
+	status, err := hr.containerManager.GetPodStatus(pod.UID, pod.Name, pod.Namespace)
+	if err != nil {
+		klog.ErrorS(err, "Unable to get pod info, event handlers may be invalid.")
+		return "", err
+	}
+	if len(status.IPs) == 0 && len(host) == 0 {
+		return "", fmt.Errorf("failed to find networking container: %v", status)
+	}
+	podIP := status.IPs[0]
+
+	if utilfeature.DefaultFeatureGate.Enabled(features.ConsistentHTTPGetHandlers) {
+		req, err := httpprobe.NewRequestForHTTPGetAction(handler.HTTPGet, container, podIP)
 		if err != nil {
-			klog.ErrorS(err, "Unable to get pod info, event handlers may be invalid.")
 			return "", err
 		}
-		if len(status.IPs) == 0 {
-			return "", fmt.Errorf("failed to find networking container: %v", status)
-		}
-		host = status.IPs[0]
+		resp, err := hr.httpDoer.Do(req)
+		return getHTTPRespBody(resp), err
 	}
+	if len(host) == 0 {
+		host = podIP
+	}
+	// Deprecated code path.
 	var port int
 	if handler.HTTPGet.Port.Type == intstr.String && len(handler.HTTPGet.Port.StrVal) == 0 {
 		port = 80

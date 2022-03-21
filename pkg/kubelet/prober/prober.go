@@ -19,15 +19,10 @@ package prober
 import (
 	"fmt"
 	"io"
-	"net"
 	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/tools/record"
 	kubefeatures "k8s.io/kubernetes/pkg/features"
@@ -45,7 +40,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const maxProbeRetries = 3
+const (
+	maxProbeRetries = 3
+)
 
 // Prober helps to check the liveness/readiness/startup of a container.
 type prober struct {
@@ -165,31 +162,31 @@ func (pb *prober) runProbe(probeType probeType, p *v1.Probe, pod *v1.Pod, status
 		return pb.exec.Probe(pb.newExecInContainer(container, containerID, command, timeout))
 	}
 	if p.HTTPGet != nil {
-		scheme := strings.ToLower(string(p.HTTPGet.Scheme))
-		host := p.HTTPGet.Host
-		if host == "" {
-			host = status.PodIP
-		}
-		port, err := extractPort(p.HTTPGet.Port, container)
+		req, err := httpprobe.NewRequestForHTTPGetAction(p.HTTPGet, &container, status.PodIP)
 		if err != nil {
 			return probe.Unknown, "", err
 		}
-		path := p.HTTPGet.Path
-		klog.V(4).InfoS("HTTP-Probe", "scheme", scheme, "host", host, "port", port, "path", path, "timeout", timeout)
-		url := formatURL(scheme, host, port, path)
-		headers := buildHeader(p.HTTPGet.HTTPHeaders)
-		klog.V(4).InfoS("HTTP-Probe Headers", "headers", headers)
+		if klog.V(4).Enabled() {
+			port := req.URL.Port()
+			host := req.URL.Hostname()
+			path := req.URL.Path
+			scheme := req.URL.Scheme
+			args := []interface{}{"scheme", scheme, "host", host, "port", port, "path", path, "timeout", timeout}
+			if len(p.HTTPGet.HTTPHeaders) > 0 {
+				args = append(args, "headers", p.HTTPGet.HTTPHeaders)
+			}
+		}
 		switch probeType {
 		case liveness:
-			return pb.livenessHTTP.Probe(url, headers, timeout)
+			return pb.livenessHTTP.Probe(req, timeout)
 		case startup:
-			return pb.startupHTTP.Probe(url, headers, timeout)
+			return pb.startupHTTP.Probe(req, timeout)
 		default:
-			return pb.readinessHTTP.Probe(url, headers, timeout)
+			return pb.readinessHTTP.Probe(req, timeout)
 		}
 	}
 	if p.TCPSocket != nil {
-		port, err := extractPort(p.TCPSocket.Port, container)
+		port, err := probe.ResolveContainerPort(p.TCPSocket.Port, &container)
 		if err != nil {
 			return probe.Unknown, "", err
 		}
@@ -210,52 +207,6 @@ func (pb *prober) runProbe(probeType probeType, p *v1.Probe, pod *v1.Pod, status
 
 	klog.InfoS("Failed to find probe builder for container", "containerName", container.Name)
 	return probe.Unknown, "", fmt.Errorf("missing probe handler for %s:%s", format.Pod(pod), container.Name)
-}
-
-func extractPort(param intstr.IntOrString, container v1.Container) (int, error) {
-	port := -1
-	var err error
-	switch param.Type {
-	case intstr.Int:
-		port = param.IntValue()
-	case intstr.String:
-		if port, err = findPortByName(container, param.StrVal); err != nil {
-			// Last ditch effort - maybe it was an int stored as string?
-			if port, err = strconv.Atoi(param.StrVal); err != nil {
-				return port, err
-			}
-		}
-	default:
-		return port, fmt.Errorf("intOrString had no kind: %+v", param)
-	}
-	if port > 0 && port < 65536 {
-		return port, nil
-	}
-	return port, fmt.Errorf("invalid port number: %v", port)
-}
-
-// findPortByName is a helper function to look up a port in a container by name.
-func findPortByName(container v1.Container, portName string) (int, error) {
-	for _, port := range container.Ports {
-		if port.Name == portName {
-			return int(port.ContainerPort), nil
-		}
-	}
-	return 0, fmt.Errorf("port %s not found", portName)
-}
-
-// formatURL formats a URL from args.  For testability.
-func formatURL(scheme string, host string, port int, path string) *url.URL {
-	u, err := url.Parse(path)
-	// Something is busted with the path, but it's too late to reject it. Pass it along as is.
-	if err != nil {
-		u = &url.URL{
-			Path: path,
-		}
-	}
-	u.Scheme = scheme
-	u.Host = net.JoinHostPort(host, strconv.Itoa(port))
-	return u
 }
 
 type execInContainer struct {
