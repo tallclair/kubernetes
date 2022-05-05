@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package framework
+package wait
 
 import (
 	"fmt"
@@ -31,10 +31,10 @@ import (
 
 const (
 	defaultPollPeriod = 2 * time.Second
-	defaultTimeout    = podStartTimeout
+	defaultTimeout    = 5 * time.Minute
 )
 
-type WaitOpts struct {
+type Opts struct {
 	PollPeriod time.Duration
 	Timeout    time.Duration
 
@@ -44,7 +44,7 @@ type WaitOpts struct {
 	DisableRetries bool
 }
 
-func (o *WaitOpts) complete() {
+func (o *Opts) complete() {
 	if o.PollPeriod == 0 {
 		o.PollPeriod = defaultPollPeriod
 	}
@@ -53,10 +53,10 @@ func (o *WaitOpts) complete() {
 	}
 }
 
-func WaitForObjectCondition[O runtime.Object](
+func ForObjectCondition[O any](
 	objectIdentifier string, objectFetcher func() (O, error),
 	conditionDesc string, condition func(O) (bool, error),
-	opts WaitOpts) error {
+	opts Opts) error {
 	opts.complete()
 	e2elog.Logf("Waiting up to %v for %s to be %s", opts.Timeout, objectIdentifier, conditionDesc)
 	var (
@@ -109,6 +109,48 @@ func WaitForObjectCondition[O runtime.Object](
 	}
 }
 
+type ListOpts struct {
+	Opts
+
+	// MinObjects is the minimum number of items which must be fetched to pass.
+	MinObjects int
+	// MaxObjects is the maximum number of items which must be fetched to pass.
+	// If MaxObjects is nil, then there is no maximum.
+	MaxObjects *int
+	// MinMatching is the minimum number of items which must match the condition to pass.
+	// If MinMatching is 0, then all items must match.
+	MinMatching int
+}
+
+func ForObjectsCondition[O runtime.Object](
+	listIdentifier string, objectsFetcher func() ([]O, error),
+	conditionDesc string, condition func(O) (bool, error),
+	opts ListOpts) error {
+	bulkCondition := func(objs []O) (bool, error) {
+		if len(objs) < opts.MinObjects || len(objs) < opts.MinMatching {
+			return false, nil
+		}
+		if opts.MaxObjects != nil && len(objs) > *opts.MaxObjects {
+			return false, nil
+		}
+		matching := 0
+		for _, obj := range objs {
+			if matched, err := condition(obj); err != nil {
+				return false, err
+			} else if matched {
+				matching++
+			}
+		}
+		done := matching == len(objs) ||
+			(opts.MinMatching > 0 && matching >= opts.MinMatching)
+		return done, nil
+	}
+	return ForObjectCondition(
+		listIdentifier, objectsFetcher,
+		conditionDesc, bulkCondition,
+		opts.Opts)
+}
+
 type timeoutError struct {
 	msg string
 }
@@ -134,7 +176,7 @@ func IsTimeout(err error) bool {
 }
 
 // Decide whether to retry an API request. Optionally include a delay to retry after.
-func shouldRetry(err error, opts WaitOpts) (retry bool, retryAfter time.Duration) {
+func shouldRetry(err error, opts Opts) (retry bool, retryAfter time.Duration) {
 	if opts.DisableRetries {
 		return false, 0
 	}
@@ -152,14 +194,16 @@ func shouldRetry(err error, opts WaitOpts) (retry bool, retryAfter time.Duration
 	return false, 0
 }
 
-func dumpObject(obj runtime.Object) string {
-	if _, err := meta.ListAccessor(obj); err == nil {
-		// If obj is a list type, just output the number of items rather than dumping the full list.
-		v := reflect.ValueOf(obj)
-		for ; v.Kind() == reflect.Interface || v.Kind() == reflect.Pointer; v = v.Elem() {
-		}
-		if items := v.FieldByName("Items"); items.IsValid() {
-			return fmt.Sprintf("%s with %d items", obj.GetObjectKind().GroupVersionKind().String(), items.Len())
+func dumpObject(obj any) string {
+	if t, err := meta.TypeAccessor(obj); err == nil {
+		if _, err := meta.ListAccessor(obj); err == nil {
+			// If obj is a list type, just output the number of items rather than dumping the full list.
+			v := reflect.ValueOf(obj)
+			for ; v.Kind() == reflect.Interface || v.Kind() == reflect.Pointer; v = v.Elem() {
+			}
+			if items := v.FieldByName("Items"); items.IsValid() {
+				return fmt.Sprintf("%s %s with %d items", t.GetAPIVersion(), t.GetKind(), items.Len())
+			}
 		}
 	}
 	return format.Object(obj, 1)
