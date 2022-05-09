@@ -56,7 +56,7 @@ func (o *Opts) complete() {
 func ForObjectCondition[O any](
 	objectIdentifier string, objectFetcher func() (O, error),
 	conditionDesc string, condition func(O) (bool, error),
-	opts Opts) error {
+	opts Opts) (O, error) {
 	opts.complete()
 	e2elog.Logf("Waiting up to %v for %s to be %s", opts.Timeout, objectIdentifier, conditionDesc)
 	var (
@@ -99,13 +99,13 @@ func ForObjectCondition[O any](
 		}
 		if lastFetchError != nil {
 			// If the last API call was an error, return that instead of a timeout.
-			return lastFetchError
+			return lastObj, lastFetchError
 		}
-		return TimeoutError("timed out while waiting for %s to be %s ", objectIdentifier, conditionDesc)
+		return lastObj, TimeoutError("timed out while waiting for %s to be %s ", objectIdentifier, conditionDesc)
 	} else if err != nil {
-		return fmt.Errorf("error while waiting for %s to be %s: %w", objectIdentifier, conditionDesc, err)
+		return lastObj, fmt.Errorf("error while waiting for %s to be %s: %w", objectIdentifier, conditionDesc, err)
 	} else {
-		return nil
+		return lastObj, nil
 	}
 }
 
@@ -125,7 +125,7 @@ type ListOpts struct {
 func ForObjectsCondition[O runtime.Object](
 	listIdentifier string, objectsFetcher func() ([]O, error),
 	conditionDesc string, condition func(O) (bool, error),
-	opts ListOpts) error {
+	opts ListOpts) ([]O, error) {
 	bulkCondition := func(objs []O) (bool, error) {
 		if len(objs) < opts.MinObjects || len(objs) < opts.MinMatching {
 			return false, nil
@@ -195,10 +195,10 @@ func shouldRetry(err error, opts Opts) (retry bool, retryAfter time.Duration) {
 }
 
 func dumpObject(obj any) string {
+	v := reflect.ValueOf(obj)
 	if t, err := meta.TypeAccessor(obj); err == nil {
 		if _, err := meta.ListAccessor(obj); err == nil {
 			// If obj is a list type, just output the number of items rather than dumping the full list.
-			v := reflect.ValueOf(obj)
 			for ; v.Kind() == reflect.Interface || v.Kind() == reflect.Pointer; v = v.Elem() {
 			}
 			if items := v.FieldByName("Items"); items.IsValid() {
@@ -206,5 +206,24 @@ func dumpObject(obj any) string {
 			}
 		}
 	}
+	if v.Kind() == reflect.Slice {
+		return fmt.Sprintf("slice of %s with %d items", v.Type().Elem().String(), v.Len())
+	}
 	return format.Object(obj, 1)
 }
+
+type conditionFailure struct {
+	msg string
+}
+
+func (c *conditionFailure) Error() string {
+	return c.msg
+}
+
+// ConditionFailure returns a special non-terminal error that condition functions can use to
+// self-describe why the object didn't meet the condition.
+func ConditionFailure(format string, args ...any) conditionFailure {
+	return conditionFailure{fmt.Sprintf(format, args...)}
+}
+
+// TODO!!! Implement the special condition failure logic, update the bulk version with a condition failure description (how many matched)

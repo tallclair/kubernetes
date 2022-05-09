@@ -645,7 +645,7 @@ func IsPodActive(p *v1.Pod) bool {
 }
 
 func podIdentifier(namespace, name string) string {
-	return fmt.Sprintf("%s/%s", namespace, name)
+	return fmt.Sprintf("pod %s/%s", namespace, name)
 }
 
 func identifier(pod *v1.Pod) string {
