@@ -22,9 +22,11 @@ import (
 
 	"k8s.io/apimachinery/pkg/types"
 	auditinternal "k8s.io/apiserver/pkg/apis/audit"
-	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/klog/v2"
 )
+
+// Structured logging key to use for the AuditID field.
+const AuditIDLogKey = "auditID"
 
 // The key type is unexported to prevent collisions
 type key int
@@ -162,7 +164,7 @@ func WithAuditContext(parent context.Context) context.Context {
 		return parent // Avoid double registering.
 	}
 
-	return genericapirequest.WithValue(parent, auditKey, &AuditContext{})
+	return context.WithValue(parent, auditKey, &AuditContext{})
 }
 
 // AuditEventFrom returns the audit event struct on the ctx

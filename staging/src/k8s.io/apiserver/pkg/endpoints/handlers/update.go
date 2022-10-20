@@ -117,7 +117,7 @@ func UpdateResource(r rest.Updater, scope *RequestScope, admit admission.Interfa
 			case isStrictError && obj != nil && validationDirective == metav1.FieldValidationWarn:
 				addStrictDecodingWarnings(req.Context(), strictError.Errors())
 			case isStrictError && validationDirective == metav1.FieldValidationIgnore:
-				klog.Warningf("unexpected strict error when field validation is set to ignore")
+				klog.Warningf("Unexpected strict error when field validation is set to ignore. %s=%q", audit.AuditIDLogKey, audit.GetAuditIDTruncated(ctx))
 				fallthrough
 			default:
 				err = transformDecodeError(scope.Typer, err, original, gvk, body)

@@ -70,7 +70,7 @@ func withRequestDeadline(handler http.Handler, sink audit.Sink, policy audit.Pol
 		if err != nil {
 			statusErr := apierrors.NewBadRequest(err.Error())
 
-			klog.Errorf("Error - %s: %#v", err.Error(), req.RequestURI)
+			klog.ErrorS(err, "parseTimeout error", "RequestURI", req.RequestURI, audit.AuditIDLogKey, audit.GetAuditIDTruncated(ctx))
 
 			failed := failedErrorHandler(negotiatedSerializer, statusErr)
 			failWithAudit := withFailedRequestAudit(failed, statusErr, sink, policy)
@@ -169,5 +169,5 @@ func parseTimeout(req *http.Request) (time.Duration, bool, error) {
 func handleError(w http.ResponseWriter, r *http.Request, code int, err error) {
 	errorMsg := fmt.Sprintf("Error - %s: %#v", err.Error(), r.RequestURI)
 	http.Error(w, errorMsg, code)
-	klog.Errorf(errorMsg)
+	klog.ErrorS(err, "", "RequestURI", r.RequestURI, audit.AuditIDLogKey, audit.GetAuditIDTruncated(r.Context()))
 }

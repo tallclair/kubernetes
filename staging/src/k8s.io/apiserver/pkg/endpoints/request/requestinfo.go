@@ -27,6 +27,7 @@ import (
 	metainternalversionscheme "k8s.io/apimachinery/pkg/apis/meta/internalversion/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apiserver/pkg/audit"
 
 	"k8s.io/klog/v2"
 )
@@ -211,7 +212,7 @@ func (r *RequestInfoFactory) NewRequestInfo(req *http.Request) (*RequestInfo, er
 		opts := metainternalversion.ListOptions{}
 		if err := metainternalversionscheme.ParameterCodec.DecodeParameters(req.URL.Query(), metav1.SchemeGroupVersion, &opts); err != nil {
 			// An error in parsing request will result in default to "list" and not setting "name" field.
-			klog.ErrorS(err, "Couldn't parse request", "Request", req.URL.Query())
+			klog.ErrorS(err, "Couldn't parse request", "Request", req.URL.Query(), audit.AuditIDLogKey, audit.GetAuditIDTruncated(req.Context()))
 			// Reset opts to not rely on partial results from parsing.
 			// However, if watch is set, let's report it.
 			opts = metainternalversion.ListOptions{}

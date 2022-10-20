@@ -26,6 +26,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apiserver/pkg/audit"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/endpoints/handlers/responsewriters"
 	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
@@ -60,15 +61,15 @@ func withAuthentication(handler http.Handler, auth authenticator.Request, failed
 		}()
 		if err != nil || !ok {
 			if err != nil {
-				klog.ErrorS(err, "Unable to authenticate the request")
+				klog.ErrorS(err, "Unable to authenticate the request", audit.AuditIDLogKey, audit.GetAuditIDTruncated(req.Context()))
 			}
 			failed.ServeHTTP(w, req)
 			return
 		}
 
 		if !audiencesAreAcceptable(apiAuds, resp.Audiences) {
-			err = fmt.Errorf("unable to match the audience: %v , accepted: %v", resp.Audiences, apiAuds)
-			klog.Error(err)
+			msg := fmt.Sprintf("unable to match the audience: %v , accepted: %v", resp.Audiences, apiAuds)
+			klog.ErrorS(nil, msg, audit.AuditIDLogKey, audit.GetAuditIDTruncated(req.Context()))
 			failed.ServeHTTP(w, req)
 			return
 		}

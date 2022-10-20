@@ -26,7 +26,7 @@ import (
 	"k8s.io/klog/v2"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/audit"
 	"k8s.io/apiserver/pkg/authentication/serviceaccount"
@@ -40,9 +40,10 @@ import (
 // WithImpersonation is a filter that will inspect and check requests that attempt to change the user.Info for their requests
 func WithImpersonation(handler http.Handler, a authorizer.Authorizer, s runtime.NegotiatedSerializer) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		impersonationRequests, err := buildImpersonationRequests(req.Header)
 		if err != nil {
-			klog.V(4).Infof("%v", err)
+			klog.V(4).InfoS(err.Error(), audit.AuditIDLogKey, audit.GetAuditIDTruncated(ctx))
 			responsewriters.InternalError(w, req, err)
 			return
 		}
@@ -51,7 +52,6 @@ func WithImpersonation(handler http.Handler, a authorizer.Authorizer, s runtime.
 			return
 		}
 
-		ctx := req.Context()
 		requestor, exists := request.UserFrom(ctx)
 		if !exists {
 			responsewriters.InternalError(w, req, errors.New("no user found for request"))
@@ -109,14 +109,14 @@ func WithImpersonation(handler http.Handler, a authorizer.Authorizer, s runtime.
 				actingAsAttributes.Resource = "uids"
 
 			default:
-				klog.V(4).InfoS("unknown impersonation request type", "Request", impersonationRequest)
+				klog.V(4).InfoS("unknown impersonation request type", "Request", impersonationRequest, audit.AuditIDLogKey, audit.GetAuditIDTruncated(ctx))
 				responsewriters.Forbidden(ctx, actingAsAttributes, w, req, fmt.Sprintf("unknown impersonation request type: %v", impersonationRequest), s)
 				return
 			}
 
 			decision, reason, err := a.Authorize(ctx, actingAsAttributes)
 			if err != nil || decision != authorizer.DecisionAllow {
-				klog.V(4).InfoS("Forbidden", "URI", req.RequestURI, "Reason", reason, "Error", err)
+				klog.V(4).InfoS("Forbidden", "URI", req.RequestURI, "Reason", reason, "Error", err, audit.AuditIDLogKey, audit.GetAuditIDTruncated(ctx))
 				responsewriters.Forbidden(ctx, actingAsAttributes, w, req, reason, s)
 				return
 			}
