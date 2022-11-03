@@ -112,8 +112,10 @@ func TestConstructResponseWriter(t *testing.T) {
 }
 
 func TestDecorateResponseWriterWithoutChannel(t *testing.T) {
-	ev := &auditinternal.Event{}
-	actual := decorateResponseWriter(context.Background(), &responsewriter.FakeResponseWriter{}, ev, nil, nil)
+	ctx := audit.WithAuditContext(context.Background())
+	ac := audit.AuditContextFrom(ctx)
+	ev := &ac.Event
+	actual := decorateResponseWriter(ctx, &responsewriter.FakeResponseWriter{}, ev, nil, ac)
 
 	// write status. This will not block because firstEventSentCh is nil
 	actual.WriteHeader(42)
@@ -126,8 +128,10 @@ func TestDecorateResponseWriterWithoutChannel(t *testing.T) {
 }
 
 func TestDecorateResponseWriterWithImplicitWrite(t *testing.T) {
-	ev := &auditinternal.Event{}
-	actual := decorateResponseWriter(context.Background(), &responsewriter.FakeResponseWriter{}, ev, nil, nil)
+	ctx := audit.WithAuditContext(context.Background())
+	ac := audit.AuditContextFrom(ctx)
+	ev := &ac.Event
+	actual := decorateResponseWriter(ctx, &responsewriter.FakeResponseWriter{}, ev, nil, ac)
 
 	// write status. This will not block because firstEventSentCh is nil
 	actual.Write([]byte("foo"))
@@ -141,8 +145,10 @@ func TestDecorateResponseWriterWithImplicitWrite(t *testing.T) {
 
 func TestDecorateResponseWriterChannel(t *testing.T) {
 	sink := &fakeAuditSink{}
-	ev := &auditinternal.Event{}
-	actual := decorateResponseWriter(context.Background(), &responsewriter.FakeResponseWriter{}, ev, sink, nil)
+	ctx := audit.WithAuditContext(context.Background())
+	ac := audit.AuditContextFrom(ctx)
+	ev := &ac.Event
+	actual := decorateResponseWriter(ctx, &responsewriter.FakeResponseWriter{}, ev, sink, ac)
 
 	done := make(chan struct{})
 	go func() {

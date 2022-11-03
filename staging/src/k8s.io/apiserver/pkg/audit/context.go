@@ -35,8 +35,8 @@ const auditKey key = iota
 
 // AuditContext holds the information for constructing the audit events for the current request.
 type AuditContext struct {
-	// RequestAuditConfig is the audit configuration that applies to the request
-	RequestAuditConfig RequestAuditConfig
+	// config is the audit configuration that applies to the request
+	config RequestAuditConfig
 
 	// Event is the audit Event object that is being captured to be written in
 	// the API audit log.
@@ -48,7 +48,22 @@ type AuditContext struct {
 
 // Enabled checks whether auditing is enabled for this audit context.
 func (ac *AuditContext) Enabled() bool {
-	return ac != nil && ac.Event.Level != auditinternal.LevelNone
+	return ac != nil && ac.config.Level != auditinternal.LevelNone
+}
+
+// StageEnabled checks whether the given audit stage should be logged.
+func (ac *AuditContext) StageEnabled(stage auditinternal.Stage) bool {
+	for _, omit := range ac.config.OmitStages {
+		if omit == stage {
+			return false
+		}
+	}
+	return true
+}
+
+func (ac *AuditContext) SetRequestAuditConfig(config RequestAuditConfig) {
+	ac.config = config
+	ac.Event.Level = config.Level
 }
 
 // AddAuditAnnotation sets the audit annotation for the given key, value pair.

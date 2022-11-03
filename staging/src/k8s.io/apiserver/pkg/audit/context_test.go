@@ -85,6 +85,6 @@ func TestAddAuditAnnotation(t *testing.T) {
 func withAuditContextAndLevel(ctx context.Context, l auditinternal.Level) context.Context {
 	ctx = WithAuditContext(ctx)
 	ac := AuditContextFrom(ctx)
-	ac.Event.Level = l
+	ac.SetRequestAuditConfig(RequestAuditConfig{Level: l})
 	return ctx
 }

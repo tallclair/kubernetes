@@ -58,10 +58,8 @@ func WithAudit(handler http.Handler, sink audit.Sink, policy audit.PolicyRuleEva
 		ev := &ac.Event
 
 		ctx := req.Context()
-		omitStages := ac.RequestAuditConfig.OmitStages
-
 		ev.Stage = auditinternal.StageRequestReceived
-		if processed := processAuditEvent(ctx, sink, ev, omitStages); !processed {
+		if processed := processAuditEvent(ctx, sink, ev, ac); !processed {
 			audit.ApiserverAuditDroppedCounter.WithContext(ctx).Inc()
 			responsewriters.InternalError(w, req, errors.New("failed to store audit event"))
 			return
@@ -75,7 +73,7 @@ func WithAudit(handler http.Handler, sink audit.Sink, policy audit.PolicyRuleEva
 				longRunningSink = sink
 			}
 		}
-		respWriter := decorateResponseWriter(ctx, w, ev, longRunningSink, omitStages)
+		respWriter := decorateResponseWriter(ctx, w, ev, longRunningSink, ac)
 
 		// send audit event when we leave this func, either via a panic or cleanly. In the case of long
 		// running requests, this will be the second audit event.
@@ -89,7 +87,7 @@ func WithAudit(handler http.Handler, sink audit.Sink, policy audit.PolicyRuleEva
 					Reason:  metav1.StatusReasonInternalError,
 					Message: fmt.Sprintf("APIServer panic'd: %v", r),
 				}
-				processAuditEvent(ctx, sink, ev, omitStages)
+				processAuditEvent(ctx, sink, ev, ac)
 				return
 			}
 
@@ -103,14 +101,14 @@ func WithAudit(handler http.Handler, sink audit.Sink, policy audit.PolicyRuleEva
 			if ev.ResponseStatus == nil && longRunningSink != nil {
 				ev.ResponseStatus = fakedSuccessStatus
 				ev.Stage = auditinternal.StageResponseStarted
-				processAuditEvent(ctx, longRunningSink, ev, omitStages)
+				processAuditEvent(ctx, longRunningSink, ev, ac)
 			}
 
 			ev.Stage = auditinternal.StageResponseComplete
 			if ev.ResponseStatus == nil {
 				ev.ResponseStatus = fakedSuccessStatus
 			}
-			processAuditEvent(ctx, sink, ev, omitStages)
+			processAuditEvent(ctx, sink, ev, ac)
 		}()
 		handler.ServeHTTP(respWriter, req)
 	})
@@ -132,11 +130,10 @@ func evaluatePolicyAndCreateAuditEvent(req *http.Request, policy audit.PolicyRul
 		return ac, fmt.Errorf("failed to GetAuthorizerAttributes: %v", err)
 	}
 
-	rac := policy.EvaluatePolicyRule(attribs)
-	audit.ObservePolicyLevel(ctx, rac.Level)
-	ac.RequestAuditConfig = rac
-	ac.Event.Level = rac.Level
-	if rac.Level == auditinternal.LevelNone {
+	config := policy.EvaluatePolicyRule(attribs)
+	audit.ObservePolicyLevel(ctx, config.Level)
+	ac.SetRequestAuditConfig(config)
+	if config.Level == auditinternal.LevelNone {
 		// Don't audit.
 		return ac, nil
 	}
@@ -145,7 +142,7 @@ func evaluatePolicyAndCreateAuditEvent(req *http.Request, policy audit.PolicyRul
 	if !ok {
 		requestReceivedTimestamp = time.Now()
 	}
-	audit.LogRequestMetadata(ctx, req, requestReceivedTimestamp, rac.Level, attribs)
+	audit.LogRequestMetadata(ctx, req, requestReceivedTimestamp, attribs)
 
 	return ac, nil
 }
@@ -177,11 +174,9 @@ func writeLatencyToAnnotation(ctx context.Context, ev *auditinternal.Event) {
 	audit.AddAuditAnnotationsMap(ctx, layerLatencies)
 }
 
-func processAuditEvent(ctx context.Context, sink audit.Sink, ev *auditinternal.Event, omitStages []auditinternal.Stage) bool {
-	for _, stage := range omitStages {
-		if ev.Stage == stage {
-			return true
-		}
+func processAuditEvent(ctx context.Context, sink audit.Sink, ev *auditinternal.Event, ac *audit.AuditContext) bool {
+	if !ac.StageEnabled(ev.Stage) {
+		return true
 	}
 
 	switch {
@@ -198,13 +193,13 @@ func processAuditEvent(ctx context.Context, sink audit.Sink, ev *auditinternal.E
 	return sink.ProcessEvents(ev)
 }
 
-func decorateResponseWriter(ctx context.Context, responseWriter http.ResponseWriter, ev *auditinternal.Event, sink audit.Sink, omitStages []auditinternal.Stage) http.ResponseWriter {
+func decorateResponseWriter(ctx context.Context, responseWriter http.ResponseWriter, ev *auditinternal.Event, sink audit.Sink, ac *audit.AuditContext) http.ResponseWriter {
 	delegate := &auditResponseWriter{
 		ctx:            ctx,
 		ResponseWriter: responseWriter,
 		event:          ev,
 		sink:           sink,
-		omitStages:     omitStages,
+		ac:             ac,
 	}
 
 	return responsewriter.WrapForHTTP1Or2(delegate)
@@ -217,11 +212,11 @@ var _ responsewriter.UserProvidedDecorator = &auditResponseWriter{}
 // create immediately an event (for long running requests).
 type auditResponseWriter struct {
 	http.ResponseWriter
-	ctx        context.Context
-	event      *auditinternal.Event
-	once       sync.Once
-	sink       audit.Sink
-	omitStages []auditinternal.Stage
+	ctx   context.Context
+	event *auditinternal.Event
+	once  sync.Once
+	sink  audit.Sink
+	ac    *audit.AuditContext
 }
 
 func (a *auditResponseWriter) Unwrap() http.ResponseWriter {
@@ -237,7 +232,7 @@ func (a *auditResponseWriter) processCode(code int) {
 		a.event.Stage = auditinternal.StageResponseStarted
 
 		if a.sink != nil {
-			processAuditEvent(a.ctx, a.sink, a.event, a.omitStages)
+			processAuditEvent(a.ctx, a.sink, a.event, a.ac)
 		}
 	})
 }

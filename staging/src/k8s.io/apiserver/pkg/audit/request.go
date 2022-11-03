@@ -43,7 +43,7 @@ const (
 	userAgentTruncateSuffix = "...TRUNCATED"
 )
 
-func LogRequestMetadata(ctx context.Context, req *http.Request, requestReceivedTimestamp time.Time, level auditinternal.Level, attribs authorizer.Attributes) {
+func LogRequestMetadata(ctx context.Context, req *http.Request, requestReceivedTimestamp time.Time, attribs authorizer.Attributes) {
 	ac := AuditContextFrom(ctx)
 	if !ac.Enabled() {
 		return
@@ -54,7 +54,6 @@ func LogRequestMetadata(ctx context.Context, req *http.Request, requestReceivedT
 	ev.Verb = attribs.GetVerb()
 	ev.RequestURI = req.URL.RequestURI()
 	ev.UserAgent = maybeTruncateUserAgent(req)
-	ev.Level = level
 
 	auditID, found := AuditIDFrom(req.Context())
 	if !found {
@@ -109,10 +108,11 @@ func LogImpersonatedUser(ae *auditinternal.Event, user user.Info) {
 // LogRequestObject fills in the request object into an audit event. The passed runtime.Object
 // will be converted to the given gv.
 func LogRequestObject(ctx context.Context, obj runtime.Object, objGV schema.GroupVersion, gvr schema.GroupVersionResource, subresource string, s runtime.NegotiatedSerializer) {
-	ae := AuditEventFrom(ctx)
-	if ae == nil || ae.Level.Less(auditinternal.LevelMetadata) {
+	ac := AuditContextFrom(ctx)
+	if !ac.Enabled() {
 		return
 	}
+	ae := &ac.Event
 
 	// complete ObjectRef
 	if ae.ObjectRef == nil {
@@ -149,7 +149,7 @@ func LogRequestObject(ctx context.Context, obj runtime.Object, objGV schema.Grou
 		return
 	}
 
-	if shouldOmitManagedFields(ctx) {
+	if ac.config.OmitManagedFields {
 		copy, ok, err := copyWithoutManagedFields(obj)
 		if err != nil {
 			klog.ErrorS(err, "Error while dropping managed fields from the request", "auditID", ae.AuditID)
@@ -185,10 +185,12 @@ func LogRequestPatch(ctx context.Context, patch []byte) {
 // LogResponseObject fills in the response object into an audit event. The passed runtime.Object
 // will be converted to the given gv.
 func LogResponseObject(ctx context.Context, obj runtime.Object, gv schema.GroupVersion, s runtime.NegotiatedSerializer) {
-	ae := AuditEventFrom(ctx)
-	if ae == nil || ae.Level.Less(auditinternal.LevelMetadata) {
+	ac := AuditContextFrom(ctx)
+	if !ac.Enabled() {
 		return
 	}
+	ae := &ac.Event
+
 	if status, ok := obj.(*metav1.Status); ok {
 		// selectively copy the bounded fields.
 		ae.ResponseStatus = &metav1.Status{
@@ -204,7 +206,7 @@ func LogResponseObject(ctx context.Context, obj runtime.Object, gv schema.GroupV
 		return
 	}
 
-	if shouldOmitManagedFields(ctx) {
+	if ac.config.OmitManagedFields {
 		copy, ok, err := copyWithoutManagedFields(obj)
 		if err != nil {
 			klog.ErrorS(err, "Error while dropping managed fields from the response", "auditID", ae.AuditID)
@@ -308,14 +310,4 @@ func removeManagedFields(obj runtime.Object) error {
 	}
 	accessor.SetManagedFields(nil)
 	return nil
-}
-
-func shouldOmitManagedFields(ctx context.Context) bool {
-	if auditContext := AuditContextFrom(ctx); auditContext != nil {
-		return auditContext.RequestAuditConfig.OmitManagedFields
-	}
-
-	// If we can't decide, return false to maintain current behavior which is
-	// to retain the manage fields in the audit.
-	return false
 }
