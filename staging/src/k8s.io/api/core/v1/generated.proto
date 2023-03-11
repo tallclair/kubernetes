@@ -1039,7 +1039,7 @@ message EmptyDirVolumeSource {
   // The maximum usage on memory medium EmptyDir would be the minimum value between
   // the SizeLimit specified here and the sum of memory limits of all containers in a pod.
   // The default is nil which means that the limit is undefined.
-  // More info: http://kubernetes.io/docs/user-guide/volumes#emptydir
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir
   // +optional
   optional k8s.io.apimachinery.pkg.api.resource.Quantity sizeLimit = 2;
 }
@@ -3923,7 +3923,7 @@ message PodStatus {
 
   // The Quality of Service (QOS) classification assigned to the pod based on resource requirements
   // See PodQOSClass type for available QOS classes
-  // More info: https://git.k8s.io/community/contributors/design-proposals/node/resource-qos.md
+  // More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/
   // +optional
   optional string qosClass = 9;
 
