@@ -36,6 +36,7 @@ type Aggregate interface {
 	error
 	Errors() []error
 	Is(error) bool
+	Unwrap() []error
 }
 
 // NewAggregate converts a slice of errors into an Aggregate interface, which
@@ -126,6 +127,11 @@ func (agg aggregate) visit(f func(err error) bool) bool {
 // Errors is part of the Aggregate interface.
 func (agg aggregate) Errors() []error {
 	return []error(agg)
+}
+
+// Unwrap implements the standard library's implicit interface for wrapped errors.
+func (agg aggregate) Unwrap() []error {
+	return agg.Errors()
 }
 
 // Matcher is used to match errors.  Returns true if the error matches.

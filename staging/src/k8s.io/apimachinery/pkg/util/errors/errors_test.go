@@ -499,6 +499,55 @@ func TestAggregateWithErrorsIs(t *testing.T) {
 	}
 }
 
+func TestAggregateWithErrorsAs(t *testing.T) {
+	testCases := []struct {
+		name        string
+		err         error
+		expectMatch bool
+		expectMsg   string
+	}{
+		{
+			name: "no match",
+			err:  aggregate{errors.New("my-error"), errors.New("my-other-error")},
+		},
+		{
+			name: "no match via .Is()",
+			err:  aggregate{errors.New("forbidden"), alwaysMatchingError{}},
+		},
+		{
+			name:        "match via type",
+			err:         aggregate{errors.New("err"), someError{"match via type"}},
+			expectMatch: true,
+			expectMsg:   "match via type",
+		},
+		{
+			name:        "match via nested aggregate",
+			err:         aggregate{errors.New("closed today"), aggregate{aggregate{someError{"match via nested"}}}},
+			expectMatch: true,
+			expectMsg:   "match via nested",
+		},
+		{
+			name:        "match via wrapped aggregate",
+			err:         fmt.Errorf("wrap: %w", aggregate{errors.New("err"), someError{"match via wrapped"}}),
+			expectMatch: true,
+			expectMsg:   "match via wrapped",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var asErr someError
+			result := errors.As(tc.err, &asErr)
+			if result != tc.expectMatch {
+				t.Errorf("expected match: %t, got match: %t", tc.expectMatch, result)
+			} else if result && asErr.Error() != tc.expectMsg {
+				t.Errorf("expected matched error: %q, got: %q", tc.expectMsg, asErr.Error())
+			}
+		})
+	}
+
+}
+
 type accessTrackingError struct {
 	wasAccessed bool
 }
