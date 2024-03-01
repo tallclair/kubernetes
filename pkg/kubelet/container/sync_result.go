@@ -19,14 +19,12 @@ package container
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 
 // TODO(random-liu): We need to better organize runtime errors for introspection.
-
-// ErrCrashLoopBackOff returned when a container Terminated and Kubelet is backing off the restart.
-var ErrCrashLoopBackOff = errors.New("CrashLoopBackOff")
 
 var (
 	// ErrContainerNotFound returned when a container in the given pod with the
@@ -46,6 +44,51 @@ var (
 	// ErrKillPodSandbox returned when runtime failed to stop pod's sandbox.
 	ErrKillPodSandbox = errors.New("KillPodSandboxError")
 )
+
+type BackoffError struct {
+	err         error
+	backoffTime time.Time
+}
+
+func NewBackoffError(err error, backoff time.Time) *BackoffError {
+	return &BackoffError{
+		err:         err,
+		backoffTime: backoff,
+	}
+}
+
+func (e *BackoffError) Error() string {
+	return e.err.Error()
+}
+
+func (e *BackoffError) BackoffTime() time.Time {
+	return e.backoffTime
+}
+
+// MinBackoff recursively
+func MinBackoff(err error) (time.Time, bool) {
+	switch x := err.(type) {
+	case *BackoffError:
+		return x.BackoffTime(), true
+	case utilerrors.Aggregate:
+		var min time.Time
+		found := false
+		for _, e := range x.Errors() {
+			if backoff, ok := MinBackoff(e); ok {
+				if !found || backoff.Before(min) {
+					min = backoff
+					found = true
+				}
+			}
+		}
+		return min, found
+	default:
+		if e := errors.Unwrap(err); e != nil {
+			return MinBackoff(e)
+		}
+		return time.Time{}, false
+	}
+}
 
 // SyncAction indicates different kind of actions in SyncPod() and KillPod(). Now there are only actions
 // about start/kill container and setup/teardown network.

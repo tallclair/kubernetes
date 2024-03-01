@@ -49,7 +49,9 @@ import (
 	"k8s.io/kubernetes/pkg/features"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	containertest "k8s.io/kubernetes/pkg/kubelet/container/testing"
+	runtimeutil "k8s.io/kubernetes/pkg/kubelet/kuberuntime/util"
 	proberesults "k8s.io/kubernetes/pkg/kubelet/prober/results"
+	testingclock "k8s.io/utils/clock/testing"
 )
 
 var (
@@ -650,6 +652,81 @@ func TestSyncPod(t *testing.T) {
 	for _, c := range fakeRuntime.Containers {
 		assert.Equal(t, runtimeapi.ContainerState_CONTAINER_RUNNING, c.State)
 	}
+}
+
+func TestSyncPodBackoff(t *testing.T) {
+	_, _, m, err := createTestRuntimeManager()
+	assert.NoError(t, err)
+
+	containers := []v1.Container{
+		{
+			Name:            "foo",
+			Image:           "busybox",
+			ImagePullPolicy: v1.PullIfNotPresent,
+		},
+	}
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "12345678",
+			Name:      "foo",
+			Namespace: "default",
+		},
+		Spec: v1.PodSpec{
+			Containers: containers,
+		},
+	}
+
+	clock := testingclock.NewFakeClock(time.Now())
+	containerStatus := &kubecontainer.Status{
+		Name:       "foo",
+		State:      kubecontainer.ContainerStateExited,
+		FinishedAt: clock.Now(),
+	}
+	status := kubecontainer.PodStatus{
+		SandboxStatuses: []*runtimeapi.PodSandboxStatus{{
+			Id: "12345",
+			Metadata: &runtimeapi.PodSandboxMetadata{
+				Attempt: 0,
+			},
+			State: runtimeapi.PodSandboxState_SANDBOX_READY,
+			Linux: &runtimeapi.LinuxPodSandboxStatus{
+				Namespaces: &runtimeapi.Namespace{
+					Options: &runtimeapi.NamespaceOption{
+						Network: runtimeapi.NamespaceMode_POD,
+					},
+				},
+			},
+		}},
+		ContainerStatuses: []*kubecontainer.Status{containerStatus},
+	}
+	changed, _, _ := runtimeutil.PodSandboxChanged(pod, &status)
+	require.False(t, changed)
+	actions := m.computePodActions(context.Background(), pod, &status)
+	expectedActions := podActions{
+		SandboxID:         "12345",
+		ContainersToStart: []int{0},
+		ContainersToKill:  map[kubecontainer.ContainerID]containerToKillInfo{},
+	}
+	require.Equal(t, expectedActions, actions)
+
+	backOff := flowcontrol.NewFakeBackOff(time.Second, time.Minute, clock)
+	key := getStableKey(pod, &containers[0])
+	assert.False(t, backOff.IsInBackOffSince(key, containerStatus.FinishedAt), "Container never seen should not be in backoff")
+	result := m.SyncPod(context.Background(), pod, &status, []v1.Secret{}, backOff)
+	assert.NoError(t, result.Error())
+	assert.True(t, backOff.IsInBackOffSince(key, containerStatus.FinishedAt), "Container should be in backoff after sync")
+
+	result = m.SyncPod(context.Background(), pod, &status, []v1.Secret{}, backOff) // Container should be in backoff now.
+	assert.Error(t, result.Error())
+	assert.Len(t, result.SyncResults, 2)
+	assert.Equal(t, kubecontainer.ConfigPodSandbox, result.SyncResults[0].Action)
+	assert.Equal(t, kubecontainer.StartContainer, result.SyncResults[1].Action)
+	assert.Equal(t, kubecontainer.ErrCrashLoopBackOff, result.SyncResults[1].Error)
+
+	clock.Step(time.Minute)
+	assert.False(t, backOff.IsInBackOffSince(key, containerStatus.FinishedAt), "Container should be out of backoff")
+	result = m.SyncPod(context.Background(), pod, &status, []v1.Secret{}, backOff) // Container should be out of backoff.
+	assert.NoError(t, result.Error())
 }
 
 func TestSyncPodWithConvertedPodSysctls(t *testing.T) {

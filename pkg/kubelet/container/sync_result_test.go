@@ -18,7 +18,13 @@ package container
 
 import (
 	"errors"
+	"fmt"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 
 func TestPodSyncResult(t *testing.T) {
@@ -64,5 +70,58 @@ func TestPodSyncResult(t *testing.T) {
 	result.AddPodSyncResult(errResult)
 	if result.Error() == nil {
 		t.Errorf("PodSyncResult should be error: %v", result)
+	}
+}
+
+func TestMinBackoff(t *testing.T) {
+	start := time.Now()
+	backoffErr := func(d time.Duration) *BackoffError {
+		return NewBackoffError("backoff test", start.Add(d))
+	}
+	tests := []struct {
+		name          string
+		err           error
+		expectBackoff bool
+		expectMin     time.Duration
+	}{{
+		name: "no backoff",
+		err:  errors.New("unrelated error"),
+	}, {
+		name:          "simple backoff",
+		err:           backoffErr(time.Minute),
+		expectBackoff: true,
+		expectMin:     time.Minute,
+	}, {
+		name:          "wrapped backoff",
+		err:           fmt.Errorf("wrapped: %w", backoffErr(time.Minute)),
+		expectBackoff: true,
+		expectMin:     time.Minute,
+	}, {
+		name:          "aggregated backoff",
+		err:           utilerrors.NewAggregate([]error{errors.New("unrelated"), backoffErr(time.Hour), backoffErr(time.Minute), backoffErr(time.Hour)}),
+		expectBackoff: true,
+		expectMin:     time.Minute,
+	}, {
+		name: "aggregated recursive",
+		err: utilerrors.NewAggregate([]error{
+			errors.New("unrelated"),
+			utilerrors.NewAggregate([]error{
+				backoffErr(time.Hour),
+				fmt.Errorf("wrapped: %w", backoffErr(time.Minute)),
+				backoffErr(time.Hour),
+			}),
+		}),
+		expectBackoff: true,
+		expectMin:     time.Minute,
+	}}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			backoffTime, ok := MinBackoff(test.err)
+			require.Equal(t, test.expectBackoff, ok)
+			if ok {
+				actual := backoffTime.Sub(start)
+				assert.Equal(t, test.expectMin, actual)
+			}
+		})
 	}
 }
