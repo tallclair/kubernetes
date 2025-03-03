@@ -20,16 +20,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/kubernetes/pkg/kubelet/checkpointmanager"
 	"k8s.io/kubernetes/pkg/kubelet/checkpointmanager/checksum"
 )
 
 var _ checkpointmanager.Checkpoint = &Checkpoint{}
-
-type PodResourceAllocationInfo struct {
-	AllocationEntries map[string]map[string]v1.ResourceRequirements `json:"allocationEntries,omitempty"`
-}
 
 // Checkpoint represents a structure to store pod resource allocation checkpoint data
 type Checkpoint struct {

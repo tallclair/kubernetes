@@ -20,12 +20,13 @@ import (
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"
 )
 
 type stateMemory struct {
 	sync.RWMutex
-	podAllocation   PodResourceAllocation
+	podAllocation   PodResourceAllocationInfo
 	podResizeStatus PodResizeStatus
 }
 
@@ -35,7 +36,7 @@ var _ State = &stateMemory{}
 func NewStateMemory() State {
 	klog.V(2).InfoS("Initialized new in-memory state store for pod resource allocation tracking")
 	return &stateMemory{
-		podAllocation:   PodResourceAllocation{},
+		podAllocation:   PodResourceAllocationInfo{},
 		podResizeStatus: PodResizeStatus{},
 	}
 }
@@ -44,14 +45,23 @@ func (s *stateMemory) GetContainerResourceAllocation(podUID string, containerNam
 	s.RLock()
 	defer s.RUnlock()
 
-	alloc, ok := s.podAllocation[podUID][containerName]
-	return *alloc.DeepCopy(), ok
+	pod, ok := s.podAllocation.AllocationEntries[types.UID(podUID)]
+	if !ok {
+		return v1.ResourceRequirements{}, false
+	}
+
+	container, ok := pod.Containers[containerName]
+	if !ok {
+		return v1.ResourceRequirements{}, false
+	}
+
+	return *container.Resources.DeepCopy(), true
 }
 
-func (s *stateMemory) GetPodResourceAllocation() PodResourceAllocation {
+func (s *stateMemory) GetPodResourceAllocation() PodResourceAllocationInfo {
 	s.RLock()
 	defer s.RUnlock()
-	return s.podAllocation.Clone()
+	return *s.podAllocation.Clone()
 }
 
 func (s *stateMemory) GetPodResizeStatus(podUID string) v1.PodResizeStatus {
