@@ -1,5 +1,5 @@
-//go:build linux
-// +build linux
+//go:build windows
+// +build windows
 
 /*
 Copyright 2025 The Kubernetes Authors.
@@ -19,19 +19,8 @@ limitations under the License.
 
 package kuberuntime
 
-import (
-	v1 "k8s.io/api/core/v1"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
-	"k8s.io/kubernetes/pkg/features"
-	kubetypes "k8s.io/kubernetes/pkg/kubelet/types"
-)
+import v1 "k8s.io/api/core/v1"
 
-func IsInPlacePodVerticalScalingAllowed(pod *v1.Pod) (allowed bool, msg string) {
-	if !utilfeature.DefaultFeatureGate.Enabled(features.InPlacePodVerticalScaling) {
-		return false, "InPlacePodVerticalScaling is disabled"
-	}
-	if kubetypes.IsStaticPod(pod) {
-		return false, "In-place resize of static-pods is not supported"
-	}
-	return true, ""
+func (m *kubeGenericRuntimeManager) IsInPlacePodVerticalScalingAllowed(_ *v1.Pod) (allowed bool, msg string) {
+	return false, "In-place pod resize is not supported on Windows"
 }

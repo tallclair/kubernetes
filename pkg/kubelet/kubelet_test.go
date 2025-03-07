@@ -2940,6 +2940,9 @@ func TestHandlePodResourcesResize(t *testing.T) {
 				updatedPod, err := kubelet.handlePodResourcesResize(newPod, podStatus)
 				require.NoError(t, err)
 
+				resizeStatus := kubelet.statusManager.GetPodResizeStatus(newPod.UID)
+				require.Equal(t, tt.expectedResize, resizeStatus)
+
 				var updatedPodCtr v1.Container
 				if isSidecarContainer {
 					updatedPodCtr = updatedPod.Spec.InitContainers[0]
@@ -2953,9 +2956,6 @@ func TestHandlePodResourcesResize(t *testing.T) {
 				require.True(t, found, "container allocation")
 				assert.Equal(t, tt.expectedAllocatedReqs, alloc.Requests, "stored container request allocation")
 				assert.Equal(t, tt.expectedAllocatedLims, alloc.Limits, "stored container limit allocation")
-
-				resizeStatus := kubelet.statusManager.GetPodResizeStatus(newPod.UID)
-				assert.Equal(t, tt.expectedResize, resizeStatus)
 
 				isInBackoff := kubelet.backOff.IsInBackOffSince(backoffKey, now)
 				if tt.expectBackoffReset {
