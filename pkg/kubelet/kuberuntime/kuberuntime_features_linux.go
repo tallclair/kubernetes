@@ -33,5 +33,6 @@ func (m *kubeGenericRuntimeManager) IsInPlacePodVerticalScalingAllowed(pod *v1.P
 	if kubetypes.IsStaticPod(pod) {
 		return false, "In-place resize of static-pods is not supported"
 	}
+
 	return true, ""
 }
