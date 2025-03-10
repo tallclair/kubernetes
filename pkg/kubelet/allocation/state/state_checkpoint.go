@@ -76,7 +76,7 @@ func restoreState(checkpointManager checkpointmanager.CheckpointManager, checkpo
 	klog.V(2).InfoS("State checkpoint: restored pod resource allocation state from checkpoint")
 	praInfo, err := checkpoint.GetPodResourceAllocationInfo()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get pod resource allocation info: %w", err)
+		return nil, fmt.Errorf("failed to get pod resource allocation info for checkpoint %q: %w", checkpointName, err)
 	}
 
 	return praInfo, nil

@@ -17,6 +17,8 @@ limitations under the License.
 package allocation
 
 import (
+	"path/filepath"
+
 	v1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/types"
@@ -62,7 +64,7 @@ func NewManager(checkpointDirectory string) Manager {
 		stateImpl, err := state.NewStateCheckpoint(checkpointDirectory, podStatusManagerStateFile)
 		if err != nil {
 			// This is a crictical, non-recoverable failure.
-			klog.ErrorS(err, "Failed to initialize allocation checkpoint manager")
+			klog.ErrorS(err, "Failed to initialize allocation checkpoint manager", "checkpointPath", filepath.Join(checkpointDirectory, podStatusManagerStateFile))
 			panic(err)
 		}
 		m.state = stateImpl

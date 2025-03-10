@@ -429,6 +429,15 @@ func newSwapConfigurationHelper(machineInfo cadvisorv1.MachineInfo) *swapConfigu
 }
 
 func (m swapConfigurationHelper) ConfigureLimitedSwap(lcr *runtimeapi.LinuxContainerResources, pod *v1.Pod, container *v1.Container) {
+	podQos := kubeapiqos.GetPodQOS(pod)
+	containerDoesNotRequestMemory := container.Resources.Requests.Memory().IsZero() && container.Resources.Limits.Memory().IsZero()
+	memoryRequestEqualsToLimit := container.Resources.Requests.Memory().Cmp(*container.Resources.Limits.Memory()) == 0
+
+	if podQos != v1.PodQOSBurstable || containerDoesNotRequestMemory || !isCgroup2UnifiedMode() || memoryRequestEqualsToLimit {
+		m.ConfigureNoSwap(lcr)
+		return
+	}
+
 	containerMemoryRequest := container.Resources.Requests.Memory()
 	swapLimit, err := calcSwapForBurstablePods(containerMemoryRequest.Value(), int64(m.machineInfo.MemoryCapacity), int64(m.machineInfo.SwapCapacity))
 	if err != nil {
