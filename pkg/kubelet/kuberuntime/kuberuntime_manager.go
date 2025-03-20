@@ -598,16 +598,9 @@ func containerResourcesFromRequirements(requirements *v1.ResourceRequirements) c
 // computePodResizeAction determines the actions required (if any) to resize the given container.
 // Returns whether to keep (true) or restart (false) the container.
 // TODO(vibansal): Make this function to be agnostic to whether it is dealing with a restartable init container or not (i.e. remove the argument `isRestartableInitContainer`).
-func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containerIdx int, isRestartableInitContainer bool, kubeContainerStatus *kubecontainer.Status, changes *podActions) (keepContainer bool) {
+func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, container *v1.Container, kubeContainerStatus *kubecontainer.Status, changes *podActions) (keepContainer bool) {
 	if resizable, _ := IsInPlacePodVerticalScalingAllowed(pod); !resizable {
 		return true
-	}
-
-	var container v1.Container
-	if isRestartableInitContainer {
-		container = pod.Spec.InitContainers[containerIdx]
-	} else {
-		container = pod.Spec.Containers[containerIdx]
 	}
 
 	// Determine if the *running* container needs resource update by comparing v1.Spec.Resources (desired)
@@ -648,7 +641,7 @@ func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containe
 	}
 	markContainerForUpdate := func(rName v1.ResourceName, desiredValue, currentValue int64) {
 		cUpdateInfo := containerToUpdateInfo{
-			container:                 &container,
+			container:                 container,
 			kubeContainerID:           kubeContainerStatus.ID,
 			desiredContainerResources: desiredResources,
 			currentContainerResources: &currentResources,
@@ -671,7 +664,7 @@ func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containe
 		// resize policy requires this container to restart
 		changes.ContainersToKill[kubeContainerStatus.ID] = containerToKillInfo{
 			name:      kubeContainerStatus.Name,
-			container: &container,
+			container: container,
 			message:   fmt.Sprintf("Container %s resize requires restart", container.Name),
 		}
 		if isRestartableInitContainer {
