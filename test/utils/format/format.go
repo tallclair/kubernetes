@@ -28,6 +28,8 @@ import (
 
 	"github.com/onsi/gomega/format"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+	runtime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/yaml"
 )
 
@@ -39,6 +41,101 @@ func init() {
 // package.
 func Object(object interface{}, indentation uint) string {
 	return format.Object(object, indentation)
+}
+
+// KObject pretty-prints a Kubernetes object according to the provided options.
+// If no options are provided, the default set of options are used.
+func KObject[T any, PT interface{ *T }](object T, opts ...Option) string {
+	o := makeOptions(opts...)
+
+	if _, ok := any(object).(runtime.Object); ok { // If T implements runtime.Object
+		object = processOptions(any(object).(runtime.Object), o).(T)
+	} else if _, ok := any(object).(runtime.Object); ok { // If *T implements runtime.Object
+		object = *(processOptions(any(&object).(runtime.Object), o).(PT))
+	}
+	return Object(object, o.indentation)
+}
+
+// KObjects works just like KObject, but for slices of Kubernetes objects.
+func KObjects[T any, PT interface{ *T }](objects []T, opts ...Option) string {
+	o := makeOptions(opts...)
+
+	var t T
+	if _, ok := any(t).(runtime.Object); ok { // If T implements runtime.Object
+		for i, obj := range objects {
+			objects[i] = processOptions(any(obj).(runtime.Object), o).(T)
+		}
+	} else if _, ok := any(&t).(runtime.Object); ok { // If *T implements runtime.Object
+		for i := range objects {
+			objects[i] = *(processOptions(any(&objects[i]).(runtime.Object), o).(PT))
+		}
+	}
+	return Object(objects, o.indentation)
+}
+
+func makeOptions(opts ...Option) *options {
+	if len(opts) == 0 {
+		opts = defaultOpts
+	}
+
+	o := &options{}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
+}
+
+func processOptions[T runtime.Object](object T, o *options) T {
+	for _, filter := range o.filters {
+		object = filter(runtime.Object(object)).(T)
+	}
+	return object
+}
+
+type Option func(*options)
+type options struct {
+	indentation uint
+	filters     []func(runtime.Object) runtime.Object
+}
+
+var defaultOpts = []Option{
+	Indentation(1),
+	SuppressManagedFields(),
+}
+
+func Indentation(indentation uint) Option {
+	return func(o *options) {
+		o.indentation = indentation
+	}
+}
+
+func SuppressManagedFields() Option {
+	return func(o *options) {
+		o.filters = append(o.filters, suppressManagedFields)
+	}
+}
+
+func suppressManagedFields(obj runtime.Object) runtime.Object {
+	if meta.IsListType(obj) {
+		obj = obj.DeepCopyObject()
+		_ = meta.EachListItem(obj, func(item runtime.Object) error {
+			omitManagedFields(item)
+			return nil
+		})
+	} else if _, err := meta.Accessor(obj); err == nil {
+		obj = omitManagedFields(obj.DeepCopyObject())
+	}
+	return obj
+}
+
+func omitManagedFields(o runtime.Object) runtime.Object {
+	a, err := meta.Accessor(o)
+	if err != nil {
+		// The object is not a `metav1.Object`, ignore it.
+		return o
+	}
+	a.SetManagedFields(nil)
+	return o
 }
 
 // handleYAML formats all values as YAML where the result

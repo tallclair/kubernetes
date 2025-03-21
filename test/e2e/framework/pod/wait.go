@@ -75,7 +75,7 @@ func BeRunningNoRetries() types.GomegaMatcher {
 		gcustom.MakeMatcher(func(pod *v1.Pod) (bool, error) {
 			switch pod.Status.Phase {
 			case v1.PodFailed, v1.PodSucceeded:
-				return false, gomega.StopTrying(fmt.Sprintf("Expected pod to reach phase %q, got final phase %q instead:\n%s", v1.PodRunning, pod.Status.Phase, format.Object(pod, 1)))
+				return false, gomega.StopTrying(fmt.Sprintf("Expected pod to reach phase %q, got final phase %q instead:\n%s", v1.PodRunning, pod.Status.Phase, format.KObject(pod)))
 			default:
 				return true, nil
 			}
@@ -93,7 +93,7 @@ func BeRunningReadyNoRetries() types.GomegaMatcher {
 		gcustom.MakeMatcher(func(pod *v1.Pod) (bool, error) {
 			switch pod.Status.Phase {
 			case v1.PodFailed, v1.PodSucceeded:
-				return false, gomega.StopTrying(fmt.Sprintf("Expected pod to reach phase %q, got final phase %q instead:\n%s", v1.PodRunning, pod.Status.Phase, format.Object(pod, 1)))
+				return false, gomega.StopTrying(fmt.Sprintf("Expected pod to reach phase %q, got final phase %q instead:\n%s", v1.PodRunning, pod.Status.Phase, format.KObject(pod)))
 			default:
 				return true, nil
 			}
@@ -223,10 +223,10 @@ func WaitForAlmostAllPodsReady(ctx context.Context, c clientset.Interface, ns st
 				buffer.WriteString(fmt.Sprintf("Pods that completed successfully:\n%s", format.Object(succeededPods, 1)))
 			}
 			if len(badPods) > 0 {
-				buffer.WriteString(fmt.Sprintf("Pods that failed and were not controlled by some controller:\n%s", format.Object(badPods, 1)))
+				buffer.WriteString(fmt.Sprintf("Pods that failed and were not controlled by some controller:\n%s", format.KObjects(badPods)))
 			}
 			if len(otherPods) > 0 {
-				buffer.WriteString(fmt.Sprintf("Pods that were neither completed nor running:\n%s", format.Object(otherPods, 1)))
+				buffer.WriteString(fmt.Sprintf("Pods that were neither completed nor running:\n%s", format.KObjects(otherPods)))
 			}
 			return buffer.String()
 		}, nil
@@ -295,10 +295,10 @@ func WaitForPodsRunningReady(ctx context.Context, c clientset.Interface, ns stri
 				buffer.WriteString(fmt.Sprintf("Pods that completed successfully:\n%s", format.Object(succeededPods, 1)))
 			}
 			if len(badPods) > 0 {
-				buffer.WriteString(fmt.Sprintf("Pods that failed and were not controlled by some controller:\n%s", format.Object(badPods, 1)))
+				buffer.WriteString(fmt.Sprintf("Pods that failed and were not controlled by some controller:\n%s", format.KObjects(badPods)))
 			}
 			if len(otherPods) > 0 {
-				buffer.WriteString(fmt.Sprintf("Pods that were neither completed nor running:\n%s", format.Object(otherPods, 1)))
+				buffer.WriteString(fmt.Sprintf("Pods that were neither completed nor running:\n%s", format.KObjects(otherPods)))
 			}
 			return buffer.String()
 		}, nil
@@ -321,7 +321,7 @@ func WaitForPodCondition(ctx context.Context, c clientset.Interface, ns, podName
 				return nil, nil
 			}
 			return func() string {
-				return fmt.Sprintf("expected pod to be %s, got instead:\n%s", conditionDesc, format.Object(pod, 1))
+				return fmt.Sprintf("expected pod to be %s, got instead:\n%s", conditionDesc, format.KObject(pod))
 			}, nil
 		}))
 }
@@ -421,28 +421,28 @@ func WaitForPods(ctx context.Context, c clientset.Interface, ns string, opts met
 			return func() string {
 				return fmt.Sprintf("expected at least %d pods to %s, %d out of %d were not:\n%s",
 					r.MinMatching, conditionDesc, len(nonMatchingPods), len(pods.Items),
-					format.Object(nonMatchingPods, 1))
+					format.KObjects(nonMatchingPods))
 			}, nil
 		}
 		if len(nonMatchingPods) > 0 && r.AllMatching {
 			return func() string {
 				return fmt.Sprintf("expected all pods to %s, %d out of %d were not:\n%s",
 					conditionDesc, len(nonMatchingPods), len(pods.Items),
-					format.Object(nonMatchingPods, 1))
+					format.KObjects(nonMatchingPods))
 			}, nil
 		}
 		if matching > r.MaxMatching && r.MaxMatching > 0 {
 			return func() string {
 				return fmt.Sprintf("expected at most %d pods to %s, %d out of %d were:\n%s",
 					r.MinMatching, conditionDesc, len(matchingPods), len(pods.Items),
-					format.Object(matchingPods, 1))
+					format.KObjects(matchingPods))
 			}, nil
 		}
 		if matching > 0 && r.NoneMatching {
 			return func() string {
 				return fmt.Sprintf("expected no pods to %s, %d out of %d were:\n%s",
 					conditionDesc, len(matchingPods), len(pods.Items),
-					format.Object(matchingPods, 1))
+					format.KObjects(matchingPods))
 			}, nil
 		}
 		return nil, nil
@@ -535,7 +535,7 @@ func WaitForPodSuccessInNamespaceTimeout(ctx context.Context, c clientset.Interf
 			ginkgo.By("Saw pod success")
 			return true, nil
 		case v1.PodFailed:
-			return true, gomega.StopTrying(fmt.Sprintf("pod %q failed with status: \n%s", podName, format.Object(pod.Status, 1)))
+			return true, gomega.StopTrying(fmt.Sprintf("pod %q failed with status: \n%s", podName, format.KObject(pod.Status)))
 		default:
 			return false, nil
 		}
@@ -696,7 +696,7 @@ func WaitForPodsResponding(ctx context.Context, c clientset.Interface, ns string
 		for _, pod := range pods.Items {
 			// Check that the replica list remains unchanged, otherwise we have problems.
 			if !isElementOf(pod.UID, currentPods) {
-				return nil, gomega.StopTrying(fmt.Sprintf("Pod with UID %s is no longer a member of the replica set. Must have been restarted for some reason.\nCurrent replica set:\n%s", pod.UID, format.Object(currentPods, 1)))
+				return nil, gomega.StopTrying(fmt.Sprintf("Pod with UID %s is no longer a member of the replica set. Must have been restarted for some reason.\nCurrent replica set:\n%s", pod.UID, format.KObject(currentPods)))
 			}
 
 			ctxUntil, cancel := context.WithTimeout(ctx, singleCallTimeout)
@@ -716,7 +716,7 @@ func WaitForPodsResponding(ctx context.Context, c clientset.Interface, ns string
 				// Gomega+Ginkgo will handle logging.
 				return nil, fmt.Errorf("controller %s: failed to Get from replica pod %s:\n%w\nPod status:\n%s",
 					controllerName, pod.Name,
-					err, format.Object(pod.Status, 1))
+					err, format.KObject(pod.Status))
 			}
 			responses = append(responses, response{podName: pod.Name, response: string(body)})
 		}
@@ -815,7 +815,7 @@ func WaitForNRestartablePods(ctx context.Context, ps *testutils.PodStore, expect
 		pods = FilterNonRestartablePods(allPods)
 		if len(pods) != expect {
 			return func() string {
-				return fmt.Sprintf("expected to find non-restartable %d pods, but found %d:\n%s", expect, len(pods), format.Object(pods, 1))
+				return fmt.Sprintf("expected to find non-restartable %d pods, but found %d:\n%s", expect, len(pods), format.KObjects(pods))
 			}, nil
 		}
 		return nil, nil
