@@ -598,7 +598,7 @@ func containerResourcesFromRequirements(requirements *v1.ResourceRequirements) c
 // computePodResizeAction determines the actions required (if any) to resize the given container.
 // Returns whether to keep (true) or restart (false) the container.
 // TODO(vibansal): Make this function to be agnostic to whether it is dealing with a restartable init container or not (i.e. remove the argument `isRestartableInitContainer`).
-func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, container *v1.Container, kubeContainerStatus *kubecontainer.Status, changes *podActions) (keepContainer bool) {
+func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, container kubecontainer.IndexedContainer, changes *podActions) (keepContainer bool) {
 	if resizable, _ := IsInPlacePodVerticalScalingAllowed(pod); !resizable {
 		return true
 	}
@@ -607,7 +607,7 @@ func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containe
 	// with v1.Status.Resources / runtime.Status.Resources (last known actual).
 	// Proceed only when kubelet has accepted the resize a.k.a v1.Spec.Resources.Requests == v1.Status.AllocatedResources.
 	// Skip if runtime containerID doesn't match pod.Status containerID (container is restarting)
-	if kubeContainerStatus.State != kubecontainer.ContainerStateRunning {
+	if container.Status == nil || container.Status.State != kubecontainer.ContainerStateRunning {
 		return true
 	}
 
@@ -641,8 +641,8 @@ func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containe
 	}
 	markContainerForUpdate := func(rName v1.ResourceName, desiredValue, currentValue int64) {
 		cUpdateInfo := containerToUpdateInfo{
-			container:                 container,
-			kubeContainerID:           kubeContainerStatus.ID,
+			container:                 container.Container,
+			kubeContainerID:           container.Status.ID,
 			desiredContainerResources: desiredResources,
 			currentContainerResources: &currentResources,
 		}
@@ -662,15 +662,15 @@ func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containe
 	resizeCPUReq, restartCPUReq := determineContainerResize(v1.ResourceCPU, desiredResources.cpuRequest, currentResources.cpuRequest)
 	if restartCPULim || restartCPUReq || restartMemLim || restartMemReq {
 		// resize policy requires this container to restart
-		changes.ContainersToKill[kubeContainerStatus.ID] = containerToKillInfo{
-			name:      kubeContainerStatus.Name,
-			container: container,
+		changes.ContainersToKill[container.Status.ID] = containerToKillInfo{
+			name:      container.Name,
+			container: container.Container,
 			message:   fmt.Sprintf("Container %s resize requires restart", container.Name),
 		}
-		if isRestartableInitContainer {
-			changes.InitContainersToStart = append(changes.InitContainersToStart, containerIdx)
+		if container.Type == kubecontainer.InitContainer {
+			changes.InitContainersToStart = append(changes.InitContainersToStart, container.Index)
 		} else {
-			changes.ContainersToStart = append(changes.ContainersToStart, containerIdx)
+			changes.ContainersToStart = append(changes.ContainersToStart, container.Index)
 		}
 		changes.UpdatePodResources = true
 		return false
@@ -889,10 +889,10 @@ func (m *kubeGenericRuntimeManager) updatePodContainerResources(pod *v1.Pod, res
 }
 
 // computePodActions checks whether the pod spec has changed and returns the changes if true.
-func (m *kubeGenericRuntimeManager) computePodActions(ctx context.Context, pod *v1.Pod, podStatus *kubecontainer.PodStatus) podActions {
+func (m *kubeGenericRuntimeManager) computePodActions(ctx context.Context, pod *kubecontainer.IndexedPod) podActions {
 	klog.V(5).InfoS("Syncing Pod", "pod", klog.KObj(pod))
 
-	createPodSandbox, attempt, sandboxID := runtimeutil.PodSandboxChanged(pod, podStatus)
+	createPodSandbox, attempt, sandboxID := runtimeutil.PodSandboxChanged(pod.Pod)
 	changes := podActions{
 		KillPod:           createPodSandbox,
 		CreateSandbox:     createPodSandbox,
@@ -904,12 +904,12 @@ func (m *kubeGenericRuntimeManager) computePodActions(ctx context.Context, pod *
 
 	// TODO: Remove handleRestartableInitContainers value with the
 	// LegacySidecarContainers feature gate.
-	handleRestartableInitContainers := types.HasRestartableInitContainer(pod) || !utilfeature.DefaultFeatureGate.Enabled(features.LegacySidecarContainers)
+	handleRestartableInitContainers := types.HasRestartableInitContainer(pod.Pod) || !utilfeature.DefaultFeatureGate.Enabled(features.LegacySidecarContainers)
 
 	// If we need to (re-)create the pod sandbox, everything will need to be
 	// killed and recreated, and init containers should be purged.
 	if createPodSandbox {
-		if !shouldRestartOnFailure(pod) && attempt != 0 && len(podStatus.ContainerStatuses) != 0 {
+		if !shouldRestartOnFailure(pod.Pod) && attempt != 0 && len(pod.Status.ContainerStatuses) != 0 {
 			// Should not restart the pod, just return.
 			// we should not create a sandbox, and just kill the pod if it is already done.
 			// if all containers are done and should not be started, there is no need to create a new sandbox.
@@ -1125,8 +1125,9 @@ func (m *kubeGenericRuntimeManager) computePodActions(ctx context.Context, pod *
 //  7. Resize running containers (if InPlacePodVerticalScaling==true)
 //  8. Create normal containers.
 func (m *kubeGenericRuntimeManager) SyncPod(ctx context.Context, pod *v1.Pod, podStatus *kubecontainer.PodStatus, pullSecrets []v1.Secret, backOff *flowcontrol.Backoff) (result kubecontainer.PodSyncResult) {
+	indexedPod := kubecontainer.IndexPod(pod, podStatus)
 	// Step 1: Compute sandbox and container changes.
-	podContainerChanges := m.computePodActions(ctx, pod, podStatus)
+	podContainerChanges := m.computePodActions(ctx, indexedPod)
 	klog.V(3).InfoS("computePodActions got for pod", "podActions", podContainerChanges, "pod", klog.KObj(pod))
 	if podContainerChanges.CreateSandbox {
 		ref, err := ref.GetReference(legacyscheme.Scheme, pod)

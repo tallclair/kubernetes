@@ -18,25 +18,71 @@ package container
 
 import (
 	v1 "k8s.io/api/core/v1"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	"k8s.io/klog/v2"
 )
 
 type IndexedPod struct {
 	*v1.Pod
 	Status *PodStatus
 
-	IndexedContainers
+	// IndexedContainers maintains the set of indexed containers, ordered as follows:
+	// init containers, main containers, ephemeral containers
+	IndexedContainers []IndexedContainer
 }
 
 type IndexedContainer struct {
 	*v1.Container
 
 	// The type of this container.
-	Type podutil.ContainerType
+	Type ContainerType
 
 	// Index is the index this container is found at in the pod spec,
 	// within the slice for the corresponding ContainerType
 	Index int
 
-	Status *ContainerStatus
+	Status *Status
+}
+
+type ContainerType int
+
+const (
+	MainContainer ContainerType = 1 << iota
+	InitContainer
+	EphemeralContainer
+)
+
+func IndexPod(pod *v1.Pod, status *PodStatus) *IndexedPod {
+	indexedPod := &IndexedPod{
+		ObjectMeta: pod.ObjectMeta,
+		Spec:       pod.Spec,
+		Status:     status,
+	}
+
+	for i := range pod.Spec.InitContainers {
+		indexedPod.IndexedContainers = append(indexedPod.IndexedContainers,
+			indexContainer(i, &pod.Spec.InitContainers[i], InitContainer, status))
+	}
+	for i := range pod.Spec.Containers {
+		indexedPod.IndexedContainers = append(indexedPod.IndexedContainers,
+			indexContainer(i, &pod.Spec.Containers[i], MainContainer, status))
+	}
+	for i := range pod.Spec.EphemeralContainers {
+		indexedPod.IndexedContainers = append(indexedPod.IndexedContainers,
+			indexContainer(i, (*v1.Container)(&pod.Spec.EphemeralContainers[i].EphemeralContainerCommon), EphemeralContainer, status))
+	}
+
+	return indexedPod
+}
+
+func indexContainer(index int, c *v1.Container, cType ContainerType, status *PodStatus) IndexedContainer {
+	return IndexedContainer{
+		Container: c,
+		Type:      cType,
+		Index:     index,
+		Status:    status.FindContainerStatusByName(c.Name),
+	}
+}
+
+func (pod *IndexedPod) Ref() klog.ObjectRef {
+	return klog.KRef(pod.Namespace, pod.Name)
 }

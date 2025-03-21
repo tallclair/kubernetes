@@ -62,8 +62,6 @@ const (
 	SetupNetwork SyncAction = "SetupNetwork"
 	// TeardownNetwork action
 	TeardownNetwork SyncAction = "TeardownNetwork"
-	// InitContainer action
-	InitContainer SyncAction = "InitContainer"
 	// CreatePodSandbox action
 	CreatePodSandbox SyncAction = "CreatePodSandbox"
 	// ConfigPodSandbox action
