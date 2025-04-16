@@ -577,13 +577,12 @@ func shouldRestartOnFailure(pod *v1.Pod) bool {
 	return pod.Spec.RestartPolicy != v1.RestartPolicyNever
 }
 
-func containerSucceeded(c *v1.Container, podStatus *kubecontainer.PodStatus) bool {
-	cStatus := podStatus.FindContainerStatusByName(c.Name)
-	if cStatus == nil {
+func containerSucceeded(c *kubecontainer.IndexedContainer) bool {
+	if c.Status == nil {
 		return false
 	}
 	// Container has exited, with an exit code of 0.
-	return cStatus.State == kubecontainer.ContainerStateExited && cStatus.ExitCode == 0
+	return c.Status.State == kubecontainer.ContainerStateExited && c.Status.ExitCode == 0
 }
 
 func containerResourcesFromRequirements(requirements *v1.ResourceRequirements) containerResources {
@@ -892,7 +891,7 @@ func (m *kubeGenericRuntimeManager) updatePodContainerResources(pod *v1.Pod, res
 func (m *kubeGenericRuntimeManager) computePodActions(ctx context.Context, pod *kubecontainer.IndexedPod) podActions {
 	klog.V(5).InfoS("Syncing Pod", "pod", klog.KObj(pod))
 
-	createPodSandbox, attempt, sandboxID := runtimeutil.PodSandboxChanged(pod.Pod)
+	createPodSandbox, attempt, sandboxID := runtimeutil.PodSandboxChanged(pod)
 	changes := podActions{
 		KillPod:           createPodSandbox,
 		CreateSandbox:     createPodSandbox,
@@ -924,11 +923,11 @@ func (m *kubeGenericRuntimeManager) computePodActions(ctx context.Context, pod *
 
 		// Get the containers to start, excluding the ones that succeeded if RestartPolicy is OnFailure.
 		var containersToStart []int
-		for idx, c := range pod.Spec.Containers {
-			if pod.Spec.RestartPolicy == v1.RestartPolicyOnFailure && containerSucceeded(&c, podStatus) {
+		for c := range pod.Containers(kubecontainer.MainContainer) {
+			if pod.Spec.RestartPolicy == v1.RestartPolicyOnFailure && containerSucceeded(c) {
 				continue
 			}
-			containersToStart = append(containersToStart, idx)
+			containersToStart = append(containersToStart, c.Index)
 		}
 
 		// We should not create a sandbox, and just kill the pod if initialization

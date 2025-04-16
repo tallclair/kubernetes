@@ -25,21 +25,21 @@ import (
 
 // PodSandboxChanged checks whether the spec of the pod is changed and returns
 // (changed, new attempt, original sandboxID if exist).
-func PodSandboxChanged(pod *v1.Pod, podStatus *kubecontainer.PodStatus) (bool, uint32, string) {
-	if len(podStatus.SandboxStatuses) == 0 {
+func PodSandboxChanged(pod *kubecontainer.IndexedPod) (bool, uint32, string) {
+	if len(pod.Status.SandboxStatuses) == 0 {
 		klog.V(2).InfoS("No sandbox for pod can be found. Need to start a new one", "pod", klog.KObj(pod))
 		return true, 0, ""
 	}
 
 	readySandboxCount := 0
-	for _, s := range podStatus.SandboxStatuses {
+	for _, s := range pod.Status.SandboxStatuses {
 		if s.State == runtimeapi.PodSandboxState_SANDBOX_READY {
 			readySandboxCount++
 		}
 	}
 
 	// Needs to create a new sandbox when readySandboxCount > 1 or the ready sandbox is not the latest one.
-	sandboxStatus := podStatus.SandboxStatuses[0]
+	sandboxStatus := pod.Status.SandboxStatuses[0]
 	if readySandboxCount > 1 {
 		klog.V(2).InfoS("Multiple sandboxes are ready for Pod. Need to reconcile them", "pod", klog.KObj(pod))
 		return true, sandboxStatus.Metadata.Attempt + 1, sandboxStatus.Id
@@ -50,13 +50,13 @@ func PodSandboxChanged(pod *v1.Pod, podStatus *kubecontainer.PodStatus) (bool, u
 	}
 
 	// Needs to create a new sandbox when network namespace changed.
-	if sandboxStatus.GetLinux().GetNamespaces().GetOptions().GetNetwork() != NetworkNamespaceForPod(pod) {
+	if sandboxStatus.GetLinux().GetNamespaces().GetOptions().GetNetwork() != NetworkNamespaceForPod(pod.Pod) {
 		klog.V(2).InfoS("Sandbox for pod has changed. Need to start a new one", "pod", klog.KObj(pod))
 		return true, sandboxStatus.Metadata.Attempt + 1, ""
 	}
 
 	// Needs to create a new sandbox when the sandbox does not have an IP address.
-	if !kubecontainer.IsHostNetworkPod(pod) && sandboxStatus.Network != nil && sandboxStatus.Network.Ip == "" {
+	if !kubecontainer.IsHostNetworkPod(pod.Pod) && sandboxStatus.Network != nil && sandboxStatus.Network.Ip == "" {
 		klog.V(2).InfoS("Sandbox for pod has no IP address. Need to start a new one", "pod", klog.KObj(pod))
 		return true, sandboxStatus.Metadata.Attempt + 1, sandboxStatus.Id
 	}

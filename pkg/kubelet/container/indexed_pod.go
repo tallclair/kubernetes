@@ -17,6 +17,8 @@ limitations under the License.
 package container
 
 import (
+	"iter"
+
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )
@@ -53,9 +55,8 @@ const (
 
 func IndexPod(pod *v1.Pod, status *PodStatus) *IndexedPod {
 	indexedPod := &IndexedPod{
-		ObjectMeta: pod.ObjectMeta,
-		Spec:       pod.Spec,
-		Status:     status,
+		Pod:    pod,
+		Status: status,
 	}
 
 	for i := range pod.Spec.InitContainers {
@@ -85,4 +86,16 @@ func indexContainer(index int, c *v1.Container, cType ContainerType, status *Pod
 
 func (pod *IndexedPod) Ref() klog.ObjectRef {
 	return klog.KRef(pod.Namespace, pod.Name)
+}
+
+func (pod *IndexedPod) Containers(typeMask ContainerType) iter.Seq2[*IndexedContainer, ContainerType] {
+	return func(yield func(*IndexedContainer, ContainerType) bool) {
+		for _, c := range pod.IndexedContainers {
+			if typeMask&c.Type != 0 {
+				if !yield(&c, c.Type) {
+					return
+				}
+			}
+		}
+	}
 }

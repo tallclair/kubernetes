@@ -965,7 +965,7 @@ func (m *kubeGenericRuntimeManager) purgeInitContainers(ctx context.Context, pod
 // point to the current container.
 // TODO: Remove this function as this is a subset of the
 // computeInitContainerActions.
-func findNextInitContainerToRun(pod *v1.Pod, podStatus *kubecontainer.PodStatus) (status *kubecontainer.Status, next *v1.Container, done bool) {
+func findNextInitContainerToRun(pod *kubecontainer.IndexedPod) (status *kubecontainer.Status, next *v1.Container, done bool) {
 	if len(pod.Spec.InitContainers) == 0 {
 		return nil, nil, true
 	}
@@ -974,10 +974,8 @@ func findNextInitContainerToRun(pod *v1.Pod, podStatus *kubecontainer.PodStatus)
 	// have been executed at some point in the past.  However, they could have been removed
 	// from the container runtime now, and if we proceed, it would appear as if they
 	// never ran and will re-execute improperly.
-	for i := range pod.Spec.Containers {
-		container := &pod.Spec.Containers[i]
-		status := podStatus.FindContainerStatusByName(container.Name)
-		if status != nil && status.State == kubecontainer.ContainerStateRunning {
+	for c := range pod.Containers(kubecontainer.MainContainer) {
+		if c.Status != nil && c.Status.State == kubecontainer.ContainerStateRunning {
 			return nil, nil, true
 		}
 	}
