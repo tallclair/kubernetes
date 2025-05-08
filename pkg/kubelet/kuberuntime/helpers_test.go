@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
@@ -107,7 +108,7 @@ func TestIsInitContainerFailed(t *testing.T) {
 	}
 }
 
-func TestStableKey(t *testing.T) {
+func TestBackoffKey(t *testing.T) {
 	container := &v1.Container{
 		Name:  "test_container",
 		Image: "foo/image:v1",
@@ -128,6 +129,88 @@ func TestStableKey(t *testing.T) {
 	container.Image = "foo/image:v2"
 	newKey := GetBackoffKey(pod, container)
 	assert.NotEqual(t, oldKey, newKey)
+}
+
+/*
+go test -run=none -bench=BenchmarkBackoffKey -benchmem -benchtime=10s ./pkg/kubelet/kuberuntime
+goos: linux
+goarch: amd64
+pkg: k8s.io/kubernetes/pkg/kubelet/kuberuntime
+cpu: 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz
+BenchmarkBackoffKey/With_Resources/GetBackoffKey-8         	 1216690	     10468 ns/op	    3249 B/op	     126 allocs/op
+BenchmarkBackoffKey/With_Resources/GetBackoffKey_string-8  	 1940754	      6130 ns/op	    3049 B/op	      52 allocs/op
+BenchmarkBackoffKey/With_Resources/GetBackoffKey_gob-8     	 1780218	      6787 ns/op	    3433 B/op	      45 allocs/op
+BenchmarkBackoffKey/With_Resources/GetBackoffKey_slice-8   	 1706151	      7158 ns/op	    2240 B/op	      36 allocs/op
+BenchmarkBackoffKey/With_Resources/GetBackoffKey_s_join-8  	 3210576	      3734 ns/op	    2112 B/op	      27 allocs/op
+BenchmarkBackoffKey/With_Resources/GetStableKey-8          	 2345047	      5191 ns/op	    1697 B/op	      99 allocs/op
+BenchmarkBackoffKey/With_Resources/GetStableKey_withRes-8  	  358801	     30617 ns/op	    8955 B/op	     613 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetBackoffKey-8         	 4697130	      2618 ns/op	    1008 B/op	      32 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetBackoffKey_string-8  	 4459772	      2845 ns/op	    1208 B/op	      34 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetBackoffKey_gob-8     	 3076393	      3820 ns/op	    1816 B/op	      27 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetBackoffKey_slice-8   	 4267401	      2757 ns/op	     560 B/op	      18 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetBackoffKey_s_join-8  	16891347	       777.8 ns/op	     432 B/op	       9 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetStableKey-8          	 2825367	      4272 ns/op	    1697 B/op	      99 allocs/op
+BenchmarkBackoffKey/Empty_Resource/GetStableKey_withRes-8  	 1000000	     11663 ns/op	    4115 B/op	     299 allocs/op
+PASS
+ok  	k8s.io/kubernetes/pkg/kubelet/kuberuntime	169.546s
+*/
+func BenchmarkBackoffKey(b *testing.B) {
+	container := &v1.Container{
+		Name:  "test_container",
+		Image: "foo/image:v1",
+		Resources: v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				v1.ResourceCPU:    resource.MustParse("100m"),
+				v1.ResourceMemory: resource.MustParse("100Mi"),
+			},
+			Requests: v1.ResourceList{
+				v1.ResourceCPU:    resource.MustParse("100m"),
+				v1.ResourceMemory: resource.MustParse("100Mi"),
+			},
+		},
+	}
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test_pod",
+			Namespace: "test_pod_namespace",
+			UID:       "53e792ec-1d6d-4750-8cd4-51ff3c31dd67",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{*container},
+		},
+	}
+
+	bench := func(keyFunc func(*v1.Pod, *v1.Container) string) func(*testing.B) {
+		return func(b *testing.B) {
+			key := keyFunc(pod.DeepCopy(), container.DeepCopy())
+			for b.Loop() {
+				if key != keyFunc(pod, container) {
+					b.Fail()
+				}
+			}
+		}
+	}
+
+	benchAll := func(b *testing.B) {
+		b.Run("GetBackoffKey", bench(GetBackoffKey))
+		b.Run("GetBackoffKey_string", bench(GetBackoffKey_string))
+		b.Run("GetBackoffKey_gob", bench(GetBackoffKey_gob))
+		b.Run("GetBackoffKey_slice", bench(GetBackoffKey_slice))
+		b.Run("GetBackoffKey_s_join", bench(GetBackoffKey_slice_join))
+		b.Run("GetStableKey", bench(GetStableKey))
+		b.Run("GetStableKey_withRes", bench(GetStableKey_withRes))
+	}
+
+	b.Run("With Resources", func(b *testing.B) {
+		benchAll(b)
+	})
+
+	b.Run("Empty Resource", func(b *testing.B) {
+		container.Resources = v1.ResourceRequirements{}
+		pod.Spec.Containers[0] = *container
+
+		benchAll(b)
+	})
 }
 
 func TestToKubeContainer(t *testing.T) {

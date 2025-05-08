@@ -18,8 +18,10 @@ package kuberuntime
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -33,6 +35,7 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/cm"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/security/apparmor"
+	hashutil "k8s.io/kubernetes/pkg/util/hash"
 )
 
 type podsByID []*kubecontainer.Pod
@@ -179,7 +182,133 @@ func isInitContainerFailed(status *kubecontainer.Status) bool {
 // (pod, container) tuple. The key should include the content of the
 // container, so that any change to the container generates a new key.
 func GetBackoffKey(pod *v1.Pod, container *v1.Container) string {
+	// backoffKey includes stable identifiers (name, namespace, uid) as well as any
+	// fields that should reset the backoff when changed.
+	type BackoffKey struct {
+		PodName       string
+		PodNamespace  string
+		PodUID        types.UID
+		ContainerName string
+
+		Image              string
+		AllocatedResources v1.ResourceRequirements
+	}
+
+	key := BackoffKey{
+		PodName:            pod.Name,
+		PodNamespace:       pod.Namespace,
+		PodUID:             pod.UID,
+		ContainerName:      container.Name,
+		Image:              container.Image,
+		AllocatedResources: container.Resources,
+	}
+
+	hash := fnv.New32a()
+	hashutil.DeepHashObject(hash, key)
+	return strconv.FormatUint(uint64(hash.Sum32()), 16)
+}
+
+// GetBackoffKey generates a key (string) to uniquely identify a
+// (pod, container) tuple. The key should include the content of the
+// container, so that any change to the container generates a new key.
+func GetBackoffKey_string(pod *v1.Pod, container *v1.Container) string {
+	// backoffKey includes stable identifiers (name, namespace, uid) as well as any
+	// fields that should reset the backoff when changed.
+	type BackoffKey struct {
+		PodName       string
+		PodNamespace  string
+		PodUID        types.UID
+		ContainerName string
+
+		Image              string
+		AllocatedResources string
+	}
+
+	key := BackoffKey{
+		PodName:            pod.Name,
+		PodNamespace:       pod.Namespace,
+		PodUID:             pod.UID,
+		ContainerName:      container.Name,
+		Image:              container.Image,
+		AllocatedResources: container.Resources.String(),
+	}
+
+	hash := fnv.New32a()
+	hashutil.DeepHashObject(hash, key)
+	return strconv.FormatUint(uint64(hash.Sum32()), 16)
+}
+
+// GetBackoffKey generates a key (string) to uniquely identify a
+// (pod, container) tuple. The key should include the content of the
+// container, so that any change to the container generates a new key.
+func GetBackoffKey_gob(pod *v1.Pod, container *v1.Container) string {
+	// backoffKey includes stable identifiers (name, namespace, uid) as well as any
+	// fields that should reset the backoff when changed.
+	type BackoffKey struct {
+		PodName       string
+		PodNamespace  string
+		PodUID        types.UID
+		ContainerName string
+
+		Image              string
+		AllocatedResources string
+	}
+
+	key := BackoffKey{
+		PodName:            pod.Name,
+		PodNamespace:       pod.Namespace,
+		PodUID:             pod.UID,
+		ContainerName:      container.Name,
+		Image:              container.Image,
+		AllocatedResources: container.Resources.String(),
+	}
+
+	hash := fnv.New32a()
+	gob.NewEncoder(hash).Encode(key)
+	return strconv.FormatUint(uint64(hash.Sum32()), 16)
+}
+
+// GetBackoffKey generates a key (string) to uniquely identify a
+// (pod, container) tuple. The key should include the content of the
+// container, so that any change to the container generates a new key.
+func GetBackoffKey_slice(pod *v1.Pod, container *v1.Container) string {
+	key := []string{
+		pod.Name,
+		pod.Namespace,
+		string(pod.UID),
+		container.Name,
+		container.Image,
+		container.Resources.String(),
+	}
+	hash := fnv.New32a()
+	fmt.Fprintf(hash, "%#v", key)
+	return strconv.FormatUint(uint64(hash.Sum32()), 16)
+}
+
+// GetBackoffKey generates a key (string) to uniquely identify a
+// (pod, container) tuple. The key should include the content of the
+// container, so that any change to the container generates a new key.
+func GetBackoffKey_slice_join(pod *v1.Pod, container *v1.Container) string {
+	key := []string{
+		pod.Name,
+		pod.Namespace,
+		string(pod.UID),
+		container.Name,
+		container.Image,
+		container.Resources.String(),
+	}
+	hash := fnv.New32a()
+	hash.Write([]byte(strings.Join(key, "/")))
+	return strconv.FormatUint(uint64(hash.Sum32()), 16)
+}
+
+func GetStableKey(pod *v1.Pod, container *v1.Container) string {
 	hash := strconv.FormatUint(kubecontainer.HashContainer(container), 16)
+	return fmt.Sprintf("%s_%s_%s_%s_%s", pod.Name, pod.Namespace, string(pod.UID), container.Name, hash)
+}
+
+func GetStableKey_withRes(pod *v1.Pod, container *v1.Container) string {
+	hash := strconv.FormatUint(kubecontainer.HashContainer_withRes(container), 16)
 	return fmt.Sprintf("%s_%s_%s_%s_%s", pod.Name, pod.Namespace, string(pod.UID), container.Name, hash)
 }
 

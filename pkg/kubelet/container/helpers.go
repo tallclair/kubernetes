@@ -118,6 +118,13 @@ func HashContainer(container *v1.Container) uint64 {
 	return uint64(hash.Sum32())
 }
 
+func HashContainer_withRes(container *v1.Container) uint64 {
+	hash := fnv.New32a()
+	containerJSON, _ := json.Marshal(pickFieldsToHash_withRes(container))
+	hashutil.DeepHashObject(hash, containerJSON)
+	return uint64(hash.Sum32())
+}
+
 // pickFieldsToHash pick fields that will affect the running status of the container for hash,
 // currently this field range only contains `image` and `name`.
 // Note: this list must be updated if ever kubelet wants to allow mutations to other fields.
@@ -125,6 +132,15 @@ func pickFieldsToHash(container *v1.Container) map[string]string {
 	retval := map[string]string{
 		"name":  container.Name,
 		"image": container.Image,
+	}
+	return retval
+}
+
+func pickFieldsToHash_withRes(container *v1.Container) map[string]string {
+	retval := map[string]string{
+		"name":      container.Name,
+		"image":     container.Image,
+		"resources": container.Resources.String(),
 	}
 	return retval
 }
