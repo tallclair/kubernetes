@@ -801,16 +801,19 @@ func (m *kubeGenericRuntimeManager) doPodResizeAction(pod *v1.Pod, podContainerC
 
 	if len(podContainerChanges.ContainersToUpdate[v1.ResourceMemory]) > 0 || podContainerChanges.UpdatePodResources {
 		if podResources.Memory != nil {
-			currentPodMemoryUsage, err := pcm.GetPodCgroupMemoryUsage(pod)
-			if err != nil {
-				klog.ErrorS(err, "GetPodCgroupMemoryUsage failed", "pod", pod.Name)
-				resizeResult.Fail(kubecontainer.ErrResizePodInPlace, err.Error())
-				return resizeResult
-			}
-			if currentPodMemoryUsage >= uint64(*podResources.Memory) {
-				klog.ErrorS(nil, "Aborting attempt to set pod memory limit less than current memory usage", "pod", pod.Name)
-				resizeResult.Fail(kubecontainer.ErrResizePodInPlace, fmt.Sprintf("aborting attempt to set pod memory limit less than current memory usage for pod %s", pod.Name))
-				return resizeResult
+			// Only check pod memory usage if the limit is decreasing.
+			if currentPodMemoryConfig == nil || *podResources.Memory < *currentPodMemoryConfig.Memory {
+				currentPodMemoryUsage, err := pcm.GetPodCgroupMemoryUsage(pod)
+				if err != nil {
+					klog.ErrorS(err, "GetPodCgroupMemoryUsage failed", "pod", pod.Name)
+					resizeResult.Fail(kubecontainer.ErrResizePodInPlace, err.Error())
+					return resizeResult
+				}
+				if currentPodMemoryUsage >= uint64(*podResources.Memory) {
+					klog.ErrorS(nil, "Aborting attempt to set pod memory limit less than current memory usage", "pod", pod.Name)
+					resizeResult.Fail(kubecontainer.ErrResizePodInPlace, fmt.Sprintf("aborting attempt to set pod memory limit less than current memory usage for pod %s", pod.Name))
+					return resizeResult
+				}
 			}
 		} else {
 			// Default pod memory limit to the current memory limit if unset to prevent it from updating.
