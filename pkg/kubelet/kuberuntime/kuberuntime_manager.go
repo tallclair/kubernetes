@@ -696,7 +696,7 @@ func (m *kubeGenericRuntimeManager) computePodResizeAction(pod *v1.Pod, containe
 	return true
 }
 
-func (m *kubeGenericRuntimeManager) doPodResizeAction(pod *v1.Pod, podContainerChanges podActions) *kubecontainer.SyncResult {
+func (m *kubeGenericRuntimeManager) doPodResizeAction(pod *v1.Pod, podStatus *kubecontainer.PodStatus, podContainerChanges podActions) *kubecontainer.SyncResult {
 	resizeResult := kubecontainer.NewSyncResult(kubecontainer.ResizePodInPlace, format.Pod(pod))
 	pcm := m.containerManager.NewPodContainerManager()
 	//TODO(vinaykul,InPlacePodVerticalScaling): Figure out best way to get enforceMemoryQoS value (parameter #4 below) in platform-agnostic way
@@ -729,39 +729,43 @@ func (m *kubeGenericRuntimeManager) doPodResizeAction(pod *v1.Pod, podContainerC
 	currentPodResources = mergeResourceConfig(currentPodResources, currentPodCPUConfig)
 
 	// Try to avoid partial resizes by checking for potential blockers before actuating any changes.
-	if len(podContainerChanges.ContainersToUpdate[v1.ResourceMemory]) > 0 || podContainerChanges.UpdatePodResources {
-		if podResources.Memory != nil {
-			// Only check pod memory usage if the limit is decreasing.
-			if currentPodMemoryConfig == nil || *podResources.Memory < *currentPodMemoryConfig.Memory {
-				currentPodMemoryUsage, err := pcm.GetPodCgroupMemoryUsage(pod)
-				if err != nil {
-					klog.ErrorS(err, "GetPodCgroupMemoryUsage failed", "pod", klog.KObj(pod))
-					resizeResult.Fail(kubecontainer.ErrResizePodInPlace, err.Error())
-					return resizeResult
-				}
-				if currentPodMemoryUsage >= uint64(*podResources.Memory) {
-					klog.ErrorS(nil, "Aborting attempt to set pod memory limit less than current memory usage", "pod", klog.KObj(pod))
-					resizeResult.Fail(kubecontainer.ErrResizePodInPlace, fmt.Sprintf("aborting attempt to set pod memory limit less than current memory usage for pod %s", pod.Name))
-					return resizeResult
-				}
-			}
-		}
-
-		for _, containerUpdate := range podContainerChanges.ContainersToUpdate[v1.ResourceMemory] {
-			desiredLimit := containerUpdate.desiredContainerResources.memoryLimit
-			currentLimit := containerUpdate.currentContainerResources.memoryLimit
-			if desiredLimit != 0 && desiredLimit < currentLimit {
-				// Container memory limit is decreasing; check usage against new limit.
-				currentUsage, err := pcm.GetContainerCgroupMemoryUsage(containerUpdate.kubeContainerID)
-				if err != nil {
-					klog.ErrorS(err, "GetContainerCgroupMemoryUsage failed",
-						"pod", klog.KObj(pod), "container", containerUpdate.container.Name, "containerID", containerUpdate.kubeContainerID)
-					resizeResult.Fail(kubecontainer.ErrResizePodInPlace, err.Error())
-					return resizeResult
-				}
-			}
-		}
+	if _, err := m.runtimeHelper.PodCPUAndMemoryStats(context.TODO(), pod, podStatus); err != nil {
+		klog.ErrorS(err, ">>>> m.runtimeHelper.PodCPUAndMemoryStats", "pod", klog.KObj(pod))
 	}
+	// if len(podContainerChanges.ContainersToUpdate[v1.ResourceMemory]) > 0 || podContainerChanges.UpdatePodResources {
+
+	// 	if podResources.Memory != nil {
+	// 		// Only check pod memory usage if the limit is decreasing.
+	// 		if currentPodMemoryConfig == nil || *podResources.Memory < *currentPodMemoryConfig.Memory {
+	// 			currentPodMemoryUsage, err := pcm.GetPodCgroupMemoryUsage(pod)
+	// 			if err != nil {
+	// 				klog.ErrorS(err, "GetPodCgroupMemoryUsage failed", "pod", klog.KObj(pod))
+	// 				resizeResult.Fail(kubecontainer.ErrResizePodInPlace, err.Error())
+	// 				return resizeResult
+	// 			}
+	// 			if currentPodMemoryUsage >= uint64(*podResources.Memory) {
+	// 				klog.ErrorS(nil, "Aborting attempt to set pod memory limit less than current memory usage", "pod", klog.KObj(pod))
+	// 				resizeResult.Fail(kubecontainer.ErrResizePodInPlace, fmt.Sprintf("aborting attempt to set pod memory limit less than current memory usage for pod %s", pod.Name))
+	// 				return resizeResult
+	// 			}
+	// 		}
+	// 	}
+
+	// 	for _, containerUpdate := range podContainerChanges.ContainersToUpdate[v1.ResourceMemory] {
+	// 		desiredLimit := containerUpdate.desiredContainerResources.memoryLimit
+	// 		currentLimit := containerUpdate.currentContainerResources.memoryLimit
+	// 		if desiredLimit != 0 && desiredLimit < currentLimit {
+	// 			// Container memory limit is decreasing; check usage against new limit.
+	// 			currentUsage, err := pcm.GetContainerCgroupMemoryUsage(containerUpdate.kubeContainerID)
+	// 			if err != nil {
+	// 				klog.ErrorS(err, "GetContainerCgroupMemoryUsage failed",
+	// 					"pod", klog.KObj(pod), "container", containerUpdate.container.Name, "containerID", containerUpdate.kubeContainerID)
+	// 				resizeResult.Fail(kubecontainer.ErrResizePodInPlace, err.Error())
+	// 				return resizeResult
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	setPodCgroupConfig := func(rName v1.ResourceName, setLimitValue bool) error {
 		var err error
@@ -1444,7 +1448,7 @@ func (m *kubeGenericRuntimeManager) SyncPod(ctx context.Context, pod *v1.Pod, po
 	// Step 7: For containers in podContainerChanges.ContainersToUpdate[CPU,Memory] list, invoke UpdateContainerResources
 	if resizable, _ := allocation.IsInPlacePodVerticalScalingAllowed(pod); resizable {
 		if len(podContainerChanges.ContainersToUpdate) > 0 || podContainerChanges.UpdatePodResources {
-			result.SyncResults = append(result.SyncResults, m.doPodResizeAction(pod, podContainerChanges))
+			result.SyncResults = append(result.SyncResults, m.doPodResizeAction(pod, podStatus, podContainerChanges))
 		}
 	}
 

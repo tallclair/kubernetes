@@ -802,25 +802,32 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	hostStatsProvider := stats.NewHostStatsProvider(kubecontainer.RealOS{}, func(podUID types.UID) string {
 		return getEtcHostsPath(klet.getPodDir(podUID))
 	}, podLogsDirectory)
+
+	klet.cadvisorStatsProvider = stats.NewCadvisorStatsProvider(
+		klet.cadvisor,
+		klet.resourceAnalyzer,
+		klet.podManager,
+		klet.runtimeCache,
+		klet.containerRuntime,
+		klet.statusManager,
+		hostStatsProvider,
+		kubeDeps.ContainerManager,
+	)
+	klet.criStatsProvider = stats.NewCRIStatsProvider(
+		klet.cadvisor,
+		klet.resourceAnalyzer,
+		klet.podManager,
+		klet.runtimeCache,
+		kubeDeps.RemoteRuntimeService,
+		kubeDeps.RemoteImageService,
+		hostStatsProvider,
+		utilfeature.DefaultFeatureGate.Enabled(features.PodAndContainerStatsFromCRI),
+		klet.cadvisorStatsProvider,
+	)
 	if kubeDeps.useLegacyCadvisorStats {
-		klet.StatsProvider = stats.NewCadvisorStatsProvider(
-			klet.cadvisor,
-			klet.resourceAnalyzer,
-			klet.podManager,
-			klet.runtimeCache,
-			klet.containerRuntime,
-			klet.statusManager,
-			hostStatsProvider)
+		klet.StatsProvider = klet.cadvisorStatsProvider
 	} else {
-		klet.StatsProvider = stats.NewCRIStatsProvider(
-			klet.cadvisor,
-			klet.resourceAnalyzer,
-			klet.podManager,
-			klet.runtimeCache,
-			kubeDeps.RemoteRuntimeService,
-			kubeDeps.RemoteImageService,
-			hostStatsProvider,
-			utilfeature.DefaultFeatureGate.Enabled(features.PodAndContainerStatsFromCRI))
+		klet.StatsProvider = klet.criStatsProvider
 	}
 
 	eventChannel := make(chan *pleg.PodLifecycleEvent, plegChannelCapacity)
@@ -1397,7 +1404,9 @@ type Kubelet struct {
 	appArmorValidator apparmor.Validator
 
 	// StatsProvider provides the node and the container stats.
-	StatsProvider *stats.Provider
+	StatsProvider         *stats.Provider
+	cadvisorStatsProvider *stats.Provider
+	criStatsProvider      *stats.Provider
 
 	// pluginmanager runs a set of asynchronous loops that figure out which
 	// plugins need to be registered/unregistered based on this node and makes it so.
@@ -1436,6 +1445,72 @@ func (kl *Kubelet) ListPodStats(ctx context.Context) ([]statsapi.PodStats, error
 // ListPodCPUAndMemoryStats is delegated to StatsProvider, which implements stats.Provider interface
 func (kl *Kubelet) ListPodCPUAndMemoryStats(ctx context.Context) ([]statsapi.PodStats, error) {
 	return kl.StatsProvider.ListPodCPUAndMemoryStats(ctx)
+}
+
+func (kl *Kubelet) LookupPodCPUAndMemoryStats(ctx context.Context, podName, podNamespace string, provider string) (*statsapi.PodStats, error) {
+	var statsProvider *stats.Provider
+	switch provider {
+	case "cadvisor":
+		statsProvider = kl.cadvisorStatsProvider
+	case "cri":
+		statsProvider = kl.criStatsProvider
+	case "":
+		statsProvider = kl.StatsProvider
+	default:
+		return nil, fmt.Errorf("unknown stats provider: %q", provider)
+	}
+
+	pod, found := kl.podManager.GetPodByName(podNamespace, podName)
+	if !found {
+		return nil, fmt.Errorf("pod %s/%s not found", podNamespace, podName)
+	}
+	podStatus, err := kl.podCache.Get(pod.UID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup PodStatus: %w", err)
+	}
+
+	return statsProvider.PodCPUAndMemoryStats(ctx, pod, podStatus)
+}
+
+func (kl *Kubelet) PodMemoryUsage(ctx context.Context, podName, podNamespace, provider string) (uint64, error) {
+	pod, found := kl.podManager.GetPodByName(podNamespace, podName)
+	if !found {
+		return 0, fmt.Errorf("pod %s/%s not found", podNamespace, podName)
+	}
+
+	var statsProvider *stats.Provider
+	switch provider {
+	case "cadvisor":
+		statsProvider = kl.cadvisorStatsProvider
+	case "cri":
+		statsProvider = kl.criStatsProvider
+	case "", "cgroup":
+		pcm := kl.containerManager.NewPodContainerManager()
+		return pcm.GetPodCgroupMemoryUsage(pod)
+	default:
+		return 0, fmt.Errorf("unknown provider: %q", provider)
+	}
+
+	podStatus, err := kl.podCache.Get(pod.UID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to lookup PodStatus: %w", err)
+	}
+
+	stats, err := statsProvider.PodCPUAndMemoryStats(ctx, pod, podStatus)
+	if err != nil {
+		return 0, err
+	} else if stats.Memory == nil {
+		return 0, fmt.Errorf("missing memory stats")
+	} else if stats.Memory.UsageBytes == nil {
+		return 0, fmt.Errorf("missing memory.usage")
+	}
+
+	return *stats.Memory.UsageBytes, nil
+}
+
+// PodCPUAndMemoryStats is delegated to StatsProvider
+func (kl *Kubelet) PodCPUAndMemoryStats(ctx context.Context, pod *v1.Pod, podStatus *kubecontainer.PodStatus) (*statsapi.PodStats, error) {
+	return kl.StatsProvider.PodCPUAndMemoryStats(ctx, pod, podStatus)
 }
 
 // ListPodStatsAndUpdateCPUNanoCoreUsage is delegated to StatsProvider, which implements stats.Provider interface

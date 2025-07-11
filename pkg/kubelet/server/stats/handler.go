@@ -37,6 +37,8 @@ import (
 
 // Provider hosts methods required by stats handlers.
 type Provider interface {
+	PodMemoryUsage(ctx context.Context, podName, podNamespace, provider string) (uint64, error)
+	LookupPodCPUAndMemoryStats(ctx context.Context, podName, podNamespace, provider string) (*statsapi.PodStats, error)
 	// The following stats are provided by either CRI or cAdvisor.
 	//
 	// ListPodStats returns the stats of all the containers managed by pods.
@@ -120,6 +122,9 @@ func CreateHandlers(rootPath string, provider Provider, summaryProvider SummaryP
 		handler restful.RouteFunction
 	}{
 		{"/summary", h.handleSummary},
+		{"/summaryPod", h.handleSummaryPod},
+		{"/pod", h.handlePod},
+		{"/podMemory", h.handlePodMemory},
 	}
 
 	for _, e := range endpoints {
@@ -161,6 +166,94 @@ func (h *handler) handleSummary(request *restful.Request, response *restful.Resp
 	} else {
 		writeResponse(response, summary)
 	}
+}
+
+func parsePodRef(req *restful.Request) (name string, namespace string, err error) {
+	req.Request.ParseForm()
+	name = req.Request.Form.Get("name")
+	if name == "" {
+		return "", "", fmt.Errorf("Missing required pod 'name' parameter")
+	}
+	namespace = req.Request.Form.Get("namespace")
+	if namespace == "" {
+		namespace = "default"
+	}
+	return name, namespace, nil
+}
+
+func (h *handler) handleSummaryPod(request *restful.Request, response *restful.Response) {
+	ctx := request.Request.Context()
+	path := request.Request.URL.Path
+	podName, podNamespace, err := parsePodRef(request)
+	if err != nil {
+		handleError(response, path, err)
+	}
+
+	summary, err := h.summaryProvider.GetCPUAndMemoryStats(ctx)
+	if err != nil {
+		handleError(response, path, err)
+	}
+
+	var podStats *statsapi.PodStats
+	for _, stats := range summary.Pods {
+		if stats.PodRef.Name == podName && stats.PodRef.Namespace == podNamespace {
+			podStats = &stats
+			break
+		}
+	}
+	if podStats == nil {
+		handleError(response, path, kubecontainer.ErrContainerNotFound)
+	}
+
+	writeResponse(response, podStats)
+}
+
+func (h *handler) handlePod(request *restful.Request, response *restful.Response) {
+	ctx := request.Request.Context()
+	path := request.Request.URL.Path
+	podName, podNamespace, err := parsePodRef(request)
+	if err != nil {
+		handleError(response, path, err)
+	}
+
+	provider := request.Request.Form.Get("provider")
+
+	podStats, err := h.provider.LookupPodCPUAndMemoryStats(ctx, podName, podNamespace, provider)
+	if err != nil {
+		handleError(response, path, err)
+		return
+	}
+
+	writeResponse(response, podStats)
+}
+
+func (h *handler) handlePodMemory(request *restful.Request, response *restful.Response) {
+	ctx := request.Request.Context()
+	path := request.Request.URL.Path
+	podName, podNamespace, err := parsePodRef(request)
+	if err != nil {
+		handleError(response, path, err)
+	}
+
+	provider := request.Request.Form.Get("provider")
+
+	usage, err := h.provider.PodMemoryUsage(ctx, podName, podNamespace, provider)
+	if err != nil {
+		handleError(response, path, err)
+		return
+	}
+
+	result := map[string]interface{}{
+		"podRef": map[string]interface{}{
+			"name":      podName,
+			"namespace": podNamespace,
+		},
+		"memory": map[string]interface{}{
+			"usage": usage,
+		},
+	}
+
+	writeResponse(response, result)
 }
 
 func writeResponse(response *restful.Response, stats interface{}) {

@@ -22,11 +22,14 @@ import (
 	"fmt"
 
 	cadvisormemory "github.com/google/cadvisor/cache/memory"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	internalapi "k8s.io/cri-api/pkg/apis"
+	"k8s.io/klog/v2"
 	statsapi "k8s.io/kubelet/pkg/apis/stats/v1alpha1"
 	"k8s.io/kubernetes/pkg/kubelet/cadvisor"
+	"k8s.io/kubernetes/pkg/kubelet/cm"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/server/stats"
 	"k8s.io/kubernetes/pkg/kubelet/stats/pidlimit"
@@ -52,9 +55,11 @@ func NewCRIStatsProvider(
 	imageService internalapi.ImageManagerService,
 	hostStatsProvider HostStatsProvider,
 	podAndContainerStatsFromCRI bool,
+	fallbackStatsProvider *Provider,
 ) *Provider {
+	klog.InfoS(">>>> initializing CRI stats provider")
 	return newStatsProvider(cadvisor, podManager, runtimeCache, newCRIStatsProvider(cadvisor, resourceAnalyzer,
-		runtimeService, imageService, hostStatsProvider, podAndContainerStatsFromCRI))
+		runtimeService, imageService, hostStatsProvider, podAndContainerStatsFromCRI, fallbackStatsProvider))
 }
 
 // NewCadvisorStatsProvider returns a containerStatsProvider that provides both
@@ -67,8 +72,10 @@ func NewCadvisorStatsProvider(
 	imageService kubecontainer.ImageService,
 	statusProvider status.PodStatusProvider,
 	hostStatsProvider HostStatsProvider,
+	containerManager cm.ContainerManager,
 ) *Provider {
-	return newStatsProvider(cadvisor, podManager, runtimeCache, newCadvisorStatsProvider(cadvisor, resourceAnalyzer, imageService, statusProvider, hostStatsProvider))
+	klog.InfoS(">>>> initializing CRI stats provider")
+	return newStatsProvider(cadvisor, podManager, runtimeCache, newCadvisorStatsProvider(cadvisor, resourceAnalyzer, imageService, statusProvider, hostStatsProvider, containerManager))
 }
 
 // newStatsProvider returns a new Provider that provides node stats from
@@ -98,6 +105,8 @@ type Provider struct {
 // containerStatsProvider is an interface that provides the stats of the
 // containers managed by pods.
 type containerStatsProvider interface {
+	// PodCPUAndMemoryStats gets the latest CPU & Memory stats for the pod and all its running containers.
+	PodCPUAndMemoryStats(context.Context, *v1.Pod, *kubecontainer.PodStatus) (*statsapi.PodStats, error)
 	ListPodStats(ctx context.Context) ([]statsapi.PodStats, error)
 	ListPodStatsAndUpdateCPUNanoCoreUsage(ctx context.Context) ([]statsapi.PodStats, error)
 	ListPodCPUAndMemoryStats(ctx context.Context) ([]statsapi.PodStats, error)
