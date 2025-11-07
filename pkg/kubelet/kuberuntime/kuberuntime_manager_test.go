@@ -3682,11 +3682,16 @@ func TestIsPodResizeInProgress(t *testing.T) {
 		isRunning               bool
 		unstarted               bool // Whether the container is missing from the pod status
 	}
+	type testPLR struct {
+		allocated testResources
+		actuated  *testResources
+	}
 
 	tests := []struct {
-		name            string
-		containers      []testContainer
-		expectHasResize bool
+		name              string
+		podLevelResources *testPLR
+		containers        []testContainer
+		expectHasResize   bool
 	}{{
 		name: "simple running container",
 		containers: []testContainer{{
@@ -3848,6 +3853,54 @@ func TestIsPodResizeInProgress(t *testing.T) {
 			isRunning: true,
 		}},
 		expectHasResize: true,
+	}, {
+		name: "only-plr/not resizing",
+		podLevelResources: &testPLR{
+			allocated: testResources{cpuReq: 100},
+			actuated:  &testResources{cpuReq: 100},
+		},
+		containers: []testContainer{{
+			allocated: testResources{},
+			actuated:  &testResources{},
+			isRunning: true,
+		}},
+		expectHasResize: false,
+	}, {
+		name: "only-plr/resizing",
+		podLevelResources: &testPLR{
+			allocated: testResources{cpuReq: 200},
+			actuated:  &testResources{cpuReq: 100},
+		},
+		containers: []testContainer{{
+			allocated: testResources{},
+			actuated:  &testResources{},
+			isRunning: true,
+		}},
+		expectHasResize: true,
+	}, {
+		name: "plr/container resizing",
+		podLevelResources: &testPLR{
+			allocated: testResources{cpuReq: 100},
+			actuated:  &testResources{cpuReq: 100},
+		},
+		containers: []testContainer{{
+			allocated: testResources{cpuReq: 100},
+			actuated:  &testResources{cpuReq: 50},
+			isRunning: true,
+		}},
+		expectHasResize: true,
+	}, {
+		name: "plr/pod resizing",
+		podLevelResources: &testPLR{
+			allocated: testResources{memReq: 100},
+			actuated:  &testResources{memReq: 200},
+		},
+		containers: []testContainer{{
+			allocated: testResources{memReq: 100},
+			actuated:  &testResources{memReq: 100},
+			isRunning: true,
+		}},
+		expectHasResize: true,
 	}}
 
 	mkRequirements := func(r testResources) v1.ResourceRequirements {
@@ -3931,6 +3984,20 @@ func TestIsPodResizeInProgress(t *testing.T) {
 				} else {
 					_, found := m.actuatedState.GetContainerResources(pod.UID, container.Name)
 					require.False(t, found)
+				}
+			}
+
+			if test.podLevelResources != nil {
+				reqs := mkRequirements(test.podLevelResources.allocated)
+				pod.Spec.Resources = &reqs
+
+				if test.podLevelResources.actuated != nil {
+					actuatedReqs := mkRequirements(*test.podLevelResources.actuated)
+					require.NoError(t, m.actuatedState.SetPodLevelResources(pod.UID, &actuatedReqs))
+
+					fetched, found := m.actuatedState.GetPodLevelResources(pod.UID)
+					require.True(t, found)
+					assert.Equal(t, &actuatedReqs, fetched)
 				}
 			}
 
