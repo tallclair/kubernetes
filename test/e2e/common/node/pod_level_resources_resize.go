@@ -21,19 +21,20 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/test/e2e/common/node/framework/cgroups"
 	"k8s.io/kubernetes/test/e2e/common/node/framework/podresize"
-	"k8s.io/kubernetes/test/e2e/feature"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2enode "k8s.io/kubernetes/test/e2e/framework/node"
+	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 
 	"github.com/onsi/ginkgo/v2"
 )
 
 func doGuaranteedPodLevelResizeTests(f *framework.Framework) {
-	ginkgo.DescribeTableSubtree("guaranteed qos - 1 container with resize policy", func(cpuPolicy, memPolicy v1.ResourceResizeRestartPolicy, resizeInitCtrs bool) {
+	ginkgo.DescribeTableSubtree("PLR guaranteed qos - 1 container with resize policy", func(cpuPolicy, memPolicy v1.ResourceResizeRestartPolicy, resizeInitCtrs bool) {
 		ginkgo.DescribeTable("resizing", func(ctx context.Context, desiredCtrCPU, desiredCtrMem, desiredPodCPU, desiredPodMem string) {
 
 			// The tests for guaranteed pods include extended resources.
@@ -48,7 +49,16 @@ func doGuaranteedPodLevelResizeTests(f *framework.Framework) {
 				}
 			}()
 
-			originalContainers := makeGuaranteedContainers(1, cpuPolicy, memPolicy, true, true, originalCPU, originalMem)
+			originalCtrCPU := originalCPU
+			if desiredCtrCPU == "" {
+				originalCtrCPU = ""
+			}
+			originalCtrMem := originalMem
+			if desiredCtrMem == "" {
+				originalCtrMem = ""
+			}
+
+			originalContainers := makeGuaranteedContainers(1, cpuPolicy, memPolicy, true, true, originalCtrCPU, originalCtrMem)
 			expectedContainers := makeGuaranteedContainers(1, cpuPolicy, memPolicy, true, true, desiredCtrCPU, desiredCtrMem)
 			for i, c := range expectedContainers {
 				// If the pod has init containers, but we are not resizing them, keep the original resources.
@@ -59,23 +69,43 @@ func doGuaranteedPodLevelResizeTests(f *framework.Framework) {
 				}
 				// For containers where the resize policy is "restart", we expect a restart.
 				expectRestart := int32(0)
-				if cpuPolicy == v1.RestartContainer && desiredCtrCPU != originalCPU {
+				if cpuPolicy == v1.RestartContainer && desiredCtrCPU != originalCtrCPU {
 					expectRestart = 1
 				}
-				if memPolicy == v1.RestartContainer && desiredCtrMem != originalMem {
+				if memPolicy == v1.RestartContainer && desiredCtrMem != originalCtrMem {
 					expectRestart = 1
 				}
 				c.RestartCount = expectRestart
 				expectedContainers[i] = c
 			}
+			originalAggregateResources := originalContainers[0].Resources.ResourceRequirements()
+			desiredAggregateResources := expectedContainers[0].Resources.ResourceRequirements()
 
 			var originalPodResources, desiredPodResources *v1.ResourceRequirements
 			if desiredPodCPU != "" || desiredPodMem != "" {
 				originalPodResources = makePodResources(offsetCPU(15, originalCPU), offsetCPU(15, originalCPU), offsetMemory(15, originalMem), offsetMemory(15, originalMem))
 				desiredPodResources = makePodResources(offsetCPU(15, desiredPodCPU), offsetCPU(15, desiredPodCPU), offsetMemory(15, desiredPodMem), offsetMemory(15, desiredPodMem))
+				originalAggregateResources = originalPodResources
+				desiredAggregateResources = desiredPodResources
 			}
 
-			doPatchAndRollback(ctx, f, originalContainers, expectedContainers, originalPodResources, desiredPodResources, true)
+			ginkgo.By("creating and verifying pod")
+			podClient := e2epod.NewPodClient(f)
+			newPod := createAndVerifyPod(ctx, f, podClient, originalContainers, originalPodResources)
+			podresize.VerifyPodLevelStatusResources(newPod, originalAggregateResources.Requests, originalAggregateResources)
+
+			ginkgo.By("patching and verifying pod for resize")
+			resizedPod := patchAndVerify(ctx, f, podClient, newPod, originalContainers, expectedContainers, originalPodResources, desiredPodResources, "resize")
+			podresize.VerifyPodLevelStatusResources(resizedPod, desiredAggregateResources.Requests, desiredAggregateResources)
+
+			// Resize has been actuated, test the reverse operation.
+			rollbackContainers := createRollbackContainers(originalContainers, expectedContainers)
+			ginkgo.By("patching and verifying pod for rollback")
+			resizedPod = patchAndVerify(ctx, f, podClient, newPod, expectedContainers, rollbackContainers, desiredPodResources, originalPodResources, "rollback")
+			podresize.VerifyPodLevelStatusResources(resizedPod, originalAggregateResources.Requests, originalAggregateResources)
+
+			ginkgo.By("deleting pod")
+			podClient.DeleteSync(ctx, newPod.Name, metav1.DeleteOptions{}, f.Timeouts.PodDelete)
 		},
 			// All tests will perform the requested resize, and once completed, will roll back the change.
 			// This results in the coverage of both increase and decrease of resources.
@@ -85,6 +115,8 @@ func doGuaranteedPodLevelResizeTests(f *framework.Framework) {
 			ginkgo.Entry("cpu & mem in opposite directions", increasedCPU, reducedMem, "", ""),
 			ginkgo.Entry("pod-level cpu", originalCPU, originalMem, increasedCPU, originalMem),
 			ginkgo.Entry("pod-level mem", originalCPU, originalMem, originalCPU, offsetMemory(10, increasedMem)),
+			ginkgo.Entry("only pod-level cpu", "", "", increasedCPU, originalMem),
+			ginkgo.Entry("only pod-level mem", "", "", originalCPU, increasedMem),
 			ginkgo.Entry("pod-level cpu & mem in the same direction", originalCPU, originalMem, increasedCPU, increasedMem),
 			ginkgo.Entry("pod-level cpu & mem in opposite directions", originalCPU, originalMem, increasedCPU, reducedMem),
 		)
@@ -408,7 +440,7 @@ func doBurstablePodLevelResizeTests(f *framework.Framework) {
 	)
 }
 
-var _ = SIGDescribe("Pod InPlace Resize", feature.InPlacePodLevelResourcesVerticalScaling, framework.WithFeatureGate(features.InPlacePodLevelResourcesVerticalScaling), func() {
+var _ = SIGDescribe("Pod InPlace Resize", framework.WithFeatureGate(features.InPlacePodLevelResourcesVerticalScaling), func() {
 	f := framework.NewDefaultFramework("pod-level-resources-resize-tests")
 
 	ginkgo.BeforeEach(func(ctx context.Context) {

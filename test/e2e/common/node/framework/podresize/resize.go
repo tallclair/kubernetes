@@ -195,6 +195,20 @@ func VerifyPodStatusResources(gotPod *v1.Pod, wantInfo []ResizableContainerInfo)
 	return utilerrors.NewAggregate(errs)
 }
 
+func VerifyPodLevelStatusResources(gotPod *v1.Pod, wantAllocated v1.ResourceList, wantActual *v1.ResourceRequirements) error {
+	ginkgo.GinkgoHelper()
+
+	var errs []error
+	if err := framework.Gomega().Expect(gotPod.Status.AllocatedResources).To(gomega.BeComparableTo(wantAllocated)); err != nil {
+		errs = append(errs, fmt.Errorf("pod.status.allocatedResources mismatch: %w", err))
+	}
+	if err := framework.Gomega().Expect(gotPod.Status.Resources).To(gomega.BeComparableTo(wantActual)); err != nil {
+		errs = append(errs, fmt.Errorf("pod.status.resources mismatch: %w", err))
+	}
+
+	return utilerrors.NewAggregate(errs)
+}
+
 func verifyPodContainersStatusResources(gotCtrStatuses []v1.ContainerStatus, wantCtrs []v1.Container) error {
 	ginkgo.GinkgoHelper()
 
@@ -353,6 +367,7 @@ func ExpectPodResized(ctx context.Context, f *framework.Framework, resizedPod *v
 
 	// Verify Pod Containers Cgroup Values
 	var errs []error
+	framework.Logf(">>>> Preparing to verify container cgroups; pod.spec.resources=%v, container.Resources=%v", resizedPod.Spec.Resources, expectedContainers[0].Resources)
 	if cgroupErrs := VerifyPodContainersCgroupValues(ctx, f, resizedPod, expectedContainers); cgroupErrs != nil {
 		errs = append(errs, fmt.Errorf("container cgroup values don't match expected: %w", formatErrors(cgroupErrs)))
 	}

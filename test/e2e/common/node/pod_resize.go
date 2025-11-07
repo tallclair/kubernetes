@@ -60,6 +60,9 @@ const (
 )
 
 func offsetCPU(index int, value string) string {
+	if value == "" {
+		return ""
+	}
 	val := resource.MustParse(value)
 	ptr := &val
 	ptr.Add(resource.MustParse(fmt.Sprintf("%dm", 2*index)))
@@ -67,6 +70,9 @@ func offsetCPU(index int, value string) string {
 }
 
 func offsetMemory(index int64, value string) string {
+	if value == "" {
+		return ""
+	}
 	val := resource.MustParse(value)
 	ptr := &val
 	ptr.Add(resource.MustParse(fmt.Sprintf("%dMi", 2*index)))
@@ -709,6 +715,126 @@ func doPodResizeMemoryLimitDecreaseTest(f *framework.Framework) {
 		ginkgo.By("deleting pod")
 		podClient.DeleteSync(ctx, testPod.Name, metav1.DeleteOptions{}, f.Timeouts.PodDelete)
 	})
+	// Tests the behavior when decreasing pod-level memory limit:
+	// 1. Decrease the limit a little bit - should succeed
+	// 2. Decrease the limit down to a tiny amount - should fail
+	// 3. Revert the limit back to the original value - should succeed
+	/*
+		ginkgo.It("decrease memory limit below usage", func(ctx context.Context) {
+			podClient := e2epod.NewPodClient(f)
+			containers := []podresize.ResizableContainerInfo{{
+				Name: "c1",
+			}}
+			originalPLR := &v1.ResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceMemory: resource.MustParse(originalMem),
+				},
+				Limits: v1.ResourceList{
+					v1.ResourceMemory: resource.MustParse(originalMem),
+				},
+			}
+
+			ginkgo.By("creating and verifying pod")
+			testPod := createAndVerifyPod(ctx, f, podClient, containers, originalPLR)
+
+			// 1. Decrease the limit a little bit - should succeed
+			ginkgo.By("Patching pod with a slightly lowered memory limit")
+			viableLoweredLimitPLR := &v1.ResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceMemory: resource.MustParse(reducedMem),
+				},
+				Limits: v1.ResourceList{
+					v1.ResourceMemory: resource.MustParse(reducedMem),
+				},
+			}
+			patch := podresize.MakeResizePatch(containers, containers, originalPLR, viableLoweredLimitPLR)
+			testPod, pErr := f.ClientSet.CoreV1().Pods(testPod.Namespace).Patch(ctx, testPod.Name,
+				types.StrategicMergePatchType, patch, metav1.PatchOptions{}, "resize")
+			framework.ExpectNoError(pErr, "failed to patch pod for viable lowered limit")
+
+			ginkgo.By("verifying pod patched for viable lowered limit")
+			podresize.VerifyPodResources(testPod, containers, viableLoweredLimitPLR)
+
+			ginkgo.By("waiting for viable lowered limit to be actuated")
+			resizedPod := podresize.WaitForPodResizeActuation(ctx, f, podClient, testPod, viableLoweredLimit)
+			podresize.ExpectPodResized(ctx, f, resizedPod, viableLoweredLimit)
+
+			// There is some latency after container startup before memory usage is scraped. On CRI-O
+			// this latency is much higher, so wait enough time for cAdvisor to scrape metrics twice.
+			ginkgo.By("Waiting for stats scraping")
+			const scrapingDelay = 30 * time.Second // 2 * maxHousekeepingInterval
+			startTime := testPod.Status.StartTime
+			time.Sleep(time.Until(startTime.Add(scrapingDelay)))
+
+			// 2. Decrease the limit down to a tiny amount - should fail
+			const nonViableMemoryLimit = "10Ki"
+			ginkgo.By("Patching pod with a greatly lowered memory limit")
+			nonViableLoweredLimit := []podresize.ResizableContainerInfo{{
+				Name:      "c1",
+				Resources: &cgroups.ContainerResources{MemReq: nonViableMemoryLimit, MemLim: nonViableMemoryLimit},
+			}}
+			patch = podresize.MakeResizePatch(viableLoweredLimit, nonViableLoweredLimit, nil, nil)
+			testPod, pErr = f.ClientSet.CoreV1().Pods(testPod.Namespace).Patch(ctx, testPod.Name,
+				types.StrategicMergePatchType, patch, metav1.PatchOptions{}, "resize")
+			framework.ExpectNoError(pErr, "failed to patch pod for viable lowered limit")
+
+			framework.ExpectNoError(framework.Gomega().
+				Eventually(ctx, framework.RetryNotFound(framework.GetObject(f.ClientSet.CoreV1().Pods(testPod.Namespace).Get, testPod.Name, metav1.GetOptions{}))).
+				WithTimeout(f.Timeouts.PodStart).
+				Should(framework.MakeMatcher(func(pod *v1.Pod) (func() string, error) {
+					// If VerifyPodStatusResources succeeds, it means the resize completed.
+					if podresize.VerifyPodStatusResources(pod, nonViableLoweredLimit) == nil {
+						return nil, gomega.StopTrying("non-viable resize unexpectedly completed")
+					}
+
+					var inProgressCondition *v1.PodCondition
+					for i, condition := range pod.Status.Conditions {
+						switch condition.Type {
+						case v1.PodResizeInProgress:
+							inProgressCondition = &pod.Status.Conditions[i]
+						case v1.PodResizePending:
+							return func() string {
+								return fmt.Sprintf("pod should not be pending, got reason=%s, message=%q", condition.Reason, condition.Message)
+							}, nil
+						}
+					}
+					if inProgressCondition == nil {
+						return func() string { return "resize is not in progress" }, nil
+					}
+
+					if inProgressCondition.Reason != v1.PodReasonError {
+						return func() string { return "in-progress reason is not error" }, nil
+					}
+
+					expectedMsg := regexp.MustCompile(`memory limit \(\d+\) below current usage`)
+					if !expectedMsg.MatchString(inProgressCondition.Message) {
+						return func() string {
+							return fmt.Sprintf("Expected %q to contain %q", inProgressCondition.Message, expectedMsg)
+						}, nil
+					}
+					return nil, nil
+				})),
+			)
+			ginkgo.By("verifying pod status resources still match the viable resize")
+			framework.ExpectNoError(podresize.VerifyPodStatusResources(testPod, viableLoweredLimit))
+
+			// 3. Revert the limit back to the original value - should succeed
+			ginkgo.By("Patching pod to revert to original state")
+			patch = podresize.MakeResizePatch(nonViableLoweredLimit, containers, nil, nil)
+			testPod, pErr = f.ClientSet.CoreV1().Pods(testPod.Namespace).Patch(ctx, testPod.Name,
+				types.StrategicMergePatchType, patch, metav1.PatchOptions{}, "resize")
+			framework.ExpectNoError(pErr, "failed to patch pod back to original values")
+
+			ginkgo.By("verifying pod patched for original values")
+			podresize.VerifyPodResources(testPod, containers, nil)
+
+			ginkgo.By("waiting for the original values to be actuated")
+			resizedPod = podresize.WaitForPodResizeActuation(ctx, f, podClient, testPod, containers)
+			podresize.ExpectPodResized(ctx, f, resizedPod, containers)
+
+			ginkgo.By("deleting pod")
+			podClient.DeleteSync(ctx, testPod.Name, metav1.DeleteOptions{}, f.Timeouts.PodDelete)
+		})*/
 }
 
 func doPodResizeReadAndReplaceTests(f *framework.Framework) {
@@ -837,7 +963,7 @@ func doPatchAndRollback(ctx context.Context, f *framework.Framework, originalCon
 	podClient.DeleteSync(ctx, newPod.Name, metav1.DeleteOptions{}, f.Timeouts.PodDelete)
 }
 
-func patchAndVerify(ctx context.Context, f *framework.Framework, podClient *e2epod.PodClient, newPod *v1.Pod, originalContainers, expectedContainers []podresize.ResizableContainerInfo, originalPodResources, expectedPodResources *v1.ResourceRequirements, opStr string) {
+func patchAndVerify(ctx context.Context, f *framework.Framework, podClient *e2epod.PodClient, newPod *v1.Pod, originalContainers, expectedContainers []podresize.ResizableContainerInfo, originalPodResources, expectedPodResources *v1.ResourceRequirements, opStr string) *v1.Pod {
 	patch := podresize.MakeResizePatch(originalContainers, expectedContainers, originalPodResources, expectedPodResources)
 	patchedPod, pErr := f.ClientSet.CoreV1().Pods(newPod.Namespace).Patch(ctx, newPod.Name,
 		types.StrategicMergePatchType, patch, metav1.PatchOptions{}, "resize")
@@ -848,6 +974,7 @@ func patchAndVerify(ctx context.Context, f *framework.Framework, podClient *e2ep
 	podresize.VerifyPodResources(patchedPod, expected, expectedPodResources)
 	resizedPod := podresize.WaitForPodResizeActuation(ctx, f, podClient, newPod, expected)
 	podresize.ExpectPodResized(ctx, f, resizedPod, expected)
+	return resizedPod
 }
 
 func createAndVerifyPod(ctx context.Context, f *framework.Framework, podClient *e2epod.PodClient, originalContainers []podresize.ResizableContainerInfo, podResources *v1.ResourceRequirements) *v1.Pod {

@@ -6167,7 +6167,7 @@ func ValidatePodResize(newPod, oldPod *core.Pod, opts PodValidationOptions) fiel
 		// pods with pod-level resources cannot be resized without
 		// InPlacePodLevelResourcesVerticalScaling feature gate being enabled.
 		if !opts.InPlacePodLevelResourcesVerticalScalingEnabled {
-			allErrs = append(allErrs, field.Forbidden(field.NewPath(""), "resize of pods with pod-level resources is forbidden when InPlacePodLevelResourcesVerticalScalingEnabled feature gate is disabled"))
+			allErrs = append(allErrs, field.Forbidden(field.NewPath(""), "resize of pods with pod-level resources is forbidden when InPlacePodLevelResourcesVerticalScaling feature gate is disabled"))
 			return allErrs
 		}
 
