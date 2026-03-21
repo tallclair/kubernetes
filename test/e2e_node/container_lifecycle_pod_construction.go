@@ -170,9 +170,26 @@ func (o containerOutputList) RunTogetherLhsFirst(lhs, rhs string) error {
 	return nil
 }
 
-// StartsBefore returns an error if lhs did not start before rhs
-func (o containerOutputList) StartsBefore(lhs, rhs string) error {
+// StartedBefore returns an error if lhs did not reach "Started" before rhs reached "Starting"
+func (o containerOutputList) StartedBefore(lhs, rhs string) error {
 	lhsStart := o.findIndex(lhs, "Started", 0)
+
+	if lhsStart == -1 {
+		return fmt.Errorf("couldn't find that %s ever started, got\n%v", lhs, o)
+	}
+
+	// this works even for the same names (restart case)
+	rhsStart := o.findIndex(rhs, "Starting", lhsStart+1)
+
+	if rhsStart == -1 {
+		return fmt.Errorf("couldn't find that %s started after %s, got\n%v", rhs, lhs, o)
+	}
+	return nil
+}
+
+// StartingBefore returns an error if lhs did not reach "Starting" before rhs reached "Starting"
+func (o containerOutputList) StartingBefore(lhs, rhs string) error {
+	lhsStart := o.findIndex(lhs, "Starting", 0)
 
 	if lhsStart == -1 {
 		return fmt.Errorf("couldn't find that %s ever started, got\n%v", lhs, o)

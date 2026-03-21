@@ -674,13 +674,13 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 
 				// which we then use to make assertions regarding container ordering
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(init1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, init2))
 				framework.ExpectNoError(results.ExitsBefore(init1, init2))
 
-				framework.ExpectNoError(results.StartsBefore(init2, init3))
+				framework.ExpectNoError(results.StartedBefore(init2, init3))
 				framework.ExpectNoError(results.ExitsBefore(init2, init3))
 
-				framework.ExpectNoError(results.StartsBefore(init3, regular1))
+				framework.ExpectNoError(results.StartedBefore(init3, regular1))
 				framework.ExpectNoError(results.ExitsBefore(init3, regular1))
 			})
 		})
@@ -807,7 +807,7 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 
 				ginkgo.By("Analyzing results")
 				// init container should start and exit with an error, and the regular container should never start
-				framework.ExpectNoError(results.StartsBefore(init1, prefixedName(PostStartPrefix, regular1)))
+				framework.ExpectNoError(results.StartedBefore(init1, prefixedName(PostStartPrefix, regular1)))
 				framework.ExpectNoError(results.ExitsBefore(init1, prefixedName(PostStartPrefix, regular1)))
 
 				framework.ExpectNoError(results.RunTogether(regular1, prefixedName(PostStartPrefix, regular1)))
@@ -854,7 +854,7 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				ginkgo.By("Analyzing results")
 				// container must be restarted
 				framework.ExpectNoError(results.Starts(regular1))
-				framework.ExpectNoError(results.StartsBefore(regular1, regular1))
+				framework.ExpectNoError(results.StartedBefore(regular1, regular1))
 				framework.ExpectNoError(results.ExitsBefore(regular1, regular1))
 			})
 		})
@@ -923,7 +923,7 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 
 				ginkgo.By("Analyzing results")
 				// second container should not start before the PostStart of a first container completed
-				framework.ExpectNoError(results.StartsBefore(prefixedName(PostStartPrefix, regular1), regular2))
+				framework.ExpectNoError(results.StartedBefore(prefixedName(PostStartPrefix, regular1), regular2))
 				framework.ExpectNoError(results.ExitsBefore(prefixedName(PostStartPrefix, regular1), regular2))
 			})
 		})
@@ -1052,13 +1052,13 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results := parseOutput(ctx, f, podSpec)
 
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(init1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, init2))
 				framework.ExpectNoError(results.ExitsBefore(init1, init2))
 
-				framework.ExpectNoError(results.StartsBefore(init2, init3))
+				framework.ExpectNoError(results.StartedBefore(init2, init3))
 				framework.ExpectNoError(results.ExitsBefore(init2, init3))
 
-				framework.ExpectNoError(results.StartsBefore(init3, regular1))
+				framework.ExpectNoError(results.StartedBefore(init3, regular1))
 				framework.ExpectNoError(results.ExitsBefore(init3, regular1))
 
 				// ensure that the init containers never restarted
@@ -1436,7 +1436,7 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 						ginkgo.By("Analyzing results")
 						// FIXME ExpectNoError: this will be implemented in KEP 4438
 						// liveness probes are called for restartable init containers during pod termination
-						err = results.StartsBefore(prefixedName(PreStopPrefix, regular1), prefixedName(LivenessPrefix, restartableInit1))
+						err = results.StartedBefore(prefixedName(PreStopPrefix, regular1), prefixedName(LivenessPrefix, restartableInit1))
 						gomega.Expect(err).To(gomega.HaveOccurred(),
 							"%s should not start before %s", prefixedName(PreStopPrefix, regular1), prefixedName(LivenessPrefix, restartableInit1))
 						// FIXME ExpectNoError: this will be implemented in KEP 4438
@@ -1889,10 +1889,10 @@ var _ = SIGDescribe(framework.WithSerial(), "Containers Lifecycle", func() {
 				results := parseOutput(ctx, f, pod)
 
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(init1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, init2))
 				framework.ExpectNoError(results.ExitsBefore(init1, init2))
 
-				framework.ExpectNoError(results.StartsBefore(init2, init3))
+				framework.ExpectNoError(results.StartedBefore(init2, init3))
 				framework.ExpectNoError(results.ExitsBefore(init2, init3))
 
 				gomega.Expect(pod.Status.InitContainerStatuses[0].RestartCount).To(gomega.Equal(int32(0)))
@@ -2060,7 +2060,7 @@ var _ = SIGDescribe(framework.WithSerial(), "Containers Lifecycle", func() {
 				results := parseOutput(ctx, f, pod)
 
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(init1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, init2))
 				framework.ExpectNoError(results.ExitsBefore(init1, init2))
 
 				gomega.Expect(pod.Status.InitContainerStatuses[0].RestartCount).To(gomega.Equal(int32(0)))
@@ -2218,21 +2218,21 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 		})
 
 		ginkgo.It("should run the first init container to completion before starting first restartable init container", func() {
-			framework.ExpectNoError(results.StartsBefore(init1, restartableInit1))
+			framework.ExpectNoError(results.StartedBefore(init1, restartableInit1))
 			framework.ExpectNoError(results.ExitsBefore(init1, restartableInit1))
 		})
 
-		ginkgo.It("should run first init container and first restartable init container together", func() {
+		ginkgo.It("should run second init container and first restartable init container together", func() {
 			framework.ExpectNoError(results.RunTogetherLhsFirst(restartableInit1, init2))
 		})
 
 		ginkgo.It("should run second init container to completion before starting second restartable init container", func() {
-			framework.ExpectNoError(results.StartsBefore(init2, restartableInit2))
+			framework.ExpectNoError(results.StartedBefore(init2, restartableInit2))
 			framework.ExpectNoError(results.ExitsBefore(init2, restartableInit2))
 		})
 
 		ginkgo.It("should start second restartable init container before third init container", func() {
-			framework.ExpectNoError(results.StartsBefore(restartableInit2, init3))
+			framework.ExpectNoError(results.StartingBefore(restartableInit2, init3))
 		})
 
 		ginkgo.It("should run both restartable init containers and third init container together", func() {
@@ -2242,7 +2242,7 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 		})
 
 		ginkgo.It("should run third init container to completion before starting regular container", func() {
-			framework.ExpectNoError(results.StartsBefore(init3, regular1))
+			framework.ExpectNoError(results.StartedBefore(init3, regular1))
 			framework.ExpectNoError(results.ExitsBefore(init3, regular1))
 		})
 
@@ -2365,8 +2365,8 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 			results := parseOutput(ctx, f, pod)
 
 			ginkgo.By("verifying started the containers in order", func() {
-				framework.ExpectNoError(results.StartsBefore(init1, restartableInit1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, restartableInit1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, init2))
 				framework.ExpectNoError(results.Starts(init1))
 				framework.ExpectNoError(results.Starts(restartableInit1))
 				framework.ExpectNoError(results.Starts(init2))
@@ -2429,8 +2429,8 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 			results := parseOutput(ctx, f, pod)
 
 			ginkgo.By("verifying it started the containers in order", func() {
-				framework.ExpectNoError(results.StartsBefore(init1, restartableInit1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, restartableInit1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, init2))
 				framework.ExpectNoError(results.Starts(init1))
 				framework.ExpectNoError(results.Starts(restartableInit1))
 				framework.ExpectNoError(results.Starts(init2))
@@ -2500,8 +2500,8 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 			results := parseOutput(ctx, f, pod)
 
 			ginkgo.By("verifying started the containers in order", func() {
-				framework.ExpectNoError(results.StartsBefore(init1, restartableInit1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, init2))
+				framework.ExpectNoError(results.StartedBefore(init1, restartableInit1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, init2))
 				framework.ExpectNoError(results.Starts(init1))
 				framework.ExpectNoError(results.Starts(restartableInit1))
 				framework.ExpectNoError(results.Starts(init2))
@@ -2795,10 +2795,10 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results = parseOutput(ctx, f, podSpec)
 			})
 			ginkgo.It("should restart a restartable init container before the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartedBefore(restartableInit1, regular1))
 			})
 			ginkgo.It("should restart a restartable init container after the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(regular1, restartableInit1))
+				framework.ExpectNoError(results.StartedBefore(regular1, restartableInit1))
 			})
 			ginkgo.It("should run a regular container to completion", func() {
 				framework.ExpectNoError(results.Exits(regular1))
@@ -2867,10 +2867,10 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results = parseOutput(ctx, f, podSpec)
 			})
 			ginkgo.It("should restart a restartable init container before the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartedBefore(restartableInit1, regular1))
 			})
 			ginkgo.It("should restart a restartable init container after the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(regular1, restartableInit1))
+				framework.ExpectNoError(results.StartedBefore(regular1, restartableInit1))
 			})
 			ginkgo.It("should run a regular container to completion", func() {
 				framework.ExpectNoError(results.Exits(regular1))
@@ -3285,10 +3285,10 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results = parseOutput(ctx, f, podSpec)
 			})
 			ginkgo.It("should restart a restartable init container before the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartedBefore(restartableInit1, regular1))
 			})
 			ginkgo.It("should restart a restartable init container after the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(regular1, restartableInit1))
+				framework.ExpectNoError(results.StartedBefore(regular1, restartableInit1))
 			})
 			ginkgo.It("should run a regular container to completion", func() {
 				framework.ExpectNoError(results.Exits(regular1))
@@ -3359,10 +3359,10 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results = parseOutput(ctx, f, podSpec)
 			})
 			ginkgo.It("should restart a restartable init container before the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartedBefore(restartableInit1, regular1))
 			})
 			ginkgo.It("should restart a restartable init container after the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(regular1, restartableInit1))
+				framework.ExpectNoError(results.StartedBefore(regular1, restartableInit1))
 			})
 			ginkgo.It("should run a regular container to completion", func() {
 				framework.ExpectNoError(results.Exits(regular1))
@@ -3785,10 +3785,10 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results = parseOutput(ctx, f, podSpec)
 			})
 			ginkgo.It("should restart a restartable init container before the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartedBefore(restartableInit1, regular1))
 			})
 			ginkgo.It("should restart a restartable init container after the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(regular1, restartableInit1))
+				framework.ExpectNoError(results.StartedBefore(regular1, restartableInit1))
 			})
 			ginkgo.It("should start a regular container", func() {
 				framework.ExpectNoError(results.Starts(regular1))
@@ -3855,10 +3855,10 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results = parseOutput(ctx, f, podSpec)
 			})
 			ginkgo.It("should restart a restartable init container before the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartedBefore(restartableInit1, regular1))
 			})
 			ginkgo.It("should restart a restartable init container after the regular container started", func() {
-				framework.ExpectNoError(results.StartsBefore(regular1, restartableInit1))
+				framework.ExpectNoError(results.StartedBefore(regular1, restartableInit1))
 			})
 			ginkgo.It("should start a regular container", func() {
 				framework.ExpectNoError(results.Starts(regular1))
@@ -4093,8 +4093,8 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 			results := parseOutput(ctx, f, pod)
 
 			ginkgo.By("Analyzing results")
-			framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit2))
-			framework.ExpectNoError(results.StartsBefore(restartableInit2, regular1))
+			framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit2))
+			framework.ExpectNoError(results.StartingBefore(restartableInit2, regular1))
 		})
 
 		ginkgo.When("the image is updated after the restartable init container's startup probe fails", func() {
@@ -4621,12 +4621,12 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results := parseOutput(ctx, f, pod)
 
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit2))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit3))
-				framework.ExpectNoError(results.StartsBefore(restartableInit2, restartableInit3))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit2, regular1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit3, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit2))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit3))
+				framework.ExpectNoError(results.StartingBefore(restartableInit2, restartableInit3))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit2, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit3, regular1))
 
 				// main containers exit first
 				framework.ExpectNoError(results.ExitsBefore(regular1, restartableInit1))
@@ -4866,12 +4866,12 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results := parseOutput(ctx, f, pod)
 
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit2))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit3))
-				framework.ExpectNoError(results.StartsBefore(restartableInit2, restartableInit3))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit2, regular1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit3, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit2))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit3))
+				framework.ExpectNoError(results.StartingBefore(restartableInit2, restartableInit3))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit2, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit3, regular1))
 
 				ps1, err := results.TimeOfStart(prefixedName(PreStopPrefix, restartableInit1))
 				framework.ExpectNoError(err)
@@ -5004,12 +5004,12 @@ var _ = SIGDescribe(framework.WithNodeConformance(), "Containers Lifecycle", fun
 				results := parseOutput(ctx, f, pod)
 
 				ginkgo.By("Analyzing results")
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit2))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, restartableInit3))
-				framework.ExpectNoError(results.StartsBefore(restartableInit2, restartableInit3))
-				framework.ExpectNoError(results.StartsBefore(restartableInit1, regular1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit2, regular1))
-				framework.ExpectNoError(results.StartsBefore(restartableInit3, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit2))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, restartableInit3))
+				framework.ExpectNoError(results.StartingBefore(restartableInit2, restartableInit3))
+				framework.ExpectNoError(results.StartingBefore(restartableInit1, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit2, regular1))
+				framework.ExpectNoError(results.StartingBefore(restartableInit3, regular1))
 
 				// main containers exit first
 				framework.ExpectNoError(results.ExitsBefore(regular1, restartableInit1))
