@@ -121,7 +121,7 @@ func getTestPod() *v1.Pod {
 	return &pod
 }
 
-func setTestProbe(pod *v1.Pod, probeType probeType, probeSpec v1.Probe) {
+func setTestProbe(pod *v1.Pod, probeType ProbeType, probeSpec v1.Probe) {
 	// All tests rely on the fake exec prober.
 	probeSpec.ProbeHandler = v1.ProbeHandler{
 		Exec: &v1.ExecAction{},
@@ -142,11 +142,11 @@ func setTestProbe(pod *v1.Pod, probeType probeType, probeSpec v1.Probe) {
 	}
 
 	switch probeType {
-	case readiness:
+	case Readiness:
 		pod.Spec.Containers[0].ReadinessProbe = &probeSpec
-	case liveness:
+	case Liveness:
 		pod.Spec.Containers[0].LivenessProbe = &probeSpec
-	case startup:
+	case Startup:
 		pod.Spec.Containers[0].StartupProbe = &probeSpec
 	}
 }
@@ -169,7 +169,7 @@ func newTestManager() *manager {
 	return m
 }
 
-func newTestWorker(m *manager, probeType probeType, probeSpec v1.Probe) *worker {
+func newTestWorker(m *manager, probeType ProbeType, probeSpec v1.Probe) *worker {
 	pod := getTestPod()
 	setTestProbe(pod, probeType, probeSpec)
 	return newWorker(m, probeType, pod, pod.Spec.Containers[0])

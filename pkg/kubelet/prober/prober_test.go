@@ -229,22 +229,22 @@ func TestProbe(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		for _, pType := range [...]probeType{liveness, readiness, startup} {
+		for _, pType := range [...]ProbeType{Liveness, Readiness, Startup} {
 
 			if test.unsupported {
-				pType = probeType(666)
+				pType = ProbeType(666)
 			}
-			prober := &prober{
+			prober := &Prober{
 				recorder: &record.FakeRecorder{},
 			}
 			testID := fmt.Sprintf("%d-%s", i, pType)
 			testContainer := v1.Container{Env: test.env}
 			switch pType {
-			case liveness:
+			case Liveness:
 				testContainer.LivenessProbe = test.probe
-			case readiness:
+			case Readiness:
 				testContainer.ReadinessProbe = test.probe
-			case startup:
+			case Startup:
 				testContainer.StartupProbe = test.probe
 			}
 			if test.execError {
@@ -253,7 +253,7 @@ func TestProbe(t *testing.T) {
 				prober.exec = fakeExecProber{test.execResult, nil}
 			}
 
-			result, err := prober.probe(ctx, pType, &v1.Pod{}, v1.PodStatus{}, testContainer, containerID)
+			result, err := prober.Probe(ctx, pType, &v1.Pod{}, v1.PodStatus{}, testContainer, containerID)
 
 			if test.expectError {
 				require.Error(t, err, "[%s] Expected probe error but no error was returned.", testID)
@@ -266,7 +266,7 @@ func TestProbe(t *testing.T) {
 			if len(test.expectCommand) > 0 {
 				prober.exec = execprobe.New()
 				prober.runner = &containertest.FakeContainerCommandRunner{}
-				_, err := prober.probe(ctx, pType, &v1.Pod{}, v1.PodStatus{}, testContainer, containerID)
+				_, err := prober.Probe(ctx, pType, &v1.Pod{}, v1.PodStatus{}, testContainer, containerID)
 				require.NoError(t, err, "[%s] Didn't expect probe error ", testID)
 
 				if !reflect.DeepEqual(test.expectCommand, prober.runner.(*containertest.FakeContainerCommandRunner).Cmd) {
@@ -313,7 +313,7 @@ func TestNewExecInContainer(t *testing.T) {
 			Stdout: test.stdout,
 			Err:    test.err,
 		}
-		prober := &prober{
+		prober := &Prober{
 			runner: runner,
 		}
 
@@ -351,7 +351,7 @@ func TestNewExecInContainer(t *testing.T) {
 func TestNewProber(t *testing.T) {
 	runner := &containertest.FakeContainerCommandRunner{}
 	recorder := &record.FakeRecorder{}
-	prober := newProber(runner, recorder)
+	prober := NewProber(runner, recorder)
 
 	assert.NotNil(t, prober, "Expected prober to be non-nil")
 	assert.Equal(t, runner, prober.runner, "Expected prober runner to match")
@@ -387,13 +387,13 @@ func TestRecordContainerEventUnknownStatus(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		probeType probeType
+		probeType ProbeType
 		result    probe.Result
 		expected  []string
 	}{
 		{
 			name:      "Readiness Probe Unknown",
-			probeType: readiness,
+			probeType: Readiness,
 			result:    probe.Unknown,
 			expected: []string{
 				"Warning ContainerProbeWarning Readiness probe warning: probe output",
@@ -402,7 +402,7 @@ func TestRecordContainerEventUnknownStatus(t *testing.T) {
 		},
 		{
 			name:      "Liveness Probe Unknown",
-			probeType: liveness,
+			probeType: Liveness,
 			result:    probe.Unknown,
 			expected: []string{
 				"Warning ContainerProbeWarning Liveness probe warning: probe output",
@@ -411,7 +411,7 @@ func TestRecordContainerEventUnknownStatus(t *testing.T) {
 		},
 		{
 			name:      "Startup Probe Unknown",
-			probeType: startup,
+			probeType: Startup,
 			result:    probe.Unknown,
 			expected: []string{
 				"Warning ContainerProbeWarning Startup probe warning: probe output",
@@ -426,7 +426,7 @@ func TestRecordContainerEventUnknownStatus(t *testing.T) {
 			bufferSize := len(tc.expected) + 1
 			fakeRecorder := record.NewFakeRecorder(bufferSize)
 
-			pb := &prober{
+			pb := &Prober{
 				recorder: fakeRecorder,
 			}
 

@@ -41,7 +41,7 @@ import (
 const maxProbeRetries = 3
 
 // Prober helps to check the liveness/readiness/startup of a container.
-type prober struct {
+type Prober struct {
 	exec   execprobe.Prober
 	http   httpprobe.Prober
 	tcp    tcpprobe.Prober
@@ -51,14 +51,37 @@ type prober struct {
 	recorder record.EventRecorderLogger
 }
 
+// Type of probe (liveness, readiness or startup)
+type ProbeType int
+
+const (
+	Liveness ProbeType = iota
+	Readiness
+	Startup
+)
+
+// For debugging.
+func (t ProbeType) String() string {
+	switch t {
+	case Readiness:
+		return "Readiness"
+	case Liveness:
+		return "Liveness"
+	case Startup:
+		return "Startup"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 // NewProber creates a Prober, it takes a command runner and
 // several container info managers.
-func newProber(
+func NewProber(
 	runner kubecontainer.CommandRunner,
-	recorder record.EventRecorderLogger) *prober {
+	recorder record.EventRecorderLogger) *Prober {
 
 	const followNonLocalRedirects = false
-	return &prober{
+	return &Prober{
 		exec:     execprobe.New(),
 		http:     httpprobe.New(followNonLocalRedirects),
 		tcp:      tcpprobe.New(),
@@ -69,7 +92,7 @@ func newProber(
 }
 
 // recordContainerEvent should be used by the prober for all container related events.
-func (pb *prober) recordContainerEvent(ctx context.Context, pod *v1.Pod, container *v1.Container, eventType, reason, message string, args ...interface{}) {
+func (pb *Prober) recordContainerEvent(ctx context.Context, pod *v1.Pod, container *v1.Container, eventType, reason, message string, args ...interface{}) {
 	logger := klog.FromContext(ctx)
 	ref, err := kubecontainer.GenerateContainerRef(pod, container)
 	if err != nil {
@@ -79,15 +102,15 @@ func (pb *prober) recordContainerEvent(ctx context.Context, pod *v1.Pod, contain
 	pb.recorder.WithLogger(logger).Eventf(ref, eventType, reason, message, args...)
 }
 
-// probe probes the container.
-func (pb *prober) probe(ctx context.Context, probeType probeType, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (results.Result, error) {
+// Probe probes the container.
+func (pb *Prober) Probe(ctx context.Context, probeType ProbeType, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (results.Result, error) {
 	var probeSpec *v1.Probe
 	switch probeType {
-	case readiness:
+	case Readiness:
 		probeSpec = container.ReadinessProbe
-	case liveness:
+	case Liveness:
 		probeSpec = container.LivenessProbe
-	case startup:
+	case Startup:
 		probeSpec = container.StartupProbe
 	default:
 		return results.Failure, fmt.Errorf("unknown probe type: %q", probeType)
@@ -135,7 +158,7 @@ func (pb *prober) probe(ctx context.Context, probeType probeType, pod *v1.Pod, s
 
 // runProbeWithRetries tries to probe the container in a finite loop, it returns the last result
 // if it never succeeds.
-func (pb *prober) runProbeWithRetries(ctx context.Context, probeType probeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID, retries int) (probe.Result, string, error) {
+func (pb *Prober) runProbeWithRetries(ctx context.Context, probeType ProbeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID, retries int) (probe.Result, string, error) {
 	var err error
 	var result probe.Result
 	var output string
@@ -148,7 +171,7 @@ func (pb *prober) runProbeWithRetries(ctx context.Context, probeType probeType, 
 	return result, output, err
 }
 
-func (pb *prober) runProbe(ctx context.Context, probeType probeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (probe.Result, string, error) {
+func (pb *Prober) runProbe(ctx context.Context, probeType ProbeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (probe.Result, string, error) {
 	logger := klog.FromContext(ctx)
 	timeout := time.Duration(p.TimeoutSeconds) * time.Second
 	switch {
@@ -211,7 +234,7 @@ type execInContainer struct {
 	container v1.Container
 }
 
-func (pb *prober) newExecInContainer(ctx context.Context, pod *v1.Pod, container v1.Container, containerID kubecontainer.ContainerID, cmd []string, timeout time.Duration) exec.Cmd {
+func (pb *Prober) newExecInContainer(ctx context.Context, pod *v1.Pod, container v1.Container, containerID kubecontainer.ContainerID, cmd []string, timeout time.Duration) exec.Cmd {
 	return &execInContainer{
 		run:       func() ([]byte, error) { return pb.runner.RunInContainer(ctx, containerID, cmd, timeout) },
 		pod:       pod,

@@ -103,9 +103,9 @@ func TestAddRemovePods(t *testing.T) {
 	// Adding a pod with probes.
 	m.AddPod(ctx, &probePod)
 	probePaths := []probeKey{
-		{"probe_pod", "readiness", readiness},
-		{"probe_pod", "liveness", liveness},
-		{"probe_pod", "startup", startup},
+		{"probe_pod", "readiness", Readiness},
+		{"probe_pod", "liveness", Liveness},
+		{"probe_pod", "startup", Startup},
 	}
 	if err := expectProbes(m, probePaths); err != nil {
 		t.Error(err)
@@ -153,9 +153,9 @@ func TestAddRemovePodsWithRestartableInitContainer(t *testing.T) {
 		{
 			desc: "pod with sidecar",
 			probePaths: []probeKey{
-				{"restartable_init_container_pod", "restartable-init", liveness},
-				{"restartable_init_container_pod", "restartable-init", readiness},
-				{"restartable_init_container_pod", "restartable-init", startup},
+				{"restartable_init_container_pod", "restartable-init", Liveness},
+				{"restartable_init_container_pod", "restartable-init", Readiness},
+				{"restartable_init_container_pod", "restartable-init", Startup},
 			},
 			hasRestartableInitContainer: true,
 		},
@@ -262,14 +262,14 @@ func TestCleanupPods(t *testing.T) {
 	m.CleanupPods(desiredPods)
 
 	removedProbes := []probeKey{
-		{"pod_cleanup", "prober1", readiness},
-		{"pod_cleanup", "prober2", liveness},
-		{"pod_cleanup", "prober3", startup},
+		{"pod_cleanup", "prober1", Readiness},
+		{"pod_cleanup", "prober2", Liveness},
+		{"pod_cleanup", "prober3", Startup},
 	}
 	expectedProbes := []probeKey{
-		{"pod_keep", "prober1", readiness},
-		{"pod_keep", "prober2", liveness},
-		{"pod_keep", "prober3", startup},
+		{"pod_keep", "prober1", Readiness},
+		{"pod_keep", "prober2", Liveness},
+		{"pod_keep", "prober3", Startup},
 	}
 	if err := waitForWorkerExit(t, m, removedProbes); err != nil {
 		t.Fatal(err)
@@ -369,13 +369,13 @@ func TestUpdatePodStatus(t *testing.T) {
 
 	// Setup probe "workers" and cached results.
 	m.workers = map[probeKey]*worker{
-		{testPodUID, unprobed.Name, liveness}:             {},
-		{testPodUID, probedReady.Name, readiness}:         {},
-		{testPodUID, probedPending.Name, readiness}:       {},
-		{testPodUID, probedUnready.Name, readiness}:       {},
-		{testPodUID, notStartedNoReadiness.Name, startup}: {},
-		{testPodUID, startedNoReadiness.Name, startup}:    {},
-		{testPodUID, terminated.Name, readiness}:          {},
+		{testPodUID, unprobed.Name, Liveness}:             {},
+		{testPodUID, probedReady.Name, Readiness}:         {},
+		{testPodUID, probedPending.Name, Readiness}:       {},
+		{testPodUID, probedUnready.Name, Readiness}:       {},
+		{testPodUID, notStartedNoReadiness.Name, Startup}: {},
+		{testPodUID, startedNoReadiness.Name, Startup}:    {},
+		{testPodUID, terminated.Name, Readiness}:          {},
 	}
 	m.readinessManager.Set(kubecontainer.ParseContainerID(probedReady.ContainerID), results.Success, &v1.Pod{})
 	m.readinessManager.Set(kubecontainer.ParseContainerID(probedUnready.ContainerID), results.Failure, &v1.Pod{})
@@ -400,16 +400,16 @@ func TestUpdatePodStatus(t *testing.T) {
 	}, &podStatus)
 
 	expectedReadiness := map[probeKey]bool{
-		{testPodUID, unprobed.Name, readiness}:              true,
-		{testPodUID, probedReady.Name, readiness}:           true,
-		{testPodUID, probedPending.Name, readiness}:         false,
-		{testPodUID, probedUnready.Name, readiness}:         false,
-		{testPodUID, notStartedNoReadiness.Name, readiness}: false,
-		{testPodUID, startedNoReadiness.Name, readiness}:    true,
-		{testPodUID, terminated.Name, readiness}:            false,
+		{testPodUID, unprobed.Name, Readiness}:              true,
+		{testPodUID, probedReady.Name, Readiness}:           true,
+		{testPodUID, probedPending.Name, Readiness}:         false,
+		{testPodUID, probedUnready.Name, Readiness}:         false,
+		{testPodUID, notStartedNoReadiness.Name, Readiness}: false,
+		{testPodUID, startedNoReadiness.Name, Readiness}:    true,
+		{testPodUID, terminated.Name, Readiness}:            false,
 	}
 	for _, c := range podStatus.ContainerStatuses {
-		expected, ok := expectedReadiness[probeKey{testPodUID, c.Name, readiness}]
+		expected, ok := expectedReadiness[probeKey{testPodUID, c.Name, Readiness}]
 		if !ok {
 			t.Fatalf("Missing expectation for test case: %v", c.Name)
 		}
@@ -448,8 +448,8 @@ func TestUpdatePodStatusWithInitContainers(t *testing.T) {
 
 	// Setup probe "workers" and cached results.
 	m.workers = map[probeKey]*worker{
-		{testPodUID, notStarted.Name, startup}: {},
-		{testPodUID, started.Name, startup}:    {},
+		{testPodUID, notStarted.Name, Startup}: {},
+		{testPodUID, started.Name, Startup}:    {},
 	}
 	m.startupManager.Set(kubecontainer.ParseContainerID(started.ContainerID), results.Success, &v1.Pod{})
 
@@ -462,28 +462,28 @@ func TestUpdatePodStatusWithInitContainers(t *testing.T) {
 		{
 			desc: "init containers",
 			expectedStartup: map[probeKey]bool{
-				{testPodUID, notStarted.Name, startup}: false,
-				{testPodUID, started.Name, startup}:    true,
-				{testPodUID, terminated.Name, startup}: false,
+				{testPodUID, notStarted.Name, Startup}: false,
+				{testPodUID, started.Name, Startup}:    true,
+				{testPodUID, terminated.Name, Startup}: false,
 			},
 			expectedReadiness: map[probeKey]bool{
-				{testPodUID, notStarted.Name, readiness}: false,
-				{testPodUID, started.Name, readiness}:    false,
-				{testPodUID, terminated.Name, readiness}: true,
+				{testPodUID, notStarted.Name, Readiness}: false,
+				{testPodUID, started.Name, Readiness}:    false,
+				{testPodUID, terminated.Name, Readiness}: true,
 			},
 			hasRestartableInitContainer: false,
 		},
 		{
 			desc: "init container with Always restartPolicy",
 			expectedStartup: map[probeKey]bool{
-				{testPodUID, notStarted.Name, startup}: false,
-				{testPodUID, started.Name, startup}:    true,
-				{testPodUID, terminated.Name, startup}: false,
+				{testPodUID, notStarted.Name, Startup}: false,
+				{testPodUID, started.Name, Startup}:    true,
+				{testPodUID, terminated.Name, Startup}: false,
 			},
 			expectedReadiness: map[probeKey]bool{
-				{testPodUID, notStarted.Name, readiness}: false,
-				{testPodUID, started.Name, readiness}:    true,
-				{testPodUID, terminated.Name, readiness}: false,
+				{testPodUID, notStarted.Name, Readiness}: false,
+				{testPodUID, started.Name, Readiness}:    true,
+				{testPodUID, terminated.Name, Readiness}: false,
 			},
 			hasRestartableInitContainer: true,
 		},
@@ -531,7 +531,7 @@ func TestUpdatePodStatusWithInitContainers(t *testing.T) {
 
 			for _, c := range podStatus.InitContainerStatuses {
 				{
-					expected, ok := tc.expectedStartup[probeKey{testPodUID, c.Name, startup}]
+					expected, ok := tc.expectedStartup[probeKey{testPodUID, c.Name, Startup}]
 					if !ok {
 						t.Fatalf("Missing expectation for test case: %v", c.Name)
 					}
@@ -541,7 +541,7 @@ func TestUpdatePodStatusWithInitContainers(t *testing.T) {
 					}
 				}
 				{
-					expected, ok := tc.expectedReadiness[probeKey{testPodUID, c.Name, readiness}]
+					expected, ok := tc.expectedReadiness[probeKey{testPodUID, c.Name, Readiness}]
 					if !ok {
 						t.Fatalf("Missing expectation for test case: %v", c.Name)
 					}
@@ -565,7 +565,7 @@ func (m *manager) extractedReadinessHandling(logger klog.Logger) {
 func TestUpdateReadiness(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	testPod := getTestPod()
-	setTestProbe(testPod, readiness, v1.Probe{})
+	setTestProbe(testPod, Readiness, v1.Probe{})
 	m := newTestManager()
 	defer cleanup(t, m)
 
@@ -585,7 +585,7 @@ func TestUpdateReadiness(t *testing.T) {
 	m.statusManager.SetPodStatus(logger, testPod, getTestRunningStatus())
 
 	m.AddPod(ctx, testPod)
-	probePaths := []probeKey{{testPodUID, testContainerName, readiness}}
+	probePaths := []probeKey{{testPodUID, testContainerName, Readiness}}
 	if err := expectProbes(m, probePaths); err != nil {
 		t.Error(err)
 	}

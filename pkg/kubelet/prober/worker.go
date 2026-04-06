@@ -53,7 +53,7 @@ type worker struct {
 	spec *v1.Probe
 
 	// The type of the worker.
-	probeType probeType
+	probeType ProbeType
 
 	// The probe value during the initial delay.
 	initialValue results.Result
@@ -96,7 +96,7 @@ func (w *worker) isInitContainer() bool {
 // Creates and starts a new probe worker.
 func newWorker(
 	m *manager,
-	probeType probeType,
+	probeType ProbeType,
 	pod *v1.Pod,
 	container v1.Container) *worker {
 
@@ -110,15 +110,15 @@ func newWorker(
 	}
 
 	switch probeType {
-	case readiness:
+	case Readiness:
 		w.spec = container.ReadinessProbe
 		w.resultsManager = m.readinessManager
 		w.initialValue = results.Failure
-	case liveness:
+	case Liveness:
 		w.spec = container.LivenessProbe
 		w.resultsManager = m.livenessManager
 		w.initialValue = results.Success
-	case startup:
+	case Startup:
 		w.spec = container.StartupProbe
 		w.resultsManager = m.startupManager
 		w.initialValue = results.Unknown
@@ -270,7 +270,7 @@ func (w *worker) doProbe(ctx context.Context) (keepGoing bool) {
 			// kubelet restarted. This ensures startupManager.Get() returns a valid result,
 			// allowing computeInitContainerActions to detect pod initialization.
 			// See https://github.com/kubernetes/kubernetes/issues/136910
-			if isRestartableInitContainer && w.probeType == startup {
+			if isRestartableInitContainer && w.probeType == Startup {
 				if c.Started != nil && *c.Started {
 					w.resultsManager.Set(w.containerID, results.Success, w.pod)
 				}
@@ -314,10 +314,10 @@ func (w *worker) doProbe(ctx context.Context) (keepGoing bool) {
 	}
 
 	// Graceful shutdown of the pod.
-	if w.pod.ObjectMeta.DeletionTimestamp != nil && (w.probeType == liveness || w.probeType == startup) {
+	if w.pod.ObjectMeta.DeletionTimestamp != nil && (w.probeType == Liveness || w.probeType == Startup) {
 		logger.V(3).Info("Pod deletion requested, setting probe result to success",
 			"probeType", w.probeType, "pod", klog.KObj(w.pod), "containerName", w.container.Name)
-		if w.probeType == startup {
+		if w.probeType == Startup {
 			logger.Info("Pod deletion requested before container has fully started",
 				"pod", klog.KObj(w.pod), "containerName", w.container.Name)
 		}
@@ -335,18 +335,18 @@ func (w *worker) doProbe(ctx context.Context) (keepGoing bool) {
 	if c.Started != nil && *c.Started {
 		// Stop probing for startup once container has started.
 		// we keep it running to make sure it will work for restarted container.
-		if w.probeType == startup {
+		if w.probeType == Startup {
 			return true
 		}
 	} else {
 		// Disable other probes until container has started.
-		if w.probeType != startup {
+		if w.probeType != Startup {
 			return true
 		}
 	}
 
 	// Note, exec probe does NOT have access to pod environment variables or downward API
-	result, err := w.probeManager.prober.probe(ctx, w.probeType, w.pod, status, w.container, w.containerID)
+	result, err := w.probeManager.prober.Probe(ctx, w.probeType, w.pod, status, w.container, w.containerID)
 	if err != nil {
 		// Prober error, throw away the result.
 		return true
@@ -378,7 +378,7 @@ func (w *worker) doProbe(ctx context.Context) (keepGoing bool) {
 
 	w.resultsManager.Set(w.containerID, result, w.pod)
 
-	if (w.probeType == liveness && result == results.Failure) || w.probeType == startup {
+	if (w.probeType == Liveness && result == results.Failure) || w.probeType == Startup {
 		// The container fails a liveness/startup check, it will need to be restarted.
 		// Stop probing until we see a new container ID. This is to reduce the
 		// chance of hitting #21751, where running `docker exec` when a

@@ -42,7 +42,7 @@ func init() {
 }
 
 // newTestWorkerWithRestartableInitContainer creates a test worker with an init container setup
-func newTestWorkerWithRestartableInitContainer(m *manager, probeType probeType) *worker {
+func newTestWorkerWithRestartableInitContainer(m *manager, probeType ProbeType) *worker {
 	pod := getTestPod()
 
 	// Set up init container with restart policy
@@ -64,19 +64,19 @@ func TestDoProbe(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
 
-	for _, probeType := range [...]probeType{liveness, readiness, startup} {
+	for _, probeType := range [...]ProbeType{Liveness, Readiness, Startup} {
 		// Test statuses.
-		runningStatus := getTestRunningStatusWithStarted(probeType != startup)
-		pendingStatus := getTestRunningStatusWithStarted(probeType != startup)
+		runningStatus := getTestRunningStatusWithStarted(probeType != Startup)
+		pendingStatus := getTestRunningStatusWithStarted(probeType != Startup)
 		pendingStatus.ContainerStatuses[0].State.Running = nil
-		terminatedStatus := getTestRunningStatusWithStarted(probeType != startup)
+		terminatedStatus := getTestRunningStatusWithStarted(probeType != Startup)
 		terminatedStatus.ContainerStatuses[0].State.Running = nil
 		terminatedStatus.ContainerStatuses[0].State.Terminated = &v1.ContainerStateTerminated{
 			StartedAt: metav1.Now(),
 		}
-		otherStatus := getTestRunningStatusWithStarted(probeType != startup)
+		otherStatus := getTestRunningStatusWithStarted(probeType != Startup)
 		otherStatus.ContainerStatuses[0].Name = "otherContainer"
-		failedStatus := getTestRunningStatusWithStarted(probeType != startup)
+		failedStatus := getTestRunningStatusWithStarted(probeType != Startup)
 		failedStatus.Phase = v1.PodFailed
 
 		tests := []struct {
@@ -89,9 +89,9 @@ func TestDoProbe(t *testing.T) {
 		}{
 			{ // No status.
 				expectContinue: map[string]bool{
-					liveness.String():  true,
-					readiness.String(): true,
-					startup.String():   true,
+					Liveness.String():  true,
+					Readiness.String(): true,
+					Startup.String():   true,
 				},
 			},
 			{ // Pod failed
@@ -102,24 +102,24 @@ func TestDoProbe(t *testing.T) {
 				setDeletionTimestamp: true,
 				expectSet:            true,
 				expectContinue: map[string]bool{
-					readiness.String(): true,
+					Readiness.String(): true,
 				},
 				expectedResult: results.Success,
 			},
 			{ // No container status
 				podStatus: &otherStatus,
 				expectContinue: map[string]bool{
-					liveness.String():  true,
-					readiness.String(): true,
-					startup.String():   true,
+					Liveness.String():  true,
+					Readiness.String(): true,
+					Startup.String():   true,
 				},
 			},
 			{ // Container waiting
 				podStatus: &pendingStatus,
 				expectContinue: map[string]bool{
-					liveness.String():  true,
-					readiness.String(): true,
-					startup.String():   true,
+					Liveness.String():  true,
+					Readiness.String(): true,
+					Startup.String():   true,
 				},
 				expectSet:      true,
 				expectedResult: results.Failure,
@@ -132,9 +132,9 @@ func TestDoProbe(t *testing.T) {
 			{ // Probe successful.
 				podStatus: &runningStatus,
 				expectContinue: map[string]bool{
-					liveness.String():  true,
-					readiness.String(): true,
-					startup.String():   true,
+					Liveness.String():  true,
+					Readiness.String(): true,
+					Startup.String():   true,
 				},
 				expectSet:      true,
 				expectedResult: results.Success,
@@ -145,9 +145,9 @@ func TestDoProbe(t *testing.T) {
 					InitialDelaySeconds: -100,
 				},
 				expectContinue: map[string]bool{
-					liveness.String():  true,
-					readiness.String(): true,
-					startup.String():   true,
+					Liveness.String():  true,
+					Readiness.String(): true,
+					Startup.String():   true,
 				},
 				expectSet:      true,
 				expectedResult: results.Success,
@@ -194,7 +194,7 @@ func TestDoProbeWithContainerRestartRules(t *testing.T) {
 
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
-	for _, probeType := range [...]probeType{liveness, readiness, startup} {
+	for _, probeType := range [...]ProbeType{Liveness, Readiness, Startup} {
 		testcases := []struct {
 			name           string
 			container      v1.Container
@@ -314,7 +314,7 @@ func TestDoProbeWithContainerRestartAllContainers(t *testing.T) {
 
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
-	for _, probeType := range [...]probeType{liveness, readiness, startup} {
+	for _, probeType := range [...]ProbeType{Liveness, Readiness, Startup} {
 		testcases := []struct {
 			name           string
 			pod            func() v1.Pod
@@ -418,25 +418,25 @@ func TestInitialDelay(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
 
-	for _, probeType := range [...]probeType{liveness, readiness, startup} {
+	for _, probeType := range [...]ProbeType{Liveness, Readiness, Startup} {
 		w := newTestWorker(m, probeType, v1.Probe{
 			InitialDelaySeconds: 10,
 		})
-		m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(probeType != startup))
+		m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(probeType != Startup))
 
 		expectContinue(t, w, w.doProbe(ctx), "during initial delay")
 		// Default value depends on probe, Success for liveness, Failure for readiness, Unknown for startup
 		switch probeType {
-		case liveness:
+		case Liveness:
 			expectResult(t, w, results.Success, "during initial delay")
-		case readiness:
+		case Readiness:
 			expectResult(t, w, results.Failure, "during initial delay")
-		case startup:
+		case Startup:
 			expectResult(t, w, results.Unknown, "during initial delay")
 		}
 
 		// 100 seconds later...
-		laterStatus := getTestRunningStatusWithStarted(probeType != startup)
+		laterStatus := getTestRunningStatusWithStarted(probeType != Startup)
 		laterStatus.ContainerStatuses[0].State.Running.StartedAt.Time =
 			time.Now().Add(-100 * time.Second)
 		m.statusManager.SetPodStatus(logger, w.pod, laterStatus)
@@ -450,7 +450,7 @@ func TestInitialDelay(t *testing.T) {
 func TestFailureThreshold(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
-	w := newTestWorker(m, readiness, v1.Probe{SuccessThreshold: 1, FailureThreshold: 3})
+	w := newTestWorker(m, Readiness, v1.Probe{SuccessThreshold: 1, FailureThreshold: 3})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatus())
 
 	for i := 0; i < 2; i++ {
@@ -485,7 +485,7 @@ func TestFailureThreshold(t *testing.T) {
 func TestSuccessThreshold(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
-	w := newTestWorker(m, readiness, v1.Probe{SuccessThreshold: 3, FailureThreshold: 1})
+	w := newTestWorker(m, Readiness, v1.Probe{SuccessThreshold: 3, FailureThreshold: 1})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatus())
 
 	// Start out failure.
@@ -522,7 +522,7 @@ func TestStartupProbeSuccessThreshold(t *testing.T) {
 	m := newTestManager()
 	successThreshold := 1
 	failureThreshold := 3
-	w := newTestWorker(m, startup, v1.Probe{SuccessThreshold: int32(successThreshold), FailureThreshold: int32(failureThreshold)})
+	w := newTestWorker(m, Startup, v1.Probe{SuccessThreshold: int32(successThreshold), FailureThreshold: int32(failureThreshold)})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestNotRunningStatus())
 	m.prober.exec = fakeExecProber{probe.Success, nil}
 
@@ -555,7 +555,7 @@ func TestStartupProbeFailureThreshold(t *testing.T) {
 	m := newTestManager()
 	successThreshold := 1
 	failureThreshold := 3
-	w := newTestWorker(m, startup, v1.Probe{SuccessThreshold: int32(successThreshold), FailureThreshold: int32(failureThreshold)})
+	w := newTestWorker(m, Startup, v1.Probe{SuccessThreshold: int32(successThreshold), FailureThreshold: int32(failureThreshold)})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestNotRunningStatus())
 	m.prober.exec = fakeExecProber{probe.Failure, nil}
 
@@ -606,10 +606,10 @@ func TestCleanUp(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
 
-	for _, probeType := range [...]probeType{liveness, readiness, startup} {
+	for _, probeType := range [...]ProbeType{Liveness, Readiness, Startup} {
 		key := probeKey{testPodUID, testContainerName, probeType}
 		w := newTestWorker(m, probeType, v1.Probe{})
-		m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(probeType != startup))
+		m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(probeType != Startup))
 		go w.run(ctx)
 		m.workers[key] = w
 
@@ -656,13 +656,13 @@ func expectContinue(t *testing.T, w *worker, c bool, msg string) {
 	}
 }
 
-func resultsManager(m *manager, probeType probeType) results.Manager {
+func resultsManager(m *manager, probeType ProbeType) results.Manager {
 	switch probeType {
-	case readiness:
+	case Readiness:
 		return m.readinessManager
-	case liveness:
+	case Liveness:
 		return m.livenessManager
-	case startup:
+	case Startup:
 		return m.startupManager
 	}
 	panic(fmt.Errorf("Unhandled case: %v", probeType))
@@ -672,9 +672,9 @@ func TestOnHoldOnLivenessOrStartupCheckFailure(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
 
-	for _, probeType := range [...]probeType{liveness, startup} {
+	for _, probeType := range [...]ProbeType{Liveness, Startup} {
 		w := newTestWorker(m, probeType, v1.Probe{SuccessThreshold: 1, FailureThreshold: 1})
-		status := getTestRunningStatusWithStarted(probeType != startup)
+		status := getTestRunningStatusWithStarted(probeType != Startup)
 		m.statusManager.SetPodStatus(logger, w.pod, status)
 
 		// First probe should fail.
@@ -701,9 +701,9 @@ func TestOnHoldOnLivenessOrStartupCheckFailure(t *testing.T) {
 		msg = "hold lifted"
 		expectContinue(t, w, w.doProbe(ctx), msg)
 		expectResult(t, w, results.Success, msg)
-		if probeType == liveness && w.onHold {
+		if probeType == Liveness && w.onHold {
 			t.Errorf("Prober should not be on hold anymore")
-		} else if probeType == startup && !w.onHold {
+		} else if probeType == Startup && !w.onHold {
 			t.Errorf("Prober should be on hold due to %s check success", probeType)
 		}
 	}
@@ -712,7 +712,7 @@ func TestOnHoldOnLivenessOrStartupCheckFailure(t *testing.T) {
 func TestResultRunOnLivenessCheckFailure(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
-	w := newTestWorker(m, liveness, v1.Probe{SuccessThreshold: 1, FailureThreshold: 3})
+	w := newTestWorker(m, Liveness, v1.Probe{SuccessThreshold: 1, FailureThreshold: 3})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatus())
 
 	m.prober.exec = fakeExecProber{probe.Success, nil}
@@ -755,7 +755,7 @@ func TestResultRunOnStartupCheckFailure(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 
 	m := newTestManager()
-	w := newTestWorker(m, startup, v1.Probe{SuccessThreshold: 1, FailureThreshold: 3})
+	w := newTestWorker(m, Startup, v1.Probe{SuccessThreshold: 1, FailureThreshold: 3})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(false))
 
 	// Below FailureThreshold leaves probe state unchanged
@@ -793,7 +793,7 @@ func TestDoProbe_TerminatedRestartableInitContainerWithRestartPolicyNever(t *tes
 	m := newTestManager()
 
 	// Test restartable init container (sidecar) behavior
-	w := newTestWorkerWithRestartableInitContainer(m, startup)
+	w := newTestWorkerWithRestartableInitContainer(m, Startup)
 
 	// Set pod restart policy to Never
 	w.pod.Spec.RestartPolicy = v1.RestartPolicyNever
@@ -828,7 +828,7 @@ func TestDoProbe_TerminatedContainerWithRestartPolicyNever(t *testing.T) {
 	m := newTestManager()
 
 	// Test that regular containers (without RestartPolicy) still work as before
-	w := newTestWorker(m, startup, v1.Probe{})
+	w := newTestWorker(m, Startup, v1.Probe{})
 
 	// Regular container without explicit restart policy
 	w.container.RestartPolicy = nil
@@ -857,7 +857,7 @@ func TestDoProbe_TerminatedContainerWithRestartPolicyNever(t *testing.T) {
 func TestLivenessProbeDisabledByStarted(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 	m := newTestManager()
-	w := newTestWorker(m, liveness, v1.Probe{SuccessThreshold: 1, FailureThreshold: 1})
+	w := newTestWorker(m, Liveness, v1.Probe{SuccessThreshold: 1, FailureThreshold: 1})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(false))
 	// livenessProbe fails, but is disabled
 	m.prober.exec = fakeExecProber{probe.Failure, nil}
@@ -877,7 +877,7 @@ func TestStartupProbeDisabledByStarted(t *testing.T) {
 	logger, ctx := ktesting.NewTestContext(t)
 
 	m := newTestManager()
-	w := newTestWorker(m, startup, v1.Probe{SuccessThreshold: 1, FailureThreshold: 2})
+	w := newTestWorker(m, Startup, v1.Probe{SuccessThreshold: 1, FailureThreshold: 2})
 	m.statusManager.SetPodStatus(logger, w.pod, getTestRunningStatusWithStarted(false))
 	// startupProbe fails < FailureThreshold, stays unknown
 	m.prober.exec = fakeExecProber{probe.Failure, nil}
@@ -905,7 +905,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 		name           string
 		featureEnabled bool
 		isRestart      bool
-		probeType      probeType
+		probeType      ProbeType
 		initialValue   results.Result
 		expectSet      bool
 		isSidecar      bool
@@ -915,7 +915,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature enabled, is restart, readiness",
 			featureEnabled: true,
 			isRestart:      true,
-			probeType:      readiness,
+			probeType:      Readiness,
 			initialValue:   results.Failure,
 			expectSet:      true,
 			isSidecar:      false,
@@ -925,7 +925,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature enabled, is restart, liveness",
 			featureEnabled: true,
 			isRestart:      true,
-			probeType:      liveness,
+			probeType:      Liveness,
 			initialValue:   results.Success,
 			expectSet:      true,
 			isSidecar:      false,
@@ -935,7 +935,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature enabled, is restart, startup",
 			featureEnabled: true,
 			isRestart:      true,
-			probeType:      startup,
+			probeType:      Startup,
 			initialValue:   results.Unknown,
 			expectSet:      true,
 			isSidecar:      false,
@@ -945,7 +945,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature enabled, not restart, readiness",
 			featureEnabled: true,
 			isRestart:      false,
-			probeType:      readiness,
+			probeType:      Readiness,
 			initialValue:   results.Failure,
 			expectSet:      true,
 			isSidecar:      false,
@@ -955,7 +955,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature enabled, not restart, liveness",
 			featureEnabled: true,
 			isRestart:      false,
-			probeType:      liveness,
+			probeType:      Liveness,
 			initialValue:   results.Success,
 			expectSet:      true,
 			isSidecar:      false,
@@ -965,7 +965,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature enabled, not restart, startup",
 			featureEnabled: true,
 			isRestart:      false,
-			probeType:      startup,
+			probeType:      Startup,
 			initialValue:   results.Unknown,
 			expectSet:      true,
 			isSidecar:      false,
@@ -975,7 +975,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, is restart, readiness",
 			featureEnabled: false,
 			isRestart:      true,
-			probeType:      readiness,
+			probeType:      Readiness,
 			expectSet:      false,
 			isSidecar:      false,
 		},
@@ -983,7 +983,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, is restart, liveness",
 			featureEnabled: false,
 			isRestart:      true,
-			probeType:      liveness,
+			probeType:      Liveness,
 			expectSet:      false,
 			isSidecar:      false,
 		},
@@ -991,7 +991,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, is restart, startup",
 			featureEnabled: false,
 			isRestart:      true,
-			probeType:      startup,
+			probeType:      Startup,
 			expectSet:      false,
 			isSidecar:      false,
 		},
@@ -999,7 +999,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, not restart, readiness",
 			featureEnabled: false,
 			isRestart:      false,
-			probeType:      readiness,
+			probeType:      Readiness,
 			initialValue:   results.Failure,
 			expectSet:      true,
 			isSidecar:      false,
@@ -1009,7 +1009,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, not restart, liveness",
 			featureEnabled: false,
 			isRestart:      false,
-			probeType:      liveness,
+			probeType:      Liveness,
 			initialValue:   results.Success,
 			expectSet:      true,
 			isSidecar:      false,
@@ -1019,7 +1019,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, not restart, startup",
 			featureEnabled: false,
 			isRestart:      false,
-			probeType:      startup,
+			probeType:      Startup,
 			initialValue:   results.Unknown,
 			expectSet:      true,
 			isSidecar:      false,
@@ -1030,7 +1030,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, is restart, startup, sidecar",
 			featureEnabled: false,
 			isRestart:      true,
-			probeType:      startup,
+			probeType:      Startup,
 			initialValue:   results.Unknown,
 			expectSet:      true,
 			isSidecar:      true,
@@ -1040,7 +1040,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, is restart, liveness, sidecar",
 			featureEnabled: false,
 			isRestart:      true,
-			probeType:      liveness,
+			probeType:      Liveness,
 			initialValue:   results.Success,
 			expectSet:      false, // Readiness/liveness probes not set for sidecars on restart
 			isSidecar:      true,
@@ -1049,7 +1049,7 @@ func TestChangeContainerStatusOnKubeletRestart(t *testing.T) {
 			name:           "feature disabled, is restart, readiness, sidecar",
 			featureEnabled: false,
 			isRestart:      true,
-			probeType:      readiness,
+			probeType:      Readiness,
 			initialValue:   results.Failure,
 			expectSet:      false, // Readiness/liveness probes not set for sidecars on restart
 			isSidecar:      true,

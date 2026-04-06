@@ -112,7 +112,7 @@ type manager struct {
 	startupManager results.Manager
 
 	// prober executes the probe actions.
-	prober *prober
+	prober *Prober
 
 	start time.Time
 }
@@ -126,7 +126,7 @@ func NewManager(
 	runner kubecontainer.CommandRunner,
 	recorder record.EventRecorderLogger) Manager {
 
-	prober := newProber(runner, recorder)
+	prober := NewProber(runner, recorder)
 	return &manager{
 		statusManager:    statusManager,
 		prober:           prober,
@@ -142,35 +142,14 @@ func NewManager(
 type probeKey struct {
 	podUID        types.UID
 	containerName string
-	probeType     probeType
+	probeType     ProbeType
 }
 
-// Type of probe (liveness, readiness or startup)
-type probeType int
-
 const (
-	liveness probeType = iota
-	readiness
-	startup
-
 	probeResultSuccessful string = "successful"
 	probeResultFailed     string = "failed"
 	probeResultUnknown    string = "unknown"
 )
-
-// For debugging.
-func (t probeType) String() string {
-	switch t {
-	case readiness:
-		return "Readiness"
-	case liveness:
-		return "Liveness"
-	case startup:
-		return "Startup"
-	default:
-		return "UNKNOWN"
-	}
-}
 
 func getRestartableInitContainers(pod *v1.Pod) []v1.Container {
 	var restartableInitContainers []v1.Container
@@ -192,37 +171,37 @@ func (m *manager) AddPod(ctx context.Context, pod *v1.Pod) {
 		key.containerName = c.Name
 
 		if c.StartupProbe != nil {
-			key.probeType = startup
+			key.probeType = Startup
 			if _, ok := m.workers[key]; ok {
 				logger.V(8).Info("Startup probe already exists for container",
 					"pod", klog.KObj(pod), "containerName", c.Name)
 				return
 			}
-			w := newWorker(m, startup, pod, c)
+			w := newWorker(m, Startup, pod, c)
 			m.workers[key] = w
 			go w.run(ctx)
 		}
 
 		if c.ReadinessProbe != nil {
-			key.probeType = readiness
+			key.probeType = Readiness
 			if _, ok := m.workers[key]; ok {
 				logger.V(8).Info("Readiness probe already exists for container",
 					"pod", klog.KObj(pod), "containerName", c.Name)
 				return
 			}
-			w := newWorker(m, readiness, pod, c)
+			w := newWorker(m, Readiness, pod, c)
 			m.workers[key] = w
 			go w.run(ctx)
 		}
 
 		if c.LivenessProbe != nil {
-			key.probeType = liveness
+			key.probeType = Liveness
 			if _, ok := m.workers[key]; ok {
 				logger.V(8).Info("Liveness probe already exists for container",
 					"pod", klog.KObj(pod), "containerName", c.Name)
 				return
 			}
-			w := newWorker(m, liveness, pod, c)
+			w := newWorker(m, Liveness, pod, c)
 			m.workers[key] = w
 			go w.run(ctx)
 		}
@@ -236,7 +215,7 @@ func (m *manager) StopLivenessAndStartup(pod *v1.Pod) {
 	key := probeKey{podUID: pod.UID}
 	for _, c := range pod.Spec.Containers {
 		key.containerName = c.Name
-		for _, probeType := range [...]probeType{liveness, startup} {
+		for _, probeType := range [...]ProbeType{Liveness, Startup} {
 			key.probeType = probeType
 			if worker, ok := m.workers[key]; ok {
 				worker.stop()
@@ -252,7 +231,7 @@ func (m *manager) RemovePod(pod *v1.Pod) {
 	key := probeKey{podUID: pod.UID}
 	for _, c := range append(pod.Spec.Containers, getRestartableInitContainers(pod)...) {
 		key.containerName = c.Name
-		for _, probeType := range [...]probeType{readiness, liveness, startup} {
+		for _, probeType := range [...]ProbeType{Readiness, Liveness, Startup} {
 			key.probeType = probeType
 			if worker, ok := m.workers[key]; ok {
 				worker.stop()
@@ -287,7 +266,7 @@ func (m *manager) isContainerStarted(pod *v1.Pod, containerStatus *v1.ContainerS
 
 	// if there is a startup probe which hasn't run yet, the container is not
 	// started.
-	if _, exists := m.getWorker(pod.UID, containerStatus.Name, startup); exists {
+	if _, exists := m.getWorker(pod.UID, containerStatus.Name, Startup); exists {
 		return false
 	}
 
@@ -346,7 +325,7 @@ func (m *manager) UpdatePodStatus(ctx context.Context, pod *v1.Pod, podStatus *v
 			ready = true
 		} else {
 			// The check whether there is a probe which hasn't run yet.
-			w, exists := m.getWorker(pod.UID, c.Name, readiness)
+			w, exists := m.getWorker(pod.UID, c.Name, Readiness)
 			ready = !exists // no readinessProbe -> always ready
 			if exists {
 				// Trigger an immediate run of the readinessProbe to update ready state
@@ -401,7 +380,7 @@ func (m *manager) UpdatePodStatus(ctx context.Context, pod *v1.Pod, podStatus *v
 			ready = true
 		} else {
 			// The check whether there is a probe which hasn't run yet.
-			w, exists := m.getWorker(pod.UID, c.Name, readiness)
+			w, exists := m.getWorker(pod.UID, c.Name, Readiness)
 			ready = !exists // no readinessProbe -> always ready
 			if exists {
 				// Trigger an immediate run of the readinessProbe to update ready state
@@ -419,7 +398,7 @@ func (m *manager) UpdatePodStatus(ctx context.Context, pod *v1.Pod, podStatus *v
 	}
 }
 
-func (m *manager) getWorker(podUID types.UID, containerName string, probeType probeType) (*worker, bool) {
+func (m *manager) getWorker(podUID types.UID, containerName string, probeType ProbeType) (*worker, bool) {
 	m.workerLock.RLock()
 	defer m.workerLock.RUnlock()
 	worker, ok := m.workers[probeKey{podUID, containerName, probeType}]
@@ -427,7 +406,7 @@ func (m *manager) getWorker(podUID types.UID, containerName string, probeType pr
 }
 
 // Called by the worker after exiting.
-func (m *manager) removeWorker(podUID types.UID, containerName string, probeType probeType) {
+func (m *manager) removeWorker(podUID types.UID, containerName string, probeType ProbeType) {
 	m.workerLock.Lock()
 	defer m.workerLock.Unlock()
 	delete(m.workers, probeKey{podUID, containerName, probeType})
