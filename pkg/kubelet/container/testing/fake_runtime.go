@@ -65,6 +65,7 @@ type FakeRuntime struct {
 	RuntimeType         string
 	PodResizeInProgress bool
 	SyncResults         *kubecontainer.PodSyncResult
+	RuntimeHelper       kubecontainer.RuntimeHelper
 	Err                 error
 	InspectErr          error
 	StatusErr           error
@@ -259,21 +260,30 @@ func (f *FakeRuntime) GetPod(_ context.Context, podUID types.UID) (*kubecontaine
 	return nil, kubecontainer.ErrPodNotFound
 }
 
-func (f *FakeRuntime) SyncPod(_ context.Context, pod *v1.Pod, _ *kubecontainer.PodStatus, _ []v1.Secret, backOff *flowcontrol.Backoff, _ bool) (result kubecontainer.PodSyncResult) {
+func (f *FakeRuntime) SyncPod(ctx context.Context, pod *v1.Pod, _ *kubecontainer.PodStatus, _ []v1.Secret, backOff *flowcontrol.Backoff, _ bool) (result kubecontainer.PodSyncResult) {
 	f.Lock()
-	defer f.Unlock()
-
 	f.CalledFunctions = append(f.CalledFunctions, "SyncPod")
 	f.StartedPods = append(f.StartedPods, string(pod.UID))
 	for _, c := range pod.Spec.Containers {
 		f.StartedContainers = append(f.StartedContainers, c.Name)
 	}
-	if f.SyncResults != nil {
-		return *f.SyncResults
+	runtimeHelper := f.RuntimeHelper
+	syncResults := f.SyncResults
+	err := f.Err
+	f.Unlock()
+
+	if runtimeHelper != nil && pod != nil {
+		if err := runtimeHelper.WaitForAttachAndMount(ctx, pod); err != nil {
+			result.Fail(err)
+			return
+		}
+	}
+	if syncResults != nil {
+		return *syncResults
 	}
 	// TODO(random-liu): Add SyncResult for starting and killing containers
-	if f.Err != nil {
-		result.Fail(f.Err)
+	if err != nil {
+		result.Fail(err)
 	}
 	return
 }

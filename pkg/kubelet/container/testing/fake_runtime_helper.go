@@ -39,9 +39,10 @@ type FakeRuntimeHelper struct {
 	HostName        string
 	HostDomain      string
 	PodContainerDir string
-	RuntimeHandlers map[string]kubecontainer.RuntimeHandler
-	Err             error
-	PodStats        map[kubetypes.UID]*statsapi.PodStats
+	RuntimeHandlers   map[string]kubecontainer.RuntimeHandler
+	Err                      error
+	WaitForAttachAndMountErr error
+	PodStats                 map[kubetypes.UID]*statsapi.PodStats
 }
 
 func (f *FakeRuntimeHelper) GenerateRunContainerOptions(_ context.Context, pod *v1.Pod, container *v1.Container, podIP string, podIPs []string, imageVolumes kubecontainer.ImageVolumes) (*kubecontainer.RunContainerOptions, func(), error) {
@@ -137,6 +138,13 @@ func (f *FakeRuntimeHelper) PodCPUAndMemoryStats(_ context.Context, pod *v1.Pod,
 func (f *FakeRuntimeHelper) OnPodSandboxReady(_ context.Context, _ *v1.Pod) error {
 	// Not implemented
 	return nil
+}
+
+func (f *FakeRuntimeHelper) WaitForAttachAndMount(_ context.Context, _ *v1.Pod) error {
+	if f.WaitForAttachAndMountErr != nil {
+		return f.WaitForAttachAndMountErr
+	}
+	return f.Err
 }
 
 // ResizeEphemeralVolume is not implemented

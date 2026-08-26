@@ -25,6 +25,7 @@ import (
 	goruntime "runtime"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -6380,6 +6381,11 @@ type testRuntimeHelper struct {
 	captureStateFunc              func() // optional function to capture state when OnPodSandboxReady is called
 	prepareDynamicResourcesCalled bool
 	prepareDynamicResourcesError  error
+	waitForAttachAndMountCalled          bool
+	waitForAttachAndMountPod             *v1.Pod
+	waitForAttachAndMountCtx             context.Context
+	waitForAttachAndMountError           error
+	captureStateOnWaitForAttachAndMount  func()
 }
 
 func (t *testRuntimeHelper) OnPodSandboxReady(ctx context.Context, pod *v1.Pod) error {
@@ -6390,6 +6396,19 @@ func (t *testRuntimeHelper) OnPodSandboxReady(ctx context.Context, pod *v1.Pod) 
 		t.captureStateFunc()
 	}
 	return t.onPodSandboxReadyError
+}
+
+func (t *testRuntimeHelper) WaitForAttachAndMount(ctx context.Context, pod *v1.Pod) error {
+	t.waitForAttachAndMountCalled = true
+	t.waitForAttachAndMountPod = pod
+	t.waitForAttachAndMountCtx = ctx
+	if t.captureStateOnWaitForAttachAndMount != nil {
+		t.captureStateOnWaitForAttachAndMount()
+	}
+	if t.waitForAttachAndMountError != nil {
+		return t.waitForAttachAndMountError
+	}
+	return t.FakeRuntimeHelper.WaitForAttachAndMount(ctx, pod)
 }
 
 func (t *testRuntimeHelper) PrepareDynamicResources(ctx context.Context, pod *v1.Pod) error {
@@ -6606,3 +6625,243 @@ func TestOnPodSandboxReadyTiming(t *testing.T) {
 	assert.Len(t, fakeRuntime.Sandboxes, 1, "final sandbox count")
 	assert.Len(t, fakeRuntime.Containers, 1, "final container count")
 }
+
+func TestWaitForAttachAndMountTiming_Success(t *testing.T) {
+	tCtx := ktesting.Init(t)
+	fakeRuntime, _, m, err := createTestRuntimeManager(tCtx)
+	require.NoError(t, err)
+
+	var sandboxCountAtVolWait int
+	var containerCountAtVolWait int
+	var volWaitCalledBeforeOnSandboxReady bool
+
+	testHelper := &testRuntimeHelper{
+		FakeRuntimeHelper: &containertest.FakeRuntimeHelper{},
+		captureStateOnWaitForAttachAndMount: func() {
+			sandboxCountAtVolWait = len(fakeRuntime.Sandboxes)
+			containerCountAtVolWait = len(fakeRuntime.Containers)
+		},
+		captureStateFunc: func() {
+			volWaitCalledBeforeOnSandboxReady = true
+		},
+	}
+	m.runtimeHelper = testHelper
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "vol-timing-test-pod",
+			Name:      "vol-timing-test",
+			Namespace: "default",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:            "test-container",
+					Image:           "busybox",
+					ImagePullPolicy: v1.PullIfNotPresent,
+				},
+			},
+		},
+	}
+
+	backOff := flowcontrol.NewBackOff(time.Second, time.Minute)
+	result := m.SyncPod(tCtx, pod, &kubecontainer.PodStatus{}, []v1.Secret{}, backOff, false)
+	require.NoError(t, result.Error())
+
+	assert.True(t, testHelper.waitForAttachAndMountCalled, "WaitForAttachAndMount must be called")
+	assert.Equal(t, 1, sandboxCountAtVolWait, "sandbox must exist when WaitForAttachAndMount is invoked")
+	assert.Equal(t, 0, containerCountAtVolWait, "containers must not exist yet when WaitForAttachAndMount is invoked")
+	assert.True(t, volWaitCalledBeforeOnSandboxReady, "WaitForAttachAndMount must complete before OnPodSandboxReady")
+	assert.True(t, testHelper.onPodSandboxReadyCalled, "OnPodSandboxReady must be called after WaitForAttachAndMount")
+
+	assert.Len(t, fakeRuntime.Sandboxes, 1, "final sandbox count")
+	assert.Len(t, fakeRuntime.Containers, 1, "final container count")
+}
+
+func TestWaitForAttachAndMountFailure_NewSandbox(t *testing.T) {
+	tCtx := ktesting.Init(t)
+	fakeRuntime, _, m, err := createTestRuntimeManager(tCtx)
+	require.NoError(t, err)
+
+	testHelper := &testRuntimeHelper{
+		FakeRuntimeHelper:          &containertest.FakeRuntimeHelper{},
+		waitForAttachAndMountError: errors.New("volume mount timed out"),
+	}
+	m.runtimeHelper = testHelper
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "vol-fail-test-pod",
+			Name:      "vol-fail-test",
+			Namespace: "default",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:            "test-container",
+					Image:           "busybox",
+					ImagePullPolicy: v1.PullIfNotPresent,
+				},
+			},
+		},
+	}
+
+	backOff := flowcontrol.NewBackOff(time.Second, time.Minute)
+	result := m.SyncPod(tCtx, pod, &kubecontainer.PodStatus{}, []v1.Secret{}, backOff, false)
+	require.Error(t, result.Error())
+	assert.Contains(t, result.Error().Error(), "volume mount timed out")
+
+	assert.True(t, testHelper.waitForAttachAndMountCalled, "WaitForAttachAndMount must be called")
+	assert.False(t, testHelper.onPodSandboxReadyCalled, "OnPodSandboxReady must NOT be called if WaitForAttachAndMount fails")
+	assert.Empty(t, fakeRuntime.Containers, "no containers must be created when WaitForAttachAndMount fails")
+}
+
+func TestWaitForAttachAndMountFailure_ExistingSandbox(t *testing.T) {
+	tCtx := ktesting.Init(t)
+	fakeRuntime, _, m, err := createTestRuntimeManager(tCtx)
+	require.NoError(t, err)
+
+	testHelper := &testRuntimeHelper{
+		FakeRuntimeHelper:          &containertest.FakeRuntimeHelper{},
+		waitForAttachAndMountError: errors.New("volume remount failed"),
+	}
+	m.runtimeHelper = testHelper
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "vol-fail-existing-sb-pod",
+			Name:      "vol-fail-existing-sb",
+			Namespace: "default",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:            "test-container",
+					Image:           "busybox",
+					ImagePullPolicy: v1.PullIfNotPresent,
+				},
+			},
+		},
+	}
+
+	// Create fake sandbox so CreateSandbox is false
+	makeAndSetFakePod(tCtx, m, fakeRuntime, pod)
+	fakeRuntime.Containers = nil // reset containers to simulate starting container in existing sandbox
+
+	podStatus, err := m.GetPodStatus(tCtx, &kubecontainer.Pod{ID: pod.UID, Name: pod.Name, Namespace: pod.Namespace})
+	require.NoError(t, err)
+
+	backOff := flowcontrol.NewBackOff(time.Second, time.Minute)
+	result := m.SyncPod(tCtx, pod, podStatus, []v1.Secret{}, backOff, false)
+	require.Error(t, result.Error())
+	assert.Contains(t, result.Error().Error(), "volume remount failed")
+
+	assert.True(t, testHelper.waitForAttachAndMountCalled, "WaitForAttachAndMount must be called for existing sandbox")
+	assert.Empty(t, fakeRuntime.Containers, "no new containers must be created when WaitForAttachAndMount fails")
+}
+
+type concurrentTestRuntimeHelper struct {
+	containertest.FakeRuntimeHelper
+	lock           sync.Mutex
+	calls          map[types.UID]int
+	failingPodUIDs map[types.UID]error
+	onSandboxCalls map[types.UID]int
+}
+
+func (c *concurrentTestRuntimeHelper) WaitForAttachAndMount(ctx context.Context, pod *v1.Pod) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.calls == nil {
+		c.calls = make(map[types.UID]int)
+	}
+	c.calls[pod.UID]++
+	if err, ok := c.failingPodUIDs[pod.UID]; ok {
+		return err
+	}
+	return nil
+}
+
+func (c *concurrentTestRuntimeHelper) OnPodSandboxReady(ctx context.Context, pod *v1.Pod) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.onSandboxCalls == nil {
+		c.onSandboxCalls = make(map[types.UID]int)
+	}
+	c.onSandboxCalls[pod.UID]++
+	return nil
+}
+
+func TestWaitForAttachAndMount_ConcurrentSyncPod(t *testing.T) {
+	tCtx := ktesting.Init(t)
+	_, _, m, err := createTestRuntimeManager(tCtx)
+	require.NoError(t, err)
+
+	helper := &concurrentTestRuntimeHelper{
+		failingPodUIDs: map[types.UID]error{
+			"fail-pod-1": errors.New("volume mount failed for fail-pod-1"),
+			"fail-pod-2": errors.New("volume mount failed for fail-pod-2"),
+		},
+	}
+	m.runtimeHelper = helper
+
+	numPods := 20
+	pods := make([]*v1.Pod, numPods)
+	for i := 0; i < numPods; i++ {
+		uid := types.UID(fmt.Sprintf("concurrent-pod-%d", i))
+		if i == 5 {
+			uid = "fail-pod-1"
+		} else if i == 15 {
+			uid = "fail-pod-2"
+		}
+		pods[i] = &v1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				UID:       uid,
+				Name:      fmt.Sprintf("concurrent-pod-%d", i),
+				Namespace: "default",
+			},
+			Spec: v1.PodSpec{
+				Containers: []v1.Container{
+					{
+						Name:            fmt.Sprintf("container-%d", i),
+						Image:           "busybox",
+						ImagePullPolicy: v1.PullIfNotPresent,
+					},
+				},
+			},
+		}
+	}
+
+	var wg sync.WaitGroup
+	results := make([]kubecontainer.PodSyncResult, numPods)
+	for i := 0; i < numPods; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			backOff := flowcontrol.NewBackOff(time.Second, time.Minute)
+			results[idx] = m.SyncPod(tCtx, pods[idx], &kubecontainer.PodStatus{}, []v1.Secret{}, backOff, false)
+		}(i)
+	}
+
+	wg.Wait()
+
+	// Verify results
+	for i := 0; i < numPods; i++ {
+		if i == 5 || i == 15 {
+			assert.Error(t, results[i].Error(), "pod %d should fail", i)
+		} else {
+			assert.NoError(t, results[i].Error(), "pod %d should succeed", i)
+		}
+	}
+
+	helper.lock.Lock()
+	defer helper.lock.Unlock()
+	for i := 0; i < numPods; i++ {
+		assert.Equal(t, 1, helper.calls[pods[i].UID], "WaitForAttachAndMount should be called exactly once for pod %d", i)
+		if i == 5 || i == 15 {
+			assert.Equal(t, 0, helper.onSandboxCalls[pods[i].UID], "OnPodSandboxReady must NOT be called for failed pod %d", i)
+		} else {
+			assert.Equal(t, 1, helper.onSandboxCalls[pods[i].UID], "OnPodSandboxReady must be called for successful pod %d", i)
+		}
+	}
+}
+

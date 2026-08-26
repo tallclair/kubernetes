@@ -1771,14 +1771,29 @@ func (m *kubeGenericRuntimeManager) SyncPod(ctx context.Context, pod *v1.Pod, po
 			logger.V(4).Info("Determined the ip for pod after sandbox changed", "IPs", podIPs, "pod", klog.KObj(pod))
 		}
 
+		// Wait for volumes to be attached and mounted before invoking sandbox ready callback and starting containers.
+		if err := m.runtimeHelper.WaitForAttachAndMount(ctx, pod); err != nil {
+			result.Fail(err)
+			logger.Error(err, "WaitForAttachAndMount for pod failed", "pod", klog.KObj(pod))
+			return
+		}
+
 		// Step 5: invoke the sandbox ready callback before image pulling .
 		// At this point, dynamic resources are prepared (at PrepareDynamicResources() call above)
-		// and volumes are already mounted (at the kubelet SyncPod() level), so,
+		// and volumes are already mounted, so,
 		// all requirements (sandbox, networking, volumes) are met to set `PodReadyToStartContainers=True` condition.
 		logger.V(4).Info("Pod sandbox and network ready, invoking callback", "pod", klog.KObj(pod), "podIPs", podIPs)
 		if err := m.runtimeHelper.OnPodSandboxReady(ctx, pod); err != nil {
 			// log the error but continue the pod creation process, to retain the existing behaviour
 			logger.Error(err, "Failed to invoke sandbox ready callback, continuing with pod creation", "pod", klog.KObj(pod))
+		}
+	}
+
+	if !podContainerChanges.CreateSandbox {
+		if err := m.runtimeHelper.WaitForAttachAndMount(ctx, pod); err != nil {
+			result.Fail(err)
+			logger.Error(err, "WaitForAttachAndMount for pod failed", "pod", klog.KObj(pod))
+			return
 		}
 	}
 

@@ -66,6 +66,7 @@ import (
 	"k8s.io/kubernetes/test/utils/ktesting"
 	netutils "k8s.io/utils/net"
 	"k8s.io/utils/ptr"
+	"k8s.io/kubernetes/pkg/kubelet/volumemanager"
 )
 
 var containerRestartPolicyAlways = v1.ContainerRestartPolicyAlways
@@ -9311,4 +9312,149 @@ func TestMakemountsSubpathCleanupAccumulation(t *testing.T) {
 				"expected cleaned subpaths %v but got %v", tc.expectedCleanedSubPaths, tracker.cleanedSubPaths)
 		})
 	}
+}
+
+type trackingTestVolumeManager struct {
+	volumemanager.FakeVolumeManager
+	ingestedPods []*v1.Pod
+	waitErr      error
+}
+
+func (t *trackingTestVolumeManager) IngestPodVolumes(ctx context.Context, pod *v1.Pod) {
+	t.ingestedPods = append(t.ingestedPods, pod)
+}
+
+func (t *trackingTestVolumeManager) WaitForAttachAndMount(ctx context.Context, pod *v1.Pod) error {
+	return t.waitErr
+}
+
+func TestHandlePodAdditions_IngestsPodVolumes(t *testing.T) {
+	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
+	defer testKubelet.Cleanup()
+	kl := testKubelet.kubelet
+
+	trackingVM := &trackingTestVolumeManager{}
+	kl.volumeManager = trackingVM
+
+	kl.nodeLister = testNodeLister{
+		nodes: []*v1.Node{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: string(kl.nodeName),
+				},
+				Status: v1.NodeStatus{
+					Capacity: v1.ResourceList{
+						v1.ResourcePods: *resource.NewQuantity(100, resource.DecimalSI),
+					},
+					Allocatable: v1.ResourceList{
+						v1.ResourcePods: *resource.NewQuantity(100, resource.DecimalSI),
+					},
+				},
+			},
+		},
+	}
+
+	pod1 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "pod-additions-uid-1",
+			Name:      "pod-1",
+			Namespace: "test-ns",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "c1",
+					Image: "test-image",
+				},
+			},
+		},
+	}
+
+	pod2 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "pod-additions-uid-2",
+			Name:      "pod-2",
+			Namespace: "test-ns",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "c2",
+					Image: "test-image",
+				},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	kl.HandlePodAdditions(ctx, []*v1.Pod{pod1, pod2})
+
+	require.Len(t, trackingVM.ingestedPods, 2, "Expected 2 pods to be ingested via VolumeManager.IngestPodVolumes")
+	assert.Equal(t, pod1.UID, trackingVM.ingestedPods[0].UID)
+	assert.Equal(t, pod2.UID, trackingVM.ingestedPods[1].UID)
+}
+
+func TestKubelet_WaitForAttachAndMount_Success(t *testing.T) {
+	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
+	defer testKubelet.Cleanup()
+	kl := testKubelet.kubelet
+
+	trackingVM := &trackingTestVolumeManager{}
+	kl.volumeManager = trackingVM
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "pod-vol-wait-uid",
+			Name:      "pod-vol-wait",
+			Namespace: "test-ns",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "c1",
+					Image: "test-image",
+				},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	err := kl.WaitForAttachAndMount(ctx, pod)
+	require.NoError(t, err, "WaitForAttachAndMount should succeed when volume manager returns no error")
+}
+
+func TestKubelet_WaitForAttachAndMount_AttachLimitExceeded(t *testing.T) {
+	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
+	defer testKubelet.Cleanup()
+	kl := testKubelet.kubelet
+
+	trackingVM := &trackingTestVolumeManager{
+		waitErr: &volumemanager.VolumeAttachLimitExceededError{
+			UnmountedVolumes: []string{"vol-1"},
+		},
+	}
+	kl.volumeManager = trackingVM
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			UID:       "pod-vol-limit-uid",
+			Name:      "pod-vol-limit",
+			Namespace: "test-ns",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "c1",
+					Image: "test-image",
+				},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	err := kl.WaitForAttachAndMount(ctx, pod)
+	require.Error(t, err, "WaitForAttachAndMount should return error on VolumeAttachLimitExceededError")
+
+	var attachLimitErr *volumemanager.VolumeAttachLimitExceededError
+	assert.True(t, errors.As(err, &attachLimitErr), "Error should be VolumeAttachLimitExceededError")
 }

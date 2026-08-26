@@ -81,6 +81,9 @@ type RuntimeHelper interface {
 	// This is used to update the PodReadyToStartContainers condition.
 	OnPodSandboxReady(ctx context.Context, pod *v1.Pod) error
 
+	// WaitForAttachAndMount waits for pod volumes to attach and mount.
+	WaitForAttachAndMount(ctx context.Context, pod *v1.Pod) error
+
 	// ResizeEphemeralVolume directly triggers a resize of the specified volume.
 	ResizeEphemeralVolume(pod *v1.Pod, volumeName string, newSize *resource.Quantity) error
 }

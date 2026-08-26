@@ -315,6 +315,7 @@ func newTestKubeletWithImageList(
 	kubelet.podCertificateManager = &podcertificate.NoOpManager{}
 
 	kubelet.containerRuntime = fakeRuntime
+	fakeRuntime.RuntimeHelper = kubelet
 	kubelet.runtimeCache = containertest.NewFakeRuntimeCache(kubelet.containerRuntime)
 	kubelet.reasonCache = NewReasonCache()
 	podCache := containertest.NewFakeCache(kubelet.containerRuntime)
