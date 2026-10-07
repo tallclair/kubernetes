@@ -56,6 +56,14 @@ var (
 					{Choice: true, Weight: 25},
 				},
 			},
+			CachedObject: []ChoiceWeight[bool]{
+				{Choice: false, Weight: 75},
+				{Choice: true, Weight: 25},
+			},
+			ValidateDeletion: []ChoiceWeight[bool]{
+				{Choice: false, Weight: 75},
+				{Choice: true, Weight: 25},
+			},
 		},
 		Get: GetDistribution{
 			IgnoreNotFound: []ChoiceWeight[bool]{
@@ -157,6 +165,10 @@ var (
 			{Choice: false, Weight: 70},
 			{Choice: true, Weight: 30},
 		},
+		AllowWatchBookmarks: []ChoiceWeight[bool]{
+			{Choice: false, Weight: 50},
+			{Choice: true, Weight: 50},
+		},
 		ResourceVersion: []ChoiceWeight[RVType]{
 			{Choice: RVEmpty, Weight: 15},
 			{Choice: RVZero, Weight: 15},
@@ -165,11 +177,19 @@ var (
 			{Choice: RVPast, Weight: 20},
 			{Choice: RVFuture, Weight: 20},
 		},
+		WatcherBehavior: []ChoiceWeight[WatcherBehavior]{
+			{Choice: WatcherFast, Weight: 40},
+			{Choice: WatcherSlow, Weight: 20},
+			{Choice: WatcherHiccup, Weight: 25},
+			{Choice: WatcherStalled, Weight: 15},
+		},
 	}
 
 	watchCfg = WatchConfig{
 		Concurrency:         4,
 		Duration:            500 * time.Millisecond,
+		SlowDelay:           2 * time.Millisecond,
+		HiccupDuration:      50 * time.Millisecond,
 		MaxEvents:           50,
 		RequestDistribution: watchRequestDistribution,
 	}

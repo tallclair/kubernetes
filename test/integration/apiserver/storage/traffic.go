@@ -80,6 +80,15 @@ const (
 	LabelByApp      LabelSelector = "ByApp"
 )
 
+type WatcherBehavior string
+
+const (
+	WatcherFast    WatcherBehavior = "Fast"
+	WatcherSlow    WatcherBehavior = "Slow"
+	WatcherHiccup  WatcherBehavior = "Hiccup"
+	WatcherStalled WatcherBehavior = "Stalled"
+)
+
 var (
 	watchNamespaces = []string{"ns-1", "ns-2"}
 	watchPodNames   = []string{"pod-1", "pod-2"}
@@ -87,6 +96,8 @@ var (
 	nonEmptyNodes   = []string{"node-1", "node-2"}
 	appLabels       = []string{"", "app-a", "app-b"}
 	nonEmptyApps    = []string{"app-a", "app-b"}
+
+	errDeleteRejected = errors.New("delete rejected by validateDeletion")
 )
 
 type RequestDistribution struct {
@@ -118,7 +129,9 @@ type UpdateDistribution struct {
 }
 
 type DeleteDistribution struct {
-	Preconditions PreconditionsDistribution
+	Preconditions    PreconditionsDistribution
+	CachedObject     []ChoiceWeight[bool]
+	ValidateDeletion []ChoiceWeight[bool]
 }
 
 type PreconditionsDistribution struct {
@@ -127,11 +140,13 @@ type PreconditionsDistribution struct {
 }
 
 type WatchDistribution struct {
-	Scope             []ChoiceWeight[KeyScope]
-	FieldSelector     []ChoiceWeight[FieldSelector]
-	LabelSelector     []ChoiceWeight[LabelSelector]
-	SendInitialEvents []ChoiceWeight[bool]
-	ResourceVersion   []ChoiceWeight[RVType]
+	Scope               []ChoiceWeight[KeyScope]
+	FieldSelector       []ChoiceWeight[FieldSelector]
+	LabelSelector       []ChoiceWeight[LabelSelector]
+	SendInitialEvents   []ChoiceWeight[bool]
+	AllowWatchBookmarks []ChoiceWeight[bool]
+	ResourceVersion     []ChoiceWeight[RVType]
+	WatcherBehavior     []ChoiceWeight[WatcherBehavior]
 }
 
 type UnaryConfig struct {
@@ -145,6 +160,8 @@ type UnaryConfig struct {
 type WatchConfig struct {
 	Concurrency         int
 	Duration            time.Duration
+	SlowDelay           time.Duration
+	HiccupDuration      time.Duration
 	MaxEvents           int
 	RequestDistribution WatchDistribution
 }
@@ -253,7 +270,11 @@ func RunWatchTraffic(ctx context.Context, store storage.Interface, cfg WatchConf
 				default:
 				}
 				request := randomWatchRequest(ctx, store, cfg.RequestDistribution)
-				response := runWatch(ctx, store, request, cfg)
+				mode := WatcherFast
+				if len(cfg.RequestDistribution.WatcherBehavior) > 0 {
+					mode = PickRandom(cfg.RequestDistribution.WatcherBehavior)
+				}
+				response := runWatch(ctx, store, request, mode, cfg)
 
 				mu.Lock()
 				watches = append(watches, correctness.WatchOperation{Request: request, Response: response})
@@ -284,11 +305,31 @@ func randomRequest(ctx context.Context, store storage.Interface, keys []types.Na
 		if !ok {
 			return nil
 		}
+		useCached := PickRandom(dist.Delete.CachedObject)
+		if useCached && cached == nil {
+			return nil
+		}
+		var cachedExisting runtime.Object
+		if useCached {
+			cachedExisting = cached.DeepCopyObject()
+		}
+		var validateDeletion storage.ValidateObjectFunc
+		if PickRandom(dist.Delete.ValidateDeletion) {
+			rejectedNode := nodeNames[rand.Intn(len(nodeNames))]
+			validateDeletion = func(ctx context.Context, obj runtime.Object) error {
+				if obj.(*api.Pod).Spec.NodeName == rejectedNode {
+					return errDeleteRejected
+				}
+				return nil
+			}
+		}
 		return &correctness.Request{
 			Op:  correctness.OpDelete,
 			Key: storageKey(key),
 			Delete: correctness.DeleteRequest{
-				Preconditions: preconditions,
+				Preconditions:        preconditions,
+				ValidateDeletion:     validateDeletion,
+				CachedExistingObject: cachedExisting,
 			},
 		}
 	case correctness.OpGet:
@@ -464,7 +505,11 @@ func runTraffic(ctx context.Context, store storage.Interface, request *correctne
 	case correctness.OpCreate:
 		err = store.Create(ctx, key, request.Create.Object, out, 0)
 	case correctness.OpDelete:
-		err = store.Delete(ctx, key, out, request.Delete.Preconditions, storage.ValidateAllObjectFunc, nil, storage.DeleteOptions{})
+		validateDeletion := request.Delete.ValidateDeletion
+		if validateDeletion == nil {
+			validateDeletion = storage.ValidateAllObjectFunc
+		}
+		err = store.Delete(ctx, key, out, request.Delete.Preconditions, validateDeletion, request.Delete.CachedExistingObject, storage.DeleteOptions{})
 	case correctness.OpGet:
 		err = store.Get(ctx, key, request.Get.Options, out)
 	case correctness.OpList:
@@ -476,7 +521,7 @@ func runTraffic(ctx context.Context, store storage.Interface, request *correctne
 		panic(fmt.Sprintf("%v: unknown operation", request.Op))
 	}
 	if err != nil {
-		if _, ok := errors.AsType[*storage.StorageError](err); ok || storage.IsTooLargeResourceVersion(err) {
+		if _, ok := errors.AsType[*storage.StorageError](err); ok || storage.IsTooLargeResourceVersion(err) || errors.Is(err, errDeleteRejected) {
 			return correctness.Response{
 				Err: err,
 			}
@@ -532,6 +577,9 @@ func randomWatchRequest(ctx context.Context, store storage.Interface, distributi
 	}
 
 	pred := pickPredicate(distribution.FieldSelector, distribution.LabelSelector)
+	if len(distribution.AllowWatchBookmarks) > 0 {
+		pred.AllowWatchBookmarks = PickRandom(distribution.AllowWatchBookmarks)
+	}
 
 	opts := storage.ListOptions{ResourceVersion: rv, Predicate: pred, Recursive: recursive}
 	switch {
@@ -609,7 +657,7 @@ func relativeRV(ctx context.Context, store storage.Interface, offset int64) stri
 	return strconv.FormatInt(max(int64(currentRV)+offset, 1), 10)
 }
 
-func runWatch(ctx context.Context, store storage.Interface, req correctness.WatchRequest, cfg WatchConfig) correctness.WatchResponse {
+func runWatch(ctx context.Context, store storage.Interface, req correctness.WatchRequest, mode WatcherBehavior, cfg WatchConfig) correctness.WatchResponse {
 	watchCtx := ctx
 	switch parts := strings.Split(strings.Trim(req.Key, "/"), "/"); len(parts) {
 	case 2:
@@ -631,8 +679,42 @@ func runWatch(ctx context.Context, store storage.Interface, req correctness.Watc
 	timer := time.NewTimer(cfg.Duration)
 	defer timer.Stop()
 
+	if mode == WatcherStalled {
+		stalledTimer := timer.C
+		if cfg.HiccupDuration > 0 {
+			stalledTimer = time.After(cfg.HiccupDuration)
+		}
+		select {
+		case <-ctx.Done():
+			return correctness.WatchResponse{Err: ctx.Err()}
+		case <-stalledTimer:
+			return correctness.WatchResponse{}
+		}
+	}
+
+	initialEventsDone := req.Options.SendInitialEvents == nil || !*req.Options.SendInitialEvents
+	hiccupDone := mode != WatcherHiccup
 	var events []watch.Event
 	for {
+		if initialEventsDone {
+			var delay time.Duration
+			switch {
+			case !hiccupDone && len(events) > 0:
+				delay = cfg.HiccupDuration
+				hiccupDone = true
+			case mode == WatcherSlow:
+				delay = cfg.SlowDelay
+			}
+			if delay > 0 {
+				select {
+				case <-ctx.Done():
+					return correctness.WatchResponse{Events: events, Err: ctx.Err()}
+				case <-timer.C:
+					return correctness.WatchResponse{Events: events}
+				case <-time.After(delay):
+				}
+			}
+		}
 		select {
 		case <-ctx.Done():
 			return correctness.WatchResponse{Events: events, Err: ctx.Err()}
@@ -646,6 +728,9 @@ func runWatch(ctx context.Context, store storage.Interface, req correctness.Watc
 				event.Object = cacheable.GetObject()
 			}
 			events = append(events, event)
+			if event.Type == watch.Bookmark {
+				initialEventsDone = true
+			}
 			if event.Type == watch.Error {
 				_, open := <-w.ResultChan()
 				if open {

@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -73,22 +74,24 @@ func NewEmptyModel(prefix string, newFunc, newListFunc func() runtime.Object, ve
 
 // Model is a state machine that mimics kubernetes storage behavior. Used for Linarizability testing of storage.
 type Model struct {
-	Items           map[string]runtime.Object
-	ResourceVersion uint64
-	Prefix          string
-	Versioner       storage.Versioner
-	NewFunc         func() runtime.Object
-	NewListFunc     func() runtime.Object
+	Items                  map[string]runtime.Object
+	ResourceVersion        uint64
+	CompactResourceVersion uint64
+	Prefix                 string
+	Versioner              storage.Versioner
+	NewFunc                func() runtime.Object
+	NewListFunc            func() runtime.Object
 }
 
 func (s *Model) Clone() *Model {
 	clone := &Model{
-		Items:           make(map[string]runtime.Object, len(s.Items)),
-		ResourceVersion: s.ResourceVersion,
-		Prefix:          s.Prefix,
-		NewFunc:         s.NewFunc,
-		NewListFunc:     s.NewListFunc,
-		Versioner:       s.Versioner,
+		Items:                  make(map[string]runtime.Object, len(s.Items)),
+		ResourceVersion:        s.ResourceVersion,
+		CompactResourceVersion: s.CompactResourceVersion,
+		Prefix:                 s.Prefix,
+		NewFunc:                s.NewFunc,
+		NewListFunc:            s.NewListFunc,
+		Versioner:              s.Versioner,
 	}
 	for k, v := range s.Items {
 		if v != nil {
@@ -99,7 +102,7 @@ func (s *Model) Clone() *Model {
 }
 
 func (s *Model) Equal(other *Model) bool {
-	return s.ResourceVersion == other.ResourceVersion && s.Prefix == other.Prefix && reflect.DeepEqual(s.Items, other.Items)
+	return s.ResourceVersion == other.ResourceVersion && s.CompactResourceVersion == other.CompactResourceVersion && s.Prefix == other.Prefix && reflect.DeepEqual(s.Items, other.Items)
 }
 
 // Step applies an operation to the sequential state machine. change is the
@@ -129,7 +132,7 @@ func (s *Model) execute(input Request) (Response, *Model, *Change) {
 		return resp, next, change
 	case OpDelete:
 		next := s.Clone()
-		resp, change := next.delete(context.Background(), input.Key, input.Delete.Preconditions, nil)
+		resp, change := next.delete(context.Background(), input.Key, input.Delete.Preconditions, input.Delete.ValidateDeletion)
 		return resp, next, change
 	case OpGet:
 		return s.get(input.Key, input.Get.Options), s, nil
@@ -139,6 +142,9 @@ func (s *Model) execute(input Request) (Response, *Model, *Change) {
 		next := s.Clone()
 		resp, change := next.update(context.Background(), input.Key, input.Update.IgnoreNotFound, input.Update.Preconditions, input.Update.UpdateFunc, input.Update.CachedExistingObject)
 		return resp, next, change
+	case OpCompact:
+		next := s.Clone()
+		return next.compact(input.Compact.ResourceVersion), next, nil
 	default:
 		panic(fmt.Sprintf("unknown operation %q", input.Op))
 	}
@@ -187,11 +193,10 @@ func (s *Model) validateList(opts storage.ListOptions, expected, output Response
 			return reflect.DeepEqual(expected, output)
 		}
 	}
-	consistency, err := ListReadConsistency(opts)
+	consistency, reqRV, _, err := ListReadConsistency("", s.Versioner, opts)
 	if err != nil {
 		return false
 	}
-	reqRV, _ := s.Versioner.ParseResourceVersion(opts.ResourceVersion)
 	switch consistency {
 	case ConsistencyConsistent:
 		return reflect.DeepEqual(expected, output)
@@ -202,7 +207,7 @@ func (s *Model) validateList(opts storage.ListOptions, expected, output Response
 	case ConsistencyNotOlderThan:
 		// Model only validates consistent reads, for stale reads we just validate RV and contents are validated later during replay.
 		respRV, ok := s.listResponseRV(output)
-		return ok && respRV >= reqRV && respRV <= s.ResourceVersion
+		return ok && respRV >= max(reqRV, s.CompactResourceVersion) && respRV <= s.ResourceVersion
 	default:
 		return false
 	}
@@ -333,7 +338,8 @@ func (s *Model) list(key string, opts storage.ListOptions) Response {
 	if err := checkKey(key, opts.Recursive); err != nil {
 		return Response{Err: err}
 	}
-	if _, _, err := storage.ValidateListOptions("", s.Versioner, opts); err != nil {
+	consistency, rv, _, err := ListReadConsistency("", s.Versioner, opts)
+	if err != nil {
 		return Response{Err: err}
 	}
 	if opts.Predicate.Label == nil || opts.Predicate.Field == nil {
@@ -349,12 +355,11 @@ func (s *Model) list(key string, opts storage.ListOptions) Response {
 	if opts.RecordTimestamps {
 		panic("recordTimestamps is not supported, it wraps objects in storage-internal types")
 	}
-	rv, err := s.Versioner.ParseResourceVersion(opts.ResourceVersion)
-	if err != nil {
-		return Response{Err: err}
-	}
 	if rv > s.ResourceVersion {
 		return Response{Err: storage.NewTooLargeResourceVersionError(rv, s.ResourceVersion, 0)}
+	}
+	if consistency == ConsistencyExact && rv < s.CompactResourceVersion {
+		return Response{Err: apierrors.NewResourceExpired("The resourceVersion for the provided list is too old.")}
 	}
 	items, err := s.listItems(key, opts)
 	if err != nil {
@@ -368,6 +373,22 @@ func (s *Model) list(key string, opts storage.ListOptions) Response {
 		return Response{Object: nil, Err: err}
 	}
 	return Response{Object: list, Err: nil}
+}
+
+func (s *Model) compact(rvStr string) Response {
+	rv, err := s.Versioner.ParseResourceVersion(rvStr)
+	if err != nil {
+		return Response{Err: err}
+	}
+	if rv == 0 {
+		return Response{}
+	}
+	if rv > s.ResourceVersion {
+		return Response{Err: storage.NewTooLargeResourceVersionError(rv, s.ResourceVersion, 0)}
+	}
+	s.ResourceVersion++
+	s.CompactResourceVersion = max(s.CompactResourceVersion, rv)
+	return Response{}
 }
 
 func (s *Model) listItems(key string, opts storage.ListOptions) ([]runtime.Object, error) {
@@ -429,7 +450,7 @@ func (s *Model) delete(ctx context.Context, key string, preconditions *storage.P
 		return Response{Object: nil, Err: err}, nil
 	}
 	if validateDeletion != nil && stored != nil {
-		if err := validateDeletion(ctx, stored); err != nil {
+		if err := validateDeletion(ctx, stored.DeepCopyObject()); err != nil {
 			return Response{Object: nil, Err: err}, nil
 		}
 	}
@@ -453,6 +474,9 @@ func (s *Model) Describe() string {
 		} else {
 			items = append(items, fmt.Sprintf("<p>%s: %s, RV:%s</p>", key, accessor.GetUID(), accessor.GetResourceVersion()))
 		}
+	}
+	if s.CompactResourceVersion > 0 {
+		return fmt.Sprintf("RV: %d, CompactRV: %d, Items: %s", s.ResourceVersion, s.CompactResourceVersion, strings.Join(items, ""))
 	}
 	return fmt.Sprintf("RV: %d, Items: %s", s.ResourceVersion, strings.Join(items, ""))
 }
