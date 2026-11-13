@@ -26,6 +26,7 @@ import (
 	fwk "k8s.io/kube-scheduler/framework"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 	"k8s.io/kubernetes/pkg/scheduler/framework"
+	"k8s.io/kubernetes/pkg/scheduler/util"
 )
 
 // ResourceRequestsOptions contains feature gate flags for resource request computation.
@@ -225,17 +226,17 @@ func FitsRequest(podRequest *framework.Resource, nodeInfo fwk.NodeInfo, ignoredE
 }
 
 func isPodResizeOnNode(opts ResourceRequestsOptions, nodeInfo fwk.NodeInfo, pod *v1.Pod) bool {
-	return opts.EnableInPlacePodVerticalScalingSchedulerPreemption && pod != nil && len(pod.Spec.NodeName) > 0 && nodeInfo.Node() != nil && pod.Spec.NodeName == nodeInfo.Node().Name && resource.IsPodResizeDeferred(pod)
+	return opts.EnableInPlacePodVerticalScalingSchedulerPreemption && pod != nil && len(pod.Spec.NodeName) > 0 && nodeInfo.Node() != nil && pod.Spec.NodeName == nodeInfo.Node().Name && util.IsPodResizePreemptable(pod)
 }
 
-// effectiveRequestedForResize returns nodeInfo.GetRequested() with other deferred resize pods on
+// effectiveRequestedForResize returns nodeInfo.GetRequested() with other pending resize pods on
 // the node counted at max(allocated, actual) rather than max(desired, allocated, actual), matching
 // Kubelet's resize admission calculation. The evaluated pod itself stays at max(desired, allocated, actual).
 func effectiveRequestedForResize(nodeInfo fwk.NodeInfo, pod *v1.Pod) fwk.Resource {
 	var adjusted *framework.Resource
 	for _, pi := range nodeInfo.GetPods() {
 		other := pi.GetPod()
-		if other.UID == pod.UID || !resource.IsPodResizeDeferred(other) {
+		if other.UID == pod.UID || !resource.IsPodAllocationPending(other) {
 			continue
 		}
 		if adjusted == nil {

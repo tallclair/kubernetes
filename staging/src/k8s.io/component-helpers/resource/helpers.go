@@ -372,14 +372,33 @@ func AggregateContainerRequests(pod *v1.Pod, opts PodResourcesOptions) v1.Resour
 	return reqs
 }
 
-// IsPodResizeInfeasible returns true if the pod condition PodResizePending is set to infeasible.
-func IsPodResizeInfeasible(pod *v1.Pod) bool {
-	for _, condition := range pod.Status.Conditions {
-		if condition.Type == v1.PodResizePending {
-			return condition.Reason == v1.PodReasonInfeasible
+// allocationPendingCondition returns the PodAllocationPending condition, or PodResizePending if absent.
+func allocationPendingCondition(pod *v1.Pod) *v1.PodCondition {
+	var resizePending *v1.PodCondition
+	for i := range pod.Status.Conditions {
+		switch pod.Status.Conditions[i].Type {
+		case v1.PodAllocationPending:
+			return &pod.Status.Conditions[i]
+		case v1.PodResizePending:
+			if resizePending == nil {
+				resizePending = &pod.Status.Conditions[i]
+			}
 		}
 	}
-	return false
+	return resizePending
+}
+
+// IsPodAllocationPending returns true if the pod has a pending allocation condition
+// (PodAllocationPending or PodResizePending).
+func IsPodAllocationPending(pod *v1.Pod) bool {
+	return allocationPendingCondition(pod) != nil
+}
+
+// IsPodResizeInfeasible returns true if the pod's pending allocation condition (PodAllocationPending,
+// or PodResizePending if absent) has the Infeasible reason.
+func IsPodResizeInfeasible(pod *v1.Pod) bool {
+	c := allocationPendingCondition(pod)
+	return c != nil && c.Reason == v1.PodReasonInfeasible
 }
 
 // IsPodResizeDeferred returns true if the pod condition PodResizePending is set to deferred.
